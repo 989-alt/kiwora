@@ -26,7 +26,14 @@ export type SaveData = {
   settings: { sound: boolean; tutorialSeen: boolean }
   /** Report of the last finalized day, shown as the morning card (also after a reload). */
   lastReport: DayReport | null
+  /**
+   * The journal of each species' last completed plant, kept after the next plant starts (added within v1:
+   * older saves have none, normalize fills {}).
+   */
+  finished?: FinishedJournals
 }
+
+export type FinishedJournals = Partial<Record<SpeciesId, { journal: JournalEntry[] }>>
 
 export const SAVE_KEY = 'plantlife.v1'
 const CODE_PREFIX = 'PL1-'
@@ -45,6 +52,7 @@ export function emptySave(): SaveData {
     dex: [],
     settings: { sound: true, tutorialSeen: false },
     lastReport: null,
+    finished: {},
   }
 }
 
@@ -140,7 +148,19 @@ function normalize(raw: unknown): SaveData | null {
       tutorialSeen: typeof st.tutorialSeen === 'boolean' ? st.tutorialSeen : base.settings.tutorialSeen,
     },
     lastReport: cleanReport(raw.lastReport),
+    finished: cleanFinished(raw.finished),
   }
+}
+
+function cleanFinished(raw: unknown): FinishedJournals {
+  const out: FinishedJournals = {}
+  if (!isObj(raw)) return out
+  for (const [id, rec] of Object.entries(raw)) {
+    if (!isSpecies(id) || !isObj(rec)) continue
+    const journal = cleanJournal(rec.journal)
+    if (journal.length > 0) out[id] = { journal }
+  }
+  return out
 }
 
 function defaultStorage(): Storage | null {

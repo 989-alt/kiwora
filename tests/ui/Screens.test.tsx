@@ -2,12 +2,13 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
 import { newPlant } from '../../src/sim/day'
 import { SPECIES } from '../../src/sim/species'
-import { emptySave, exportCode } from '../../src/sim/save'
+import { emptySave, exportCode, type JournalEntry } from '../../src/sim/save'
 import { boot, toSave, type AppState } from '../../src/store'
 import { BackupPanel } from '../../src/ui/screens/BackupPanel'
 import { DeathScreen } from '../../src/ui/screens/DeathScreen'
 import { DexScreen } from '../../src/ui/screens/DexScreen'
 import { GrowScreen } from '../../src/ui/screens/GrowScreen'
+import { JournalScreen } from '../../src/ui/screens/JournalScreen'
 import { PickScreen } from '../../src/ui/screens/PickScreen'
 
 // Lets one test pretend only some species are approved; undefined = the shipped assets/approved.json.
@@ -159,6 +160,85 @@ describe('DexScreen journal link', () => {
     unmount()
     render(<DexScreen state={{ ...base(), plant: newPlant('balsam') }} dispatch={dispatch} />)
     expect(screen.queryByRole('button', { name: '일지 다시 보기' })).toBeNull()
+  })
+})
+
+describe('finished journals', () => {
+  const entry = (day: number, stage: JournalEntry['stage']): JournalEntry => ({
+    day,
+    dateKey: `2026-10-${10 + day}`,
+    stage,
+    heightCm: day * 2,
+    leaves: day,
+    actions: { waterAdded: 20, pellets: 0, bugsRemoved: 0, place: 'desk' },
+    statuses: {
+      water: { level: 4, dir: null },
+      light: { level: 4, dir: null },
+      temp: { level: 4, dir: null },
+      nutrient: { level: 4, dir: null },
+      pest: { level: 4, dir: null },
+    },
+  })
+  const record = [entry(1, 'seed'), entry(2, 'sprout'), entry(10, 'seedDone')]
+
+  test('a completed dex card opens its kept journal', () => {
+    const dispatch = vi.fn()
+    render(<DexScreen state={{ ...base(), plant: newPlant('corn'), dex: ['balsam', 'apple'], finished: { balsam: { journal: record } } }} dispatch={dispatch} />)
+    fireEvent.click(screen.getByRole('button', { name: '봉숭아 일지 보기' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'openRecord', id: 'balsam' })
+    // a species completed before journals were kept has no button
+    expect(screen.queryByRole('button', { name: '사과나무 일지 보기' })).toBeNull()
+  })
+
+  test('the kept journal is read-only and printable, even while another plant grows', () => {
+    const dispatch = vi.fn()
+    const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+    const s: AppState = {
+      ...base(),
+      plant: { ...newPlant('corn'), day: 3 },
+      journal: [entry(1, 'seed')],
+      dex: ['balsam'],
+      finished: { balsam: { journal: record } },
+      pastTries: [
+        { speciesId: 'balsam', days: 4, stage: 'sprout', cause: '물이 부족해서 말라 버렸어요.' },
+        { speciesId: 'rice', days: 2, stage: 'seed', cause: '너무 추웠어요.' },
+      ],
+      screen: 'record',
+      record: 'balsam',
+    }
+    render(<JournalScreen state={s} dispatch={dispatch} record="balsam" />)
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('봉숭아 한살이 일지')
+    expect(screen.getByText('10일 만에 씨를 얻었어요!')).toBeTruthy()
+    expect(within(screen.getByRole('table')).getAllByRole('row')).toHaveLength(4)
+    expect(screen.getByText(/물이 부족해서 말라 버렸어요/)).toBeTruthy()
+    expect(screen.queryByText(/너무 추웠어요/)).toBeNull()
+    expect(screen.queryByRole('button', { name: '씨 도감에 넣기' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '인쇄하기' }))
+    expect(print).toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: '씨 도감' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'dex' })
+    print.mockRestore()
+  })
+
+  test('PickScreen asks first only when a finished journal would be lost', () => {
+    const dispatch = vi.fn()
+    const done = { ...newPlant('bean'), stageIndex: SPECIES.bean.stages.indexOf('seedDone'), day: 11 }
+    const lost: AppState = { ...base(), plant: done, journal: record, dex: ['bean'] }
+    const { unmount } = render(<PickScreen state={lost} dispatch={dispatch} />)
+    fireEvent.click(screen.getByRole('button', { name: /벼/ }))
+    expect(dispatch).not.toHaveBeenCalled()
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '그만두기' }))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /벼/ }))
+    fireEvent.click(screen.getByRole('button', { name: '새로 키우기' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'rice' })
+    unmount()
+    dispatch.mockClear()
+    render(<PickScreen state={{ ...lost, finished: { bean: { journal: record } } }} dispatch={dispatch} />)
+    fireEvent.click(screen.getByRole('button', { name: /벼/ }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'rice' })
+    expect(screen.queryByRole('alertdialog')).toBeNull()
   })
 })
 

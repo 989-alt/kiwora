@@ -62,6 +62,16 @@ export function DexScreen({ state, dispatch }: Props) {
                   </li>
                 ))}
               </ul>
+              {state.finished?.[id] && (
+                <button
+                  type="button"
+                  className="sc-btn dx-record"
+                  aria-label={`${sp.name} 일지 보기`}
+                  onClick={() => dispatch({ type: 'openRecord', id })}
+                >
+                  일지 보기
+                </button>
+              )}
             </li>
           )
         })}

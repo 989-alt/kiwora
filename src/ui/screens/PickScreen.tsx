@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { isApproved } from '../../sim/approved'
 import { SPECIES, type SpeciesId } from '../../sim/species'
-import type { Action, AppState } from '../../store'
+import { journalWouldBeLost, type Action, type AppState } from '../../store'
 import { plantSrc } from '../PlantView'
 import './Screens.css'
 
@@ -15,6 +16,9 @@ type Props = { state: AppState; dispatch: (a: Action) => void }
 
 export function PickScreen({ state, dispatch }: Props) {
   const done = new Set(state.dex)
+  // A finished journal is kept per species, so this only asks for one that somehow was not kept.
+  const [asking, setAsking] = useState<SpeciesId | null>(null)
+  const pick = (id: SpeciesId) => (journalWouldBeLost(state) ? setAsking(id) : dispatch({ type: 'pick', id }))
   return (
     <div className="sc pk">
       <header className="sc-head">
@@ -47,7 +51,7 @@ export function PickScreen({ state, dispatch }: Props) {
                   type="button"
                   className={`pk-card${soon ? ' pk-card--soon' : ''}`}
                   disabled={soon}
-                  onClick={() => dispatch({ type: 'pick', id })}
+                  onClick={() => pick(id)}
                 >
                   <span className="pk-art">
                     <img src={plantSrc(id, 'flower')} alt="" draggable={false} />
@@ -62,6 +66,30 @@ export function PickScreen({ state, dispatch }: Props) {
           </div>
         </section>
       ))}
+
+      {asking && (
+        <div className="bk-overlay">
+          <div
+            className="bk-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="pk-dialog-title"
+            onKeyDown={(e) => e.key === 'Escape' && setAsking(null)}
+          >
+            <p id="pk-dialog-title" className="bk-dialog-title">
+              지금 일지가 사라져요. 먼저 인쇄하거나 옮겨 적었나요?
+            </p>
+            <div className="bk-dialog-actions">
+              <button type="button" className="sc-big sc-big--primary" onClick={() => dispatch({ type: 'pick', id: asking })}>
+                새로 키우기
+              </button>
+              <button type="button" className="sc-big" autoFocus onClick={() => setAsking(null)}>
+                그만두기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

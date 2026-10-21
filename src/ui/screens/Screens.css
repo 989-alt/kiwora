@@ -484,6 +484,9 @@
   height: 34px;
   object-fit: contain;
 }
+.dx-record {
+  margin-top: 4px;
+}
 
 /* ---- Backup ---- */
 .bk-warning {

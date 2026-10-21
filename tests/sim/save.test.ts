@@ -118,6 +118,24 @@ describe('shape validation', () => {
     expect(r.data).toEqual({ ...emptySave(), dex: ['balsam'] })
   })
 
+  it('finished journals: missing in old saves becomes empty; valid ones kept, junk dropped', () => {
+    expect(load({ v: 1, plant: null }).data.finished).toEqual({})
+    const entry = {
+      day: 1,
+      dateKey: '2026-10-21',
+      stage: 'seed',
+      heightCm: 0,
+      leaves: 0,
+      actions: { waterAdded: 10, pellets: 0, bugsRemoved: 0, place: 'desk' },
+      statuses: {},
+    }
+    const r = load({ v: 1, finished: { balsam: { journal: [entry, null] }, nope: { journal: [entry] }, bean: 'x', corn: { journal: [] } } })
+    expect(r.warning).toBeUndefined()
+    expect(r.data.finished).toEqual({ balsam: { journal: [entry] } })
+    const code = importCode(exportCode(r.data))
+    expect(code.ok && code.data.finished).toEqual({ balsam: { journal: [entry] } })
+  })
+
   it('clamps and rounds bugs', () => {
     const d = sample()
     expect(load({ ...d, plant: { ...d.plant, bugs: -3 } }).data.plant!.bugs).toBe(0)

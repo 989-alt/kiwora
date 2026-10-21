@@ -1,4 +1,4 @@
-import { SPECIES } from '../../sim/species'
+import { SPECIES, type SpeciesId } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
 import { growing, isComplete, type Action, type AppState } from '../../store'
 import { dayReached, feelingText, journalRows, stageName } from '../journalText'
@@ -6,7 +6,12 @@ import { plantSrc } from '../PlantView'
 import '../../styles/print.css'
 import './Screens.css'
 
-type Props = { state: AppState; dispatch: (a: Action) => void }
+type Props = {
+  state: AppState
+  dispatch: (a: Action) => void
+  /** Show this species' kept finished journal (read-only) instead of the current plant's. */
+  record?: SpeciesId
+}
 
 const Arrow = () => (
   <svg className="jr-arrow" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -22,19 +27,23 @@ function backTarget(plant: PlantState | null): { label: string; screen: 'grow' |
   return { label: '돌아가기', screen: 'grow' }
 }
 
-export function JournalScreen({ state, dispatch }: Props) {
-  const plant = state.plant
-  const journal = state.journal
-  const species = plant ? SPECIES[plant.speciesId] : null
-  const complete = plant !== null && isComplete(plant)
-  const rows = plant ? journalRows(journal, plant.speciesId) : []
+export function JournalScreen({ state, dispatch, record }: Props) {
+  const kept = record ? state.finished?.[record] : undefined
+  // A kept record is finished and read-only; it does not depend on the plant growing now.
+  const plant = kept ? null : state.plant
+  const speciesId: SpeciesId | null = kept ? (record as SpeciesId) : (plant?.speciesId ?? null)
+  const journal = kept ? kept.journal : state.journal
+  const species = speciesId ? SPECIES[speciesId] : null
+  const complete = kept !== undefined || (plant !== null && isComplete(plant))
+  const rows = speciesId ? journalRows(journal, speciesId) : []
   const lastDay = journal.length > 0 ? journal[journal.length - 1].day : 0
   const back = backTarget(plant)
+  const pastTries = kept ? state.pastTries.filter((t) => t.speciesId === speciesId) : state.pastTries
 
   let sub = '아직 키우는 식물이 없어요'
-  if (plant && species) {
+  if (species) {
     if (complete) sub = `${lastDay}일 만에 ${species.life === 'annual' ? '씨를 얻었어요' : '새순이 나왔어요'}!`
-    else if (growing(plant)) sub = `${plant.day}일째 키우는 중이에요`
+    else if (plant && growing(plant)) sub = `${plant.day}일째 키우는 중이에요`
     else sub = `${lastDay}일 동안 키웠어요`
   }
 
@@ -54,15 +63,20 @@ export function JournalScreen({ state, dispatch }: Props) {
           <button type="button" className="sc-btn" onClick={() => window.print()}>
             인쇄하기
           </button>
-          {complete && (
+          {complete && !kept && (
             <button type="button" className="sc-btn sc-btn--primary" onClick={() => dispatch({ type: 'open', screen: 'dex' })}>
               씨 도감에 넣기
+            </button>
+          )}
+          {kept && (
+            <button type="button" className="sc-btn sc-btn--primary" onClick={() => dispatch({ type: 'open', screen: 'dex' })}>
+              씨 도감
             </button>
           )}
         </nav>
       </header>
 
-      {plant && species && (
+      {speciesId && species && (
         <>
           <section className="sc-card jr-strip-card">
             <ul className="jr-strip" aria-label="한살이 단계">
@@ -70,8 +84,8 @@ export function JournalScreen({ state, dispatch }: Props) {
                 const day = dayReached(journal, stage)
                 return (
                   <li key={`${stage}-${i}`} className={`jr-stage${day === null ? ' jr-stage--todo' : ''}`}>
-                    <img src={plantSrc(plant.speciesId, stage)} alt="" draggable={false} />
-                    <span className="jr-stage-name">{stageName(plant.speciesId, stage)}</span>
+                    <img src={plantSrc(speciesId, stage)} alt="" draggable={false} />
+                    <span className="jr-stage-name">{stageName(speciesId, stage)}</span>
                     <span className="jr-stage-day">{day === null ? '아직' : `${day}일`}</span>
                     {i < species.stages.length - 1 && <Arrow />}
                   </li>
@@ -96,7 +110,7 @@ export function JournalScreen({ state, dispatch }: Props) {
                 {rows.map(({ entry, did }) => (
                   <tr key={entry.day}>
                     <td>{entry.day}일</td>
-                    <td>{stageName(plant.speciesId, entry.stage)}</td>
+                    <td>{stageName(speciesId, entry.stage)}</td>
                     <td>{Math.round(entry.heightCm)}cm</td>
                     <td>{Math.round(entry.leaves)}장</td>
                     <td>{did}</td>
@@ -110,11 +124,11 @@ export function JournalScreen({ state, dispatch }: Props) {
         </>
       )}
 
-      {state.pastTries.length > 0 && (
+      {pastTries.length > 0 && (
         <section className="sc-card jr-past" aria-label="지난 시도">
           <h2 className="jr-h2">지난 시도</h2>
           <ul>
-            {state.pastTries.map((t, i) => (
+            {pastTries.map((t, i) => (
               <li key={i}>
                 <b>{SPECIES[t.speciesId].name}</b> · {t.days}일째 · {stageName(t.speciesId, t.stage)} 단계까지 · {t.cause}
               </li>

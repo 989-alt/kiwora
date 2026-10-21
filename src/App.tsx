@@ -54,6 +54,15 @@ export default function App() {
     case 'journal':
       body = <JournalScreen state={s} dispatch={dispatch} />
       break
+    case 'record':
+      // A kept finished journal; without one (e.g. after a restore) the dex is the place to be.
+      body =
+        s.record && s.finished?.[s.record] ? (
+          <JournalScreen state={s} dispatch={dispatch} record={s.record} />
+        ) : (
+          <DexScreen state={s} dispatch={dispatch} />
+        )
+      break
     case 'dex':
       body = <DexScreen state={s} dispatch={dispatch} />
       break

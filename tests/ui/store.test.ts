@@ -1,13 +1,29 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { newPlant } from '../../src/sim/day'
-import { emptySave, SAVE_KEY, type SaveData } from '../../src/sim/save'
+import { emptySave, SAVE_KEY, type JournalEntry, type SaveData } from '../../src/sim/save'
 import { SPECIES } from '../../src/sim/species'
 import type { PlantState } from '../../src/sim/types'
-import { boot, reducer, useApp, type Action, type AppState } from '../../src/store'
+import { boot, reducer, toSave, useApp, type Action, type AppState } from '../../src/store'
 
 const D1 = '2026-10-21'
 const D2 = '2026-10-22'
+
+const oneEntry = (day: number): JournalEntry => ({
+  day,
+  dateKey: D1,
+  stage: 'seedDone',
+  heightCm: 20,
+  leaves: 9,
+  actions: { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' },
+  statuses: {
+    water: { level: 4, dir: null },
+    light: { level: 4, dir: null },
+    temp: { level: 4, dir: null },
+    nutrient: { level: 4, dir: null },
+    pest: { level: 4, dir: null },
+  },
+})
 
 function play(s: AppState, actions: Action[], today: string): AppState {
   return actions.reduce((st, a) => reducer(st, a, today), s)
@@ -195,6 +211,40 @@ describe('endings', () => {
     expect(st[t.plant!.stageIndex]).toBe('newShoot')
     expect(t.dex).toContain('dandelion')
     expect(t.screen).toBe('journal')
+  })
+
+  it('a finished journal is kept per species after the next plant starts', () => {
+    const st = SPECIES.bean.stages
+    const p: PlantState = {
+      ...newPlant('bean'), stageIndex: st.indexOf('fruit'), growth: 3.9, water: 60, nutrient: 50, day: 9,
+    }
+    const before = withPlant(p, { journal: [] })
+    const done = reducer(before, { type: 'endDay' }, D1)
+    expect(done.finished?.bean?.journal).toEqual(done.journal)
+    expect(done.journal).toHaveLength(1)
+    // the next plant starts with an empty journal, the finished one stays
+    const next = reducer(done, { type: 'pick', id: 'corn' }, D1)
+    expect(next.journal).toEqual([])
+    expect(next.finished?.bean?.journal).toEqual(done.journal)
+    // and survives a reload
+    expect(boot(persist(next), D2).finished?.bean?.journal).toEqual(done.journal)
+  })
+
+  it('an old save whose current plant finished before this was kept gets its journal kept on boot', () => {
+    const st = SPECIES.bean.stages
+    const p: PlantState = { ...newPlant('bean'), stageIndex: st.indexOf('seedDone'), day: 11 }
+    const journal = [oneEntry(10)]
+    const old: SaveData = { ...emptySave(), plant: p, journal, dex: ['bean'], lastDayKey: D1 }
+    delete old.finished
+    expect(boot(old, D2).finished?.bean?.journal).toEqual(journal)
+  })
+
+  it('openRecord shows a finished journal; unknown species are ignored', () => {
+    const s = { ...started(), finished: { balsam: { journal: [oneEntry(10)] } } }
+    expect(reducer(s, { type: 'openRecord', id: 'balsam' }, D1)).toMatchObject({ screen: 'record', record: 'balsam' })
+    expect(reducer(s, { type: 'openRecord', id: 'corn' }, D1).screen).toBe('grow')
+    // the record being viewed is not part of the save
+    expect('record' in toSave(reducer(s, { type: 'openRecord', id: 'balsam' }, D1))).toBe(false)
   })
 
   it('transplant species routes to transplant screen', () => {

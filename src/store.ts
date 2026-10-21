@@ -6,9 +6,16 @@ import { loadSave, SAVE_KEY, writeSave, type JournalEntry, type SaveData } from 
 import { SPECIES, type SpeciesId, type StageId } from './sim/species'
 import type { DayActions, DayReport, Place, PlantState } from './sim/types'
 
-export type Screen = 'pick' | 'grow' | 'transplant' | 'dead' | 'journal' | 'dex' | 'backup'
+/** 'record' = a kept finished journal (AppState.record), read-only. */
+export type Screen = 'pick' | 'grow' | 'transplant' | 'dead' | 'journal' | 'dex' | 'backup' | 'record'
 
-export type AppState = SaveData & { screen: Screen; morning: DayReport | null; warning?: string }
+export type AppState = SaveData & {
+  screen: Screen
+  morning: DayReport | null
+  warning?: string
+  /** The species whose kept finished journal the 'record' screen shows (not saved). */
+  record?: SpeciesId
+}
 
 export type Action =
   | { type: 'pick'; id: SpeciesId }
@@ -20,6 +27,8 @@ export type Action =
   | { type: 'replant'; id: SpeciesId }
   | { type: 'chooseYard'; place: Place }
   | { type: 'open'; screen: Screen }
+  /** Show the kept finished journal of a completed species. */
+  | { type: 'openRecord'; id: SpeciesId }
   | { type: 'restore'; data: SaveData }
   | { type: 'toggleSound' }
   /** The backup panel was shown for the load warning; stop showing it. */
@@ -62,7 +71,7 @@ export function screenFor(p: PlantState | null): Screen {
 }
 
 export function toSave(s: AppState): SaveData {
-  const { screen: _screen, morning: _morning, warning: _warning, ...data } = s
+  const { screen: _screen, morning: _morning, warning: _warning, record: _record, ...data } = s
   return data
 }
 
@@ -100,7 +109,13 @@ function finalizeDay(s: AppState, dateKey: string): AppState {
       screen: 'dead',
     }
   } else if (isComplete(state)) {
-    next = { ...next, dex: s.dex.includes(state.speciesId) ? s.dex : [...s.dex, state.speciesId], screen: 'journal' }
+    next = {
+      ...next,
+      dex: s.dex.includes(state.speciesId) ? s.dex : [...s.dex, state.speciesId],
+      // Kept per species, so the next plant (which starts a new journal) never erases it.
+      finished: { ...s.finished, [state.speciesId]: { journal: next.journal } },
+      screen: 'journal',
+    }
   } else if (needsTransplant(state)) {
     next = { ...next, screen: 'transplant' }
   }
@@ -110,7 +125,21 @@ function finalizeDay(s: AppState, dateKey: string): AppState {
 /** Called once when the app starts (and on restore). */
 export function boot(data: SaveData, today: string): AppState {
   // The last finalized day's report is the morning card, also after a reload.
-  return rollover({ ...data, screen: screenFor(data.plant), morning: data.lastReport }, today)
+  return rollover({ ...keepFinished(data), screen: screenFor(data.plant), morning: data.lastReport }, today)
+}
+
+/** True when starting a new plant would erase the current plant's finished journal (not kept yet). */
+export function journalWouldBeLost(s: SaveData): boolean {
+  const p = s.plant
+  return p !== null && !p.dead && isComplete(p) && s.journal.length > 0 && !s.finished?.[p.speciesId]
+}
+
+/** A save from before finished journals were kept: keep the journal of its completed current plant. */
+function keepFinished(data: SaveData): SaveData {
+  const finished = data.finished ?? {}
+  if (!journalWouldBeLost({ ...data, finished })) return { ...data, finished }
+  const id = (data.plant as PlantState).speciesId
+  return { ...data, finished: { ...finished, [id]: { journal: data.journal } } }
 }
 
 /**
@@ -202,6 +231,8 @@ export function reducer(prev: AppState, a: Action, today: string): AppState {
     }
     case 'open':
       return { ...s, screen: a.screen }
+    case 'openRecord':
+      return s.finished?.[a.id] ? { ...s, screen: 'record', record: a.id } : s
     case 'clearWarning': {
       const { warning: _warning, ...rest } = s
       return rest
