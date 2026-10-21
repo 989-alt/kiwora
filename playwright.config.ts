@@ -2,6 +2,8 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: 'tests/e2e',
+  // Parallel WebKit + Chromium workers run this 8 GB machine out of memory (page crashes), so run one at a time.
+  workers: 1,
   webServer: {
     command: 'npm run dev',
     url: 'http://localhost:5173',
