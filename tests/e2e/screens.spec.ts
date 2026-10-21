@@ -27,8 +27,9 @@ function finishedBalsam() {
     day: i + 1,
     dateKey: `2026-10-${String(10 + i).padStart(2, '0')}`,
     stage,
-    heightCm: i * 2,
-    leaves: i * 2,
+    // a seed under the soil has no height or leaves yet (days 1-2)
+    heightCm: Math.max(0, i - 1) * 2,
+    leaves: Math.max(0, i - 1),
     actions: {
       waterAdded: i % 3 === 2 ? 0 : 30,
       pellets: i === 3 || i === 6 ? 1 : 0,
@@ -112,6 +113,32 @@ test('journal: finished plant lists every day, prints without buttons, leads to 
   await expect(page.getByText('1/9')).toBeVisible()
   await page.getByRole('button', { name: '다른 식물 키우기' }).tap()
   await expect(page.getByRole('region', { name: '한해살이식물' }).getByText('완성')).toHaveCount(1)
+})
+
+test('journal: the finished journal is still there after the next plant starts', async ({ page }) => {
+  await useSave(page, finishedBalsam())
+  await page.goto('/')
+  await page.getByRole('button', { name: '씨 도감에 넣기' }).tap()
+  await page.getByRole('button', { name: '다른 식물 키우기' }).tap()
+  await page.getByRole('button', { name: /강낭콩/ }).tap()
+  await expect(page.getByRole('heading', { name: /강낭콩 · 1일째/ })).toBeVisible()
+  const kept = await page.evaluate(() => JSON.parse(localStorage.getItem('plantlife.v1') ?? '{}').finished?.balsam?.journal?.length)
+  expect(kept).toBe(10)
+})
+
+test('dex: a completed card opens its kept journal, read-only and printable', async ({ page }) => {
+  const done = finishedBalsam() as unknown as { journal: unknown[] }
+  await useSave(page, asSave({ ...done, plant: null, journal: [], finished: { balsam: { journal: done.journal } } }))
+  await page.goto('/')
+  await page.getByRole('button', { name: /씨 도감/ }).tap()
+  await page.getByRole('button', { name: '봉숭아 일지 보기' }).tap()
+  await expect(page.getByRole('heading', { name: '봉숭아 한살이 일지' })).toBeVisible()
+  await expect(page.getByText('10일 만에 씨를 얻었어요!')).toBeVisible()
+  await expect(page.getByRole('table').getByRole('row')).toHaveCount(11)
+  await expect(page.getByRole('button', { name: '인쇄하기' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '씨 도감에 넣기' })).toBeHidden()
+  await page.getByRole('button', { name: '씨 도감', exact: true }).tap()
+  await expect(page.getByRole('heading', { name: '씨 도감' })).toBeVisible()
 })
 
 test('journal: while growing, the back button returns to the grow screen', async ({ page }) => {

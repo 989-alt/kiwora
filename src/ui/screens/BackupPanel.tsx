@@ -112,7 +112,7 @@ export function BackupPanel({ state, dispatch, back }: Props) {
             <h3 className="bk-h3">일지까지 모두 지키려면</h3>
             <p className="bk-help">전체 코드를 복사해서 메모장 같은 곳에 붙여 두세요.</p>
             <div className="bk-code" ref={codeRef} role="textbox" aria-readonly="true" aria-label="전체 기록 코드" tabIndex={0}>
-              {code}
+              <span className="bk-code-text">{code}</span>
             </div>
             <div className="bk-row">
               <button type="button" className="sc-btn" onClick={doCopy}>
