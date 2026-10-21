@@ -1,0 +1,42 @@
+.pv {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.pv-layer {
+  position: absolute;
+  display: block;
+  max-width: none;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.pv-shadow {
+  border-radius: 50%;
+  background: rgba(90, 50, 10, 0.35);
+}
+.pv-plant {
+  transition:
+    transform 0.6s ease,
+    filter 0.6s ease;
+}
+.pv-plant-overlay {
+  transition: transform 0.6s ease;
+}
+.pv-pot-hit {
+  position: absolute;
+  border-radius: 28% 28% 36% 36%;
+  touch-action: none;
+  cursor: grab;
+  -webkit-touch-callout: none;
+}
+.pv-pot-hit--glow {
+  box-shadow:
+    0 0 0 4px rgba(217, 119, 6, 0.7),
+    0 0 28px 8px rgba(253, 186, 116, 0.7);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pv-plant,
+  .pv-plant-overlay {
+    transition: none;
+  }
+}
