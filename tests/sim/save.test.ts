@@ -131,6 +131,35 @@ describe('shape validation', () => {
   })
 })
 
+describe('lastReport', () => {
+  const load = (raw: unknown) => loadSave(memStorage({ 'plantlife.v1': JSON.stringify(raw) })).data
+  const report = {
+    statuses: { water: { level: 3, dir: null }, light: { level: 3, dir: null }, temp: { level: 3, dir: null }, nutrient: { level: 3, dir: null }, pest: { level: 4, dir: null } },
+    healthDelta: 10,
+    grew: true,
+    stageChanged: false,
+    died: false,
+    newBugs: 1,
+    heightDelta: 2,
+  }
+
+  it('emptySave has no report', () => {
+    expect(emptySave().lastReport).toBeNull()
+  })
+
+  it('a valid report round-trips', () => {
+    expect(load({ ...sample(), lastReport: report }).lastReport).toEqual(report)
+  })
+
+  it('an invalid or missing report becomes null', () => {
+    expect(load({ ...sample(), lastReport: { ...report, heightDelta: 'x' } }).lastReport).toBeNull()
+    expect(load({ ...sample(), lastReport: 5 }).lastReport).toBeNull()
+    expect(load({ ...sample(), lastReport: { ...report, statuses: null } }).lastReport).toBeNull()
+    const { lastReport: _r, ...old } = sample()
+    expect(load(old).lastReport).toBeNull()
+  })
+})
+
 describe('restore code', () => {
   const BAD = '코드가 맞지 않아요. 다시 확인해 주세요.'
 

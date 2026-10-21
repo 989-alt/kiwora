@@ -84,6 +84,7 @@ function finalizeDay(s: AppState, dateKey: string): AppState {
     plant: state,
     pendingActions: null,
     journal: [...s.journal, entry],
+    lastReport: report,
     morning: report,
     screen: s.screen === 'transplant' ? 'grow' : s.screen,
   }
@@ -106,7 +107,8 @@ function finalizeDay(s: AppState, dateKey: string): AppState {
 
 /** Called once when the app starts (and on restore). */
 export function boot(data: SaveData, today: string): AppState {
-  return rollover({ ...data, screen: screenFor(data.plant), morning: null }, today)
+  // The last finalized day's report is the morning card, also after a reload.
+  return rollover({ ...data, screen: screenFor(data.plant), morning: data.lastReport }, today)
 }
 
 /**
@@ -138,6 +140,7 @@ function startPlant(s: AppState, id: SpeciesId, today: string, dayDone: boolean)
     journal: [],
     dayDone,
     lastDayKey: today,
+    lastReport: null,
     morning: null,
     screen: 'grow',
   }

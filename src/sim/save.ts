@@ -1,6 +1,6 @@
 import LZString from 'lz-string'
 import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from './species'
-import type { ConditionKey, DayActions, Place, PlantState, Status } from './types'
+import type { ConditionKey, DayActions, DayReport, Place, PlantState, Status } from './types'
 
 export type JournalEntry = {
   day: number
@@ -24,6 +24,8 @@ export type SaveData = {
   pastTries: PastTry[]
   dex: SpeciesId[]
   settings: { sound: boolean; tutorialSeen: boolean }
+  /** Report of the last finalized day, shown as the morning card (also after a reload). */
+  lastReport: DayReport | null
 }
 
 export const SAVE_KEY = 'plantlife.v1'
@@ -42,6 +44,7 @@ export function emptySave(): SaveData {
     pastTries: [],
     dex: [],
     settings: { sound: true, tutorialSeen: false },
+    lastReport: null,
   }
 }
 
@@ -94,6 +97,25 @@ function cleanPastTries(raw: unknown): PastTry[] {
   )
 }
 
+const CONDITIONS: readonly ConditionKey[] = ['water', 'light', 'temp', 'nutrient', 'pest']
+
+function cleanReport(raw: unknown): DayReport | null {
+  if (!isObj(raw) || !isObj(raw.statuses)) return null
+  const st = raw.statuses
+  if (!CONDITIONS.every((k) => isObj(st[k]))) return null
+  if (!isNum(raw.healthDelta) || !isNum(raw.newBugs) || !isNum(raw.heightDelta)) return null
+  if (typeof raw.grew !== 'boolean' || typeof raw.stageChanged !== 'boolean' || typeof raw.died !== 'boolean') return null
+  return {
+    statuses: st as DayReport['statuses'],
+    healthDelta: raw.healthDelta,
+    grew: raw.grew,
+    stageChanged: raw.stageChanged,
+    died: raw.died,
+    newBugs: raw.newBugs,
+    heightDelta: raw.heightDelta,
+  }
+}
+
 /** Shared by loadSave and importCode: validate shape, drop junk, repair old plants. Null = unusable. */
 function normalize(raw: unknown): SaveData | null {
   if (!isObj(raw) || raw.v !== 1) return null
@@ -117,6 +139,7 @@ function normalize(raw: unknown): SaveData | null {
       sound: typeof st.sound === 'boolean' ? st.sound : base.settings.sound,
       tutorialSeen: typeof st.tutorialSeen === 'boolean' ? st.tutorialSeen : base.settings.tutorialSeen,
     },
+    lastReport: cleanReport(raw.lastReport),
   }
 }
 

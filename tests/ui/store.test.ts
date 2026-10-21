@@ -288,6 +288,31 @@ describe('misc actions', () => {
   })
 })
 
+describe('morning report survives a reload', () => {
+  it('a day finalized on D1 shows as morning after booting on D2', () => {
+    const s = play(started(), [{ type: 'water', amount: 10 }, { type: 'endDay' }], D1)
+    expect(s.lastReport).toEqual(s.morning)
+    const t = boot(persist(s), D2)
+    expect(t.morning).not.toBeNull()
+    expect(t.morning).toEqual(s.morning)
+  })
+
+  it('a day finalized by rollover on boot is the morning too', () => {
+    const s = play(started(), [{ type: 'water', amount: 10 }], D1)
+    const t = boot(persist(s), D2)
+    expect(t.morning).not.toBeNull()
+    expect(persist(t).lastReport).toEqual(t.morning)
+  })
+
+  it('a new plant clears the old report', () => {
+    const s = play(started(), [{ type: 'endDay' }], D1)
+    const dead: AppState = { ...s, plant: { ...s.plant!, dead: true }, screen: 'dead' }
+    const t = reducer(dead, { type: 'replant', id: 'corn' }, D1)
+    expect(t.lastReport).toBeNull()
+    expect(t.morning).toBeNull()
+  })
+})
+
 describe('rollover while the app stays open', () => {
   it('a dispatch on the next date reopens a finished day', () => {
     const s = play(started(), [{ type: 'endDay' }], D1)
