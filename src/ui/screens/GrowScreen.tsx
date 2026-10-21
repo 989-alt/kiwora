@@ -7,6 +7,7 @@ import type { Action, AppState } from '../../store'
 import { PlantView, faceFor } from '../PlantView'
 import { StatusBoard } from '../StatusBoard'
 import { Tutorial } from '../Tutorial'
+import { installAudioUnlock } from '../sound'
 import { Bugs } from '../tools/Bugs'
 import { Fertilizer } from '../tools/Fertilizer'
 import { PlaceSlots, usePotDrag } from '../tools/PlaceSlots'
@@ -56,6 +57,9 @@ export function GrowScreen({ state, dispatch }: Props) {
   const locked = state.dayDone
   const sound = state.settings.sound
   const drag = usePotDrag(locked, (place) => dispatch({ type: 'move', place }))
+  const soundRef = useRef(sound)
+  soundRef.current = sound
+  useEffect(() => installAudioUnlock(() => soundRef.current), [])
 
   const species = SPECIES[plant.speciesId]
   const stage = species.stages[plant.stageIndex]

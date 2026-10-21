@@ -46,7 +46,19 @@ export function WateringCan({ disabled, sound, onWater, onPourChange }: Props) {
   useEffect(() => {
     if (disabled) stop()
   }, [disabled])
-  useEffect(() => stop, [])
+  useEffect(() => {
+    // A press can end without pointerup when the tab is hidden or the window loses focus.
+    const onHidden = () => {
+      if (document.visibilityState === 'hidden') stop()
+    }
+    document.addEventListener('visibilitychange', onHidden)
+    window.addEventListener('blur', stop)
+    return () => {
+      document.removeEventListener('visibilitychange', onHidden)
+      window.removeEventListener('blur', stop)
+      stop()
+    }
+  }, [])
 
   const onKey = (e: KeyboardEvent<HTMLButtonElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {

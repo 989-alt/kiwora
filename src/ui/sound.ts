@@ -9,11 +9,30 @@ function audio(on: boolean): AudioContext | null {
     const C: Ctor | undefined = window.AudioContext ?? (window as unknown as { webkitAudioContext?: Ctor }).webkitAudioContext
     if (!C) return null
     ctx ??= new C()
-    if (ctx.state === 'suspended') void ctx.resume()
+    if (ctx.state !== 'running') ctx.resume().catch(() => {})
     return ctx
   } catch {
     return null
   }
+}
+
+/**
+ * iPad Safari only starts audio from a user gesture: create/resume the context on the first
+ * pointerup or click anywhere (while sound is on). Returns a cleanup function.
+ */
+export function installAudioUnlock(isOn: () => boolean): () => void {
+  if (typeof document === 'undefined') return () => {}
+  const unlock = () => {
+    const a = audio(isOn())
+    if (a && a.state === 'running') remove()
+  }
+  const remove = () => {
+    document.removeEventListener('pointerup', unlock, true)
+    document.removeEventListener('click', unlock, true)
+  }
+  document.addEventListener('pointerup', unlock, true)
+  document.addEventListener('click', unlock, true)
+  return remove
 }
 
 function noiseBuffer(a: AudioContext, seconds: number): AudioBuffer {

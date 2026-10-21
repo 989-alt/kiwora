@@ -17,6 +17,8 @@ const overPot = (x: number, y: number) => document.elementFromPoint(x, y)?.close
 /** Drag a pellet onto the pot (or just tap) to give 1 pellet. */
 export function Fertilizer({ disabled, sound, onPellet, onDragChange }: Props) {
   const start = useRef<{ id: number; x: number; y: number } | null>(null)
+  // Whether this press became a drag is decided from the ref, not render state, so a fast flick is never a tap.
+  const dragging = useRef(false)
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null)
 
   const give = () => {
@@ -28,10 +30,12 @@ export function Fertilizer({ disabled, sound, onPellet, onDragChange }: Props) {
     const s = start.current
     if (!s || (e && e.pointerId !== s.id)) return
     start.current = null
-    if (ghost) {
-      if (dropped && e && overPot(e.clientX, e.clientY)) give()
-      setGhost(null)
+    const wasDrag = dragging.current
+    dragging.current = false
+    setGhost(null)
+    if (wasDrag) {
       onDragChange(false)
+      if (dropped && e && overPot(e.clientX, e.clientY)) give()
     } else if (dropped) {
       give() // a tap also gives one pellet
     }
@@ -52,16 +56,29 @@ export function Fertilizer({ disabled, sound, onPellet, onDragChange }: Props) {
             // pointer already gone
           }
           start.current = { id: e.pointerId, x: e.clientX, y: e.clientY }
+          dragging.current = false
         }}
         onPointerMove={(e) => {
           const s = start.current
           if (!s || e.pointerId !== s.id) return
-          if (!ghost && Math.hypot(e.clientX - s.x, e.clientY - s.y) < DRAG_START_PX) return
-          if (!ghost) onDragChange(true)
+          if (!dragging.current) {
+            if (Math.hypot(e.clientX - s.x, e.clientY - s.y) < DRAG_START_PX) return
+            dragging.current = true
+            onDragChange(true)
+          }
           setGhost({ x: e.clientX, y: e.clientY })
         }}
-        onPointerUp={(e) => end(true, e)}
+        onPointerUp={(e) => {
+          // a flick can end before any move event: count the distance at release too
+          const s = start.current
+          if (s && e.pointerId === s.id && Math.hypot(e.clientX - s.x, e.clientY - s.y) >= DRAG_START_PX && !dragging.current) {
+            dragging.current = true
+            onDragChange(true)
+          }
+          end(true, e)
+        }}
         onPointerCancel={(e) => end(false, e)}
+        onLostPointerCapture={(e) => end(false, e)}
         onContextMenu={(e) => e.preventDefault()}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {

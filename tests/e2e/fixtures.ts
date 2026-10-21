@@ -12,7 +12,10 @@ type PlantOver = Partial<{
   day: number
 }>
 
-export function saveWith(plant: PlantOver = {}, opts: { tutorialSeen?: boolean; dayDone?: boolean } = {}) {
+export function saveWith(
+  plant: PlantOver = {},
+  opts: { tutorialSeen?: boolean; dayDone?: boolean; lastReport?: unknown; daysAgo?: number } = {},
+) {
   return {
     v: 1,
     plant: {
@@ -39,6 +42,9 @@ export function saveWith(plant: PlantOver = {}, opts: { tutorialSeen?: boolean; 
     pastTries: [],
     dex: [],
     settings: { sound: false, tutorialSeen: opts.tutorialSeen ?? true },
+    lastReport: opts.lastReport ?? null,
+    /** lastDayKey is set to this many days before the browser's today. */
+    daysAgo: opts.daysAgo ?? 0,
   }
 }
 
@@ -48,6 +54,7 @@ export async function useSave(page: Page, save: ReturnType<typeof saveWith>) {
     if (sessionStorage.getItem('fixture-loaded')) return
     sessionStorage.setItem('fixture-loaded', '1')
     const d = new Date()
+    d.setDate(d.getDate() - data.daysAgo)
     const pad = (n: number) => String(n).padStart(2, '0')
     data.lastDayKey = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
     localStorage.setItem('plantlife.v1', JSON.stringify(data))

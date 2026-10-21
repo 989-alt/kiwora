@@ -66,13 +66,21 @@ test('long press shows no context menu', async ({ page, browserName }) => {
 })
 
 test('end day locks tools', async ({ page }) => {
-  await useSave(page, saveWith())
+  await useSave(page, saveWith({ bugs: 1, place: 'desk' }))
   await page.goto('/')
   await page.getByRole('button', { name: '하루 마치기' }).click()
   await expect(page.getByText('내일 다시 만나요')).toBeVisible()
   await expect(page.getByRole('button', { name: /물 주기/ })).toBeDisabled()
   await expect(page.getByRole('button', { name: /영양분/ })).toBeDisabled()
   await expect(page.getByRole('button', { name: '창가' })).toBeDisabled()
+  const bugs = page.getByRole('button', { name: '벌레 잡기' })
+  expect(await bugs.count()).toBeGreaterThan(0)
+  for (const b of await bugs.all()) await expect(b).toBeDisabled()
+  // dragging the pot does nothing
+  const windowSlot = page.getByRole('button', { name: '창가' })
+  await drag(page, await centerOf(page, pot(page)), await centerOf(page, windowSlot))
+  await expect(page.locator('.pot-ghost')).toHaveCount(0)
+  await expect(windowSlot).toHaveAttribute('aria-pressed', 'false')
   // the day's result card appears and closes on tap
   const card = page.getByRole('button', { name: /오늘 결과/ })
   await expect(card).toBeVisible()
@@ -99,3 +107,66 @@ test('header shows species, day and stage', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName('봉숭아 · 4일째 · 잎과 줄기가 자라요')
 })
+
+const storedWater = (page: import('@playwright/test').Page) =>
+  page.evaluate(() => JSON.parse(localStorage.getItem('plantlife.v1') ?? '{}').plant.water as number)
+
+test('watering stops after release', async ({ page, browserName }) => {
+  await useSave(page, saveWith({ water: 20 }))
+  await page.goto('/')
+  const c = await centerOf(page, page.getByRole('button', { name: /물 주기/ }))
+  await hold(page, c.x, c.y, 1000, browserName)
+  await page.waitForTimeout(150)
+  const after = await storedWater(page)
+  expect(after).toBeGreaterThan(20)
+  await page.waitForTimeout(1000)
+  expect(await storedWater(page)).toBe(after)
+  await expect(page.locator('.water-stream')).toHaveCount(0)
+})
+
+test('the morning card shows after opening the app the next day', async ({ page }) => {
+  const lastReport = {
+    statuses: {
+      water: { level: 3, dir: null },
+      light: { level: 3, dir: null },
+      temp: { level: 3, dir: null },
+      nutrient: { level: 3, dir: null },
+      pest: { level: 4, dir: null },
+    },
+    healthDelta: 10,
+    grew: true,
+    stageChanged: false,
+    died: false,
+    newBugs: 0,
+    heightDelta: 2,
+  }
+  await useSave(page, saveWith({ day: 4 }, { lastReport, daysAgo: 1, dayDone: true }))
+  await page.goto('/')
+  const card = page.getByRole('button', { name: '4일째 아침! 키가 2cm 자랐어요' })
+  await expect(card).toBeVisible()
+  await expect(page.getByRole('button', { name: '하루 마치기' })).toBeEnabled()
+  await card.tap()
+  await expect(card).toHaveCount(0)
+})
+
+for (const vp of [
+  { width: 1366, height: 640 },
+  { width: 1280, height: 700 },
+]) {
+  test(`end-day button stays on screen at ${vp.width}x${vp.height} with bad statuses`, async ({ page, browserName }) => {
+    await page.setViewportSize(vp)
+    await useSave(page, saveWith({ water: 5, nutrient: 5, lightExp: 20, place: 'shade', bugs: 3, health: 25 }))
+    await page.goto('/')
+    await expect(page.getByRole('group', { name: /^물 / })).toHaveAttribute('aria-label', /부족/)
+    const box = await page.getByRole('button', { name: '하루 마치기' }).boundingBox()
+    expect(box).not.toBeNull()
+    expect(box!.y).toBeGreaterThanOrEqual(0)
+    expect(box!.x).toBeGreaterThanOrEqual(0)
+    expect(box!.y + box!.height).toBeLessThanOrEqual(vp.height)
+    expect(box!.x + box!.width).toBeLessThanOrEqual(vp.width)
+    if (browserName === 'chromium') {
+      await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0))
+      await page.screenshot({ path: `.superpowers/sdd/2026-10-21-plant-life/shots/grow-${vp.width}x${vp.height}.png` })
+    }
+  })
+}

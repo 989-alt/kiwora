@@ -59,6 +59,7 @@ export type PotDrag = {
     onPointerMove: (e: PointerEvent<HTMLDivElement>) => void
     onPointerUp: (e: PointerEvent<HTMLDivElement>) => void
     onPointerCancel: (e: PointerEvent<HTMLDivElement>) => void
+    onLostPointerCapture: (e: PointerEvent<HTMLDivElement>) => void
   }
   /** Pointer position while dragging (null = not dragging). */
   ghost: { x: number; y: number } | null
@@ -69,14 +70,18 @@ export type PotDrag = {
 /** Drag the pot (after 8 px of movement) and drop it on a slot to move it there. */
 export function usePotDrag(disabled: boolean, onMove: (place: RoomPlace) => void): PotDrag {
   const start = useRef<{ id: number; x: number; y: number } | null>(null)
+  // Drag state lives in a ref so a fast flick is judged by distance, not by a render that hasn't happened yet.
+  const dragging = useRef(false)
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null)
   const [hover, setHover] = useState<RoomPlace | null>(null)
 
   const reset = () => {
     start.current = null
+    dragging.current = false
     setGhost(null)
     setHover(null)
   }
+  const farEnough = (e: PointerEvent, s: { x: number; y: number }) => Math.hypot(e.clientX - s.x, e.clientY - s.y) >= DRAG_START_PX
 
   return {
     ghost,
@@ -91,22 +96,27 @@ export function usePotDrag(disabled: boolean, onMove: (place: RoomPlace) => void
           // pointer already gone
         }
         start.current = { id: e.pointerId, x: e.clientX, y: e.clientY }
+        dragging.current = false
       },
       onPointerMove: (e) => {
         const s = start.current
         if (!s || e.pointerId !== s.id) return
-        if (!ghost && Math.hypot(e.clientX - s.x, e.clientY - s.y) < DRAG_START_PX) return
+        if (!dragging.current) {
+          if (!farEnough(e, s)) return
+          dragging.current = true
+        }
         setGhost({ x: e.clientX, y: e.clientY })
         setHover(slotAt(e.clientX, e.clientY))
       },
       onPointerUp: (e) => {
         const s = start.current
         if (!s || e.pointerId !== s.id) return
-        const target = ghost ? slotAt(e.clientX, e.clientY) : null
+        const target = dragging.current || farEnough(e, s) ? slotAt(e.clientX, e.clientY) : null
         reset()
         if (target && !disabled) onMove(target)
       },
       onPointerCancel: reset,
+      onLostPointerCapture: reset,
     },
   }
 }

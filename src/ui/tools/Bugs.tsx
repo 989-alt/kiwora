@@ -19,7 +19,8 @@ const LEAF_SPOTS: [number, number][] = [
   [870, 1080],
 ]
 
-const BUTTON = 56
+/** 58 px so the button stays ≥ 48 px under the low-light scaleX(0.85) of the plant overlay. */
+const BUTTON = 58
 
 type Props = {
   count: number
@@ -59,7 +60,7 @@ export function Bugs({ count, seed, scale, disabled, sound, onCatch }: Props) {
             aria-label="벌레 잡기"
             data-tut="bug"
             disabled={disabled}
-            style={{ left: b.spot[0] * scale - BUTTON / 2, top: b.spot[1] * scale - BUTTON / 2 }}
+            style={{ left: b.spot[0] * scale - BUTTON / 2, top: b.spot[1] * scale - BUTTON / 2, width: BUTTON, height: BUTTON }}
             onClick={() => {
               setGone((g) => [...g, i])
               onCatch()

@@ -123,12 +123,15 @@
 }
 .gs-aside .sb {
   flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
   width: auto;
   border: 3px solid #d1e7da;
   border-radius: 28px;
   box-shadow: 0 8px 0 #cde5d5;
 }
 .gs-end {
+  flex-shrink: 0;
   min-height: 84px;
   border-radius: 26px;
   border: none;
@@ -179,6 +182,53 @@
 }
 .gs--portrait .gs-aside {
   width: auto;
+}
+
+/* Short landscape screens (e.g. a Chromebook window): tighter status board so 하루 마치기 stays on screen. */
+@media (max-height: 760px) and (min-width: 900px) {
+  .gs {
+    padding: 12px 20px;
+    gap: 10px;
+  }
+  .gs-header {
+    min-height: 56px;
+  }
+  .gs-body,
+  .gs-left,
+  .gs-aside {
+    gap: 10px;
+  }
+  .gs-aside .sb {
+    padding: 10px 14px;
+    gap: 6px;
+  }
+  .gs-aside .sb-title {
+    font-size: 22px;
+  }
+  .gs-aside .sb-health {
+    padding: 6px 12px;
+    gap: 4px;
+  }
+  .gs-aside .sb-hbar {
+    height: 14px;
+  }
+  .gs-aside .sb-rows {
+    gap: 2px;
+  }
+  .gs-aside .sb-row {
+    gap: 3px;
+    padding: 2px;
+  }
+  .gs-aside .sb-row--off {
+    padding: 4px 8px;
+  }
+  .gs-aside .sb-cell {
+    height: 12px;
+  }
+  .gs-end {
+    min-height: 68px;
+    font-size: 28px;
+  }
 }
 
 /* Morning card: sits on the scene, never blocks it. */
