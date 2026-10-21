@@ -19,10 +19,9 @@ describe('isApproved', () => {
     for (const id of Object.keys(approvedJson)) expect(SPECIES[id as SpeciesId]).toBeDefined()
   })
 
-  test('only the teacher-approved species are approved in the shipped table', () => {
-    expect(approvedJson).toEqual({ balsam: true })
-    expect(isApproved('balsam')).toBe(true)
-    expect(isApproved('bean')).toBe(false)
+  test('every species is approved in the shipped table (all nine picture sets passed review)', () => {
+    expect(Object.keys(approvedJson).sort()).toEqual(Object.keys(SPECIES).sort())
+    for (const id of Object.keys(SPECIES) as SpeciesId[]) expect(isApproved(id), id).toBe(true)
   })
 })
 

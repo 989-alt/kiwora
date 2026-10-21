@@ -9,6 +9,13 @@ import { DeathScreen } from '../../src/ui/screens/DeathScreen'
 import { DexScreen } from '../../src/ui/screens/DexScreen'
 import { PickScreen } from '../../src/ui/screens/PickScreen'
 
+// Lets one test pretend only some species are approved; undefined = the shipped assets/approved.json.
+const approval = vi.hoisted(() => ({ table: undefined as Record<string, boolean> | undefined }))
+vi.mock('../../src/sim/approved', async (orig) => {
+  const real = await orig<typeof import('../../src/sim/approved')>()
+  return { ...real, isApproved: (id: Parameters<typeof real.isApproved>[0]) => real.isApproved(id, approval.table) }
+})
+
 const base = () => boot(emptySave(), '2026-10-25')
 
 describe('PickScreen', () => {
@@ -35,15 +42,28 @@ describe('PickScreen', () => {
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'backup' })
   })
 
-  test('in the shipped build, species without teacher-approved pictures are disabled and say 준비 중', () => {
+  test('in the shipped build every species is approved, so all nine can be picked', () => {
     vi.stubEnv('PROD', true)
+    try {
+      render(<PickScreen state={base()} dispatch={() => {}} />)
+      const cards = screen.getAllByRole('button').filter((b) => b.classList.contains('pk-card'))
+      expect(cards).toHaveLength(9)
+      for (const c of cards) expect((c as HTMLButtonElement).disabled).toBe(false)
+      expect(screen.queryByText('준비 중')).toBeNull()
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
+  test('in the shipped build, a species that is not approved is disabled and says 준비 중', () => {
+    vi.stubEnv('PROD', true)
+    approval.table = { balsam: true }
     try {
       const dispatch = vi.fn()
       render(<PickScreen state={base()} dispatch={dispatch} />)
       const cards = screen.getAllByRole('button').filter((b) => b.classList.contains('pk-card'))
-      expect(cards).toHaveLength(9)
       const ready = cards.filter((c) => !(c as HTMLButtonElement).disabled)
-      expect(ready).toHaveLength(1) // only balsam is approved
+      expect(ready).toHaveLength(1)
       expect(within(ready[0]).queryByText('준비 중')).toBeNull()
       const waiting = cards.filter((c) => (c as HTMLButtonElement).disabled)
       expect(waiting).toHaveLength(8)
@@ -51,6 +71,7 @@ describe('PickScreen', () => {
       fireEvent.click(waiting[0])
       expect(dispatch).not.toHaveBeenCalled()
     } finally {
+      approval.table = undefined
       vi.unstubAllEnvs()
     }
   })

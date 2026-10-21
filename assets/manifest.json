@@ -211,224 +211,224 @@
   },
   {
     "path": "public/plants/apple/seed.webp",
-    "prompt": "Realistic botanical illustration of 2 to 3 real apple seeds in extreme close-up: glossy dark brown teardrop-shaped seeds with a pointed tip. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The seeds rest close together at the center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of 2 to 3 real apple seeds in extreme close-up, lying close together at the center of the frame: small glossy dark brown teardrop-shaped seeds with a pointed tip, flat on one side. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Seeds only, no pot, no soil, no ground, no grass, no shadow, no fruit, no plant. No text, no labels, no numbers.",
     "aspect": "1:1",
     "transparent": true,
     "species": "apple"
   },
   {
     "path": "public/plants/apple/sprout.webp",
-    "prompt": "Realistic botanical illustration of a newly sprouted apple seedling: a short green stem with two oval seed leaves (cotyledons) and a pair of tiny oval first true leaves with toothed edges. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a newly sprouted apple (Malus domestica) seedling: a short green stem carrying two oval smooth-edged seed leaves (cotyledons) opposite each other and a tiny pair of first true leaves just appearing. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "apple"
   },
   {
     "path": "public/plants/apple/leafStem.webp",
-    "prompt": "Realistic botanical illustration of a young apple sapling: a thin upright woody-green stem with alternate oval pointed leaves with finely toothed edges and visible nodes. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young apple sapling: a thin upright woody-green stem with alternate oval pointed leaves with serrated (finely toothed) edges and visible nodes, a few leaves only, still small. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "apple"
   },
   {
     "path": "public/plants/apple/grownTree.webp",
-    "prompt": "Realistic botanical illustration of a young apple tree standing upright: a straight brown trunk with a rounded leafy crown of oval toothed green leaves on several branches, medium size, trunk base cut cleanly at the bottom center. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young apple tree standing upright: a straight brown trunk with a few spreading branches carrying a rounded crown of oval serrated green leaves, medium size, no flowers and no fruit. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "apple"
   },
   {
     "path": "public/plants/apple/flower.webp",
-    "prompt": "Realistic botanical illustration of an apple tree in bloom: a brown trunk with branches carrying oval green leaves and clusters of white-pink five-petal apple blossoms with yellow centers and pink buds. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young apple tree in bloom: a straight brown trunk and branches with oval green leaves, the crown covered in clusters of white-pink five-petalled apple blossoms with yellow centers and pink buds. No fruit. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "apple"
   },
   {
     "path": "public/plants/apple/fruit.webp",
-    "prompt": "Realistic botanical illustration of an apple tree bearing fruit: a brown trunk with leafy branches and several round red apples with short stalks hanging among the oval green leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young apple tree bearing fruit: a straight brown trunk and branches with oval serrated green leaves and many round red apples with short stalks hanging among the leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "apple"
   },
   {
     "path": "public/plants/apple/winter.webp",
-    "prompt": "Realistic botanical illustration of a bare apple tree in winter: a brown trunk and bare leafless branches with small buds, no leaves, no fruit, a few twigs. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young apple tree in winter: a straight brown trunk and bare leafless branches and twigs with small buds, no leaves, no fruit, no snow. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "apple"
   },
   {
     "path": "public/plants/apple/newShoot.webp",
-    "prompt": "Realistic botanical illustration of an apple tree in early spring: bare brown branches with swelling buds and fresh tiny light-green new leaves and shoots just opening. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young apple tree in early spring: a straight brown trunk and bare branches with swelling buds and fresh tiny bright light-green young leaves just opening along the twigs, no flowers, no fruit. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "apple"
   },
   {
     "path": "public/plants/dandelion/seed.webp",
-    "prompt": "Realistic botanical illustration of 2 to 3 real dandelion seeds in extreme close-up: slim brown ribbed seeds each with a thin stalk and a round parachute of fine white hairs (pappus). Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The seeds rest close together at the center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of 2 to 3 real dandelion seeds (achenes) in extreme close-up, lying close together at the center of the frame: small slim brown ribbed seeds, each with a thin stalk and a small round parachute of fine white hairs (pappus). The white parachute hairs are pure white to pale warm grey (cream-white), clearly outlined with fine grey ink lines, never pink, never lilac, never purple. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Seeds only, no pot, no soil, no ground, no grass, no shadow, no fruit, no plant. No text, no labels, no numbers.",
     "aspect": "1:1",
     "transparent": true,
     "species": "dandelion"
   },
   {
     "path": "public/plants/dandelion/sprout.webp",
-    "prompt": "Realistic botanical illustration of a newly sprouted dandelion seedling: a tiny stem with two narrow oval seed leaves (cotyledons) and a first small toothed leaf. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a newly sprouted dandelion (Taraxacum) seedling: a tiny short stem with two small oval smooth seed leaves (cotyledons) opposite each other and a first tiny toothed leaf. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "dandelion"
   },
   {
     "path": "public/plants/dandelion/leafStem.webp",
-    "prompt": "Realistic botanical illustration of a young dandelion plant: a low rosette of jagged deeply toothed green leaves radiating from one center, a short pale base. No flowers yet. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young dandelion rosette: a low rosette of deeply toothed jagged green leaves radiating from one center at the bottom center of the frame, with a short pale base. No flowers. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The base of the plant (the center of the rosette) is at the bottom center of the frame, nothing drawn below it. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "dandelion"
   },
   {
     "path": "public/plants/dandelion/grownTree.webp",
-    "prompt": "Realistic botanical illustration of a grown dandelion clump: a large full rosette of many long deeply toothed green leaves radiating from a central crown, with the stem base at the bottom center. No flowers yet. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a large grown dandelion rosette: a full wide rosette of many long deeply toothed jagged green leaves radiating from one central crown at the bottom center of the frame. No flowers, no stalks. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The base of the plant (the center of the rosette) is at the bottom center of the frame, nothing drawn below it. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "dandelion"
   },
   {
     "path": "public/plants/dandelion/flower.webp",
-    "prompt": "Realistic botanical illustration of a flowering dandelion plant: a rosette of jagged toothed leaves and several slender leafless hollow stalks each topped with a bright yellow many-petalled flower head, plus a bud. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a flowering dandelion: a rosette of deeply toothed jagged green leaves at the bottom center, and from its center one slender smooth hollow leafless stalk rising up, topped by one bright yellow composite flower head made of many thin petals (ray florets). Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The base of the plant (the center of the rosette) is at the bottom center of the frame, nothing drawn below it. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "dandelion"
   },
   {
     "path": "public/plants/dandelion/fruit.webp",
-    "prompt": "Realistic botanical illustration of a dandelion plant bearing fruit: a rosette of jagged leaves and several slender stalks topped with round white fluffy seed heads (puffballs) made of tiny parachute seeds. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a dandelion with seeds: a rosette of deeply toothed jagged green leaves at the bottom center, and from its center one slender hollow stalk rising up, topped by a round white fluffy seed-head puffball made of many tiny seeds with white parachutes. The white parachute hairs are pure white to pale warm grey (cream-white), clearly outlined with fine grey ink lines, never pink, never lilac, never purple. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The base of the plant (the center of the rosette) is at the bottom center of the frame, nothing drawn below it. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "dandelion"
   },
   {
     "path": "public/plants/dandelion/winter.webp",
-    "prompt": "Realistic botanical illustration of a dandelion plant in winter: a low flat rosette of dry withered brown-green leaves pressed down, no flowers. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a dandelion in winter: a small low flattened rosette of short dark-green slightly purplish toothed leaves pressed close to the ground, at the bottom center of the frame. No flowers. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The base of the plant (the center of the rosette) is at the bottom center of the frame, nothing drawn below it. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "dandelion"
   },
   {
     "path": "public/plants/dandelion/newShoot.webp",
-    "prompt": "Realistic botanical illustration of a dandelion plant in spring: a low old brown withered rosette with fresh light-green young jagged leaves sprouting from the center. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a dandelion in early spring: a fresh bright light-green rosette of deeply toothed jagged leaves with new young leaves emerging from the center, at the bottom center of the frame. No flowers. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The base of the plant (the center of the rosette) is at the bottom center of the frame, nothing drawn below it. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "dandelion"
   },
   {
     "path": "public/plants/forsythia/seed.webp",
-    "prompt": "Realistic botanical illustration of 2 to 3 real forsythia seeds in extreme close-up: small flat brown winged seeds, narrow and oval. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The seeds rest close together at the center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of 3 to 4 real forsythia seeds in extreme close-up, lying close together at the center of the frame: tiny flat brown seeds, each with a thin papery wing around it. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Seeds only, no pot, no soil, no ground, no grass, no shadow, no fruit, no plant. No text, no labels, no numbers.",
     "aspect": "1:1",
     "transparent": true,
     "species": "forsythia"
   },
   {
     "path": "public/plants/forsythia/sprout.webp",
-    "prompt": "Realistic botanical illustration of a newly sprouted forsythia seedling: a short green stem with two small oval seed leaves and a pair of tiny first true leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a newly sprouted forsythia seedling: a short slender green stem carrying two small oval seed leaves (cotyledons) opposite each other and a pair of tiny first true leaves just appearing. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "forsythia"
   },
   {
     "path": "public/plants/forsythia/leafStem.webp",
-    "prompt": "Realistic botanical illustration of a young forsythia plant: a slim green-brown stem with opposite oval pointed leaves with toothed edges and visible nodes. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young forsythia shrub: a few slender arching brown-green stems from one base point, with opposite pairs of oval toothed green leaves on the stems. No flowers. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. All the stems converge to one single base point cut cleanly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "forsythia"
   },
   {
     "path": "public/plants/forsythia/grownTree.webp",
-    "prompt": "Realistic botanical illustration of a forsythia shrub: several slender arching woody brown branches rising from one base, covered with opposite oval toothed green leaves, medium size, base cut cleanly at the bottom center. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a grown forsythia shrub with leaves: many slender arching brown stems fountaining out of one single base point at the bottom center, covered with opposite oval toothed green leaves. No flowers, no fruit. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. All the stems converge to one single base point cut cleanly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "forsythia"
   },
   {
     "path": "public/plants/forsythia/flower.webp",
-    "prompt": "Realistic botanical illustration of a forsythia shrub in bloom: slender arching brown branches densely covered with bright yellow four-lobed bell-shaped flowers, a few small young leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a forsythia shrub in full bloom: many slender arching bare brown branches fountaining out of one single base point at the bottom center, densely covered along their whole length with bright yellow four-petalled flowers. NO leaves, the flowers bloom before the leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. All the stems converge to one single base point cut cleanly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "forsythia"
   },
   {
     "path": "public/plants/forsythia/fruit.webp",
-    "prompt": "Realistic botanical illustration of a forsythia shrub bearing fruit: slender arching branches with oval toothed green leaves and small pointed oval green-brown seed capsules. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a forsythia shrub in summer: many slender arching brown stems from one base point carrying opposite oval toothed green leaves and small brown woody oval capsules with a pointed tip among the leaves. No flowers. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. All the stems converge to one single base point cut cleanly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "forsythia"
   },
   {
     "path": "public/plants/forsythia/winter.webp",
-    "prompt": "Realistic botanical illustration of a bare forsythia shrub in winter: slender arching brown branches with small buds, no leaves, no flowers. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a forsythia shrub in winter: many slender arching bare brown leafless stems fountaining out of one single base point at the bottom center, with tiny buds, no leaves, no flowers, no snow. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. All the stems converge to one single base point cut cleanly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "forsythia"
   },
   {
     "path": "public/plants/forsythia/newShoot.webp",
-    "prompt": "Realistic botanical illustration of a forsythia shrub in early spring: arching brown branches with swelling buds and fresh tiny light-green new leaves and shoots. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a forsythia shrub in early spring: many slender arching brown stems from one base point, the first small yellow four-petalled flowers just starting to open along the stems, together with small green leaf buds and tiny young leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. All the stems converge to one single base point cut cleanly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "forsythia"
   },
   {
     "path": "public/plants/persimmon/seed.webp",
-    "prompt": "Realistic botanical illustration of 2 to 3 real persimmon seeds in extreme close-up: flat, oval, glossy brown seeds with a pale scar at one end. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The seeds rest close together at the center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of 2 to 3 real persimmon (Diospyros kaki) seeds in close-up, lying close together at the center of the frame: flat, smooth, oval glossy brown seeds with a pale edge. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Seeds only, no pot, no soil, no ground, no grass, no shadow, no fruit, no plant. No text, no labels, no numbers.",
     "aspect": "1:1",
     "transparent": true,
     "species": "persimmon"
   },
   {
     "path": "public/plants/persimmon/sprout.webp",
-    "prompt": "Realistic botanical illustration of a newly sprouted persimmon seedling: a short green stem with two oval seed leaves and a pair of tiny oval first true leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a newly sprouted persimmon seedling: a short green stem carrying two oval smooth seed leaves (cotyledons) opposite each other and a tiny pair of first true leaves just appearing. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "persimmon"
   },
   {
     "path": "public/plants/persimmon/leafStem.webp",
-    "prompt": "Realistic botanical illustration of a young persimmon sapling: a thin upright woody-green stem with large broad oval glossy green leaves with smooth edges, arranged alternately. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young persimmon sapling: a thin upright woody-green stem with alternate broad glossy oval pointed leaves with smooth edges and visible nodes, a few leaves only, still small. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "persimmon"
   },
   {
     "path": "public/plants/persimmon/grownTree.webp",
-    "prompt": "Realistic botanical illustration of a young persimmon tree: a straight brown trunk with spreading branches carrying large broad oval glossy green leaves in a rounded crown, trunk base cut cleanly at the bottom center. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young persimmon tree standing upright: a straight brown trunk with spreading branches carrying a rounded crown of large glossy dark-green oval leaves, medium size, no flowers and no fruit. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "persimmon"
   },
   {
     "path": "public/plants/persimmon/flower.webp",
-    "prompt": "Realistic botanical illustration of a persimmon tree in bloom: a brown trunk and branches with large oval glossy green leaves and small cream-yellow four-lobed urn-shaped flowers under the leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young persimmon tree in bloom: a straight brown trunk and branches with large glossy oval green leaves and many small creamy-yellow four-lobed bell-shaped flowers with green sepals, hidden among the leaves. No fruit. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "persimmon"
   },
   {
     "path": "public/plants/persimmon/fruit.webp",
-    "prompt": "Realistic botanical illustration of a persimmon tree bearing fruit: a brown trunk with large glossy oval leaves and several round flattened orange persimmons with green four-pointed calyxes hanging among the leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young persimmon tree bearing fruit: a straight brown trunk and branches with large glossy oval green leaves and many round flattened bright orange persimmons with green calyx caps hanging among the leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "persimmon"
   },
   {
     "path": "public/plants/persimmon/winter.webp",
-    "prompt": "Realistic botanical illustration of a bare persimmon tree in winter: a dark rough-barked trunk and bare leafless branches, no leaves, no fruit. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young persimmon tree in winter: a straight dark brown trunk and bare leafless branches and twigs, no leaves, two or three orange persimmons still hanging on the branches, no snow. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "persimmon"
   },
   {
     "path": "public/plants/persimmon/newShoot.webp",
-    "prompt": "Realistic botanical illustration of a persimmon tree in early spring: a dark rough-barked trunk with bare branches carrying swelling buds and fresh small light-green new leaves. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young persimmon tree in early spring: a straight brown trunk and branches with fresh light-green young leaves just unfolding along the twigs, no flowers, no fruit. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow, nothing drawn below the base. The trunk base is cut cleanly and ends exactly at the bottom center of the frame, the tree standing straight and upright. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "persimmon"

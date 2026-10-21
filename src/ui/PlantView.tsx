@@ -148,6 +148,7 @@ export function yardLayout(W: number, H: number, plantStageScale: number, art: P
   }
 }
 
+/** Stand-in for a leafless plant: only used when the species has no real winter picture. */
 const WINTER_FILTER = 'grayscale(.7) brightness(.9) contrast(.9)'
 
 const r2 = (v: number) => Math.round(v * 100) / 100
@@ -202,7 +203,7 @@ type Props = {
   health: number
   lightLow: boolean
   place: Place
-  /** Winter phase: white veil, snow and a leafless-looking plant. */
+  /** Winter phase: white veil and snow; the plant looks leafless through its own winter picture (a muted filter if it has none). */
   winter?: boolean
   /** Handlers and attributes for the touch area over the pot (drag, drop target). */
   potProps?: HTMLAttributes<HTMLDivElement> & Record<`data-${string}`, string | undefined>
@@ -230,7 +231,9 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
   const look = plantLook(health, lightLow)
   const name = SPECIES[speciesId].name
   const hasPlant = scale > 0
-  const plantFilter = winter ? [look.filter === 'none' ? '' : look.filter, WINTER_FILTER].join(' ').trim() : look.filter
+  // A species with a real winter picture shows it as drawn; the muted filter only fakes winter on a stand-in.
+  const fakeWinter = winter && !plantPic.real
+  const plantFilter = fakeWinter ? [look.filter === 'none' ? '' : look.filter, WINTER_FILTER].join(' ').trim() : look.filter
 
   const potBox = { left: L.pot.x, top: L.pot.y, width: L.pot.w, height: L.pot.h }
   const plantBox = {
@@ -261,7 +264,7 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
       src={plantPic.src}
       alt={`${name} (${STAGE_LABEL[stage]})`}
       draggable={false}
-      style={{ ...plantBox, filter: plantFilter || 'none', opacity: winter ? 0.85 : undefined }}
+      style={{ ...plantBox, filter: plantFilter || 'none', opacity: fakeWinter ? 0.85 : undefined }}
     />
   )
   const bugs = hasPlant && plantOverlay && (

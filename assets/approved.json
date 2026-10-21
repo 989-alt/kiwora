@@ -1,1 +1,11 @@
-{ "balsam": true }
+{
+  "balsam": true,
+  "bean": true,
+  "morningGlory": true,
+  "rice": true,
+  "corn": true,
+  "apple": true,
+  "persimmon": true,
+  "forsythia": true,
+  "dandelion": true
+}

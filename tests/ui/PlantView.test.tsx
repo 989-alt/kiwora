@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
+import { SPECIES } from '../../src/sim/species'
 import { PlantView, faceFor, sceneLayout, stageScale, yardLayout } from '../../src/ui/PlantView'
 import { DEFAULTS, bgArt, plantArt, potArt } from '../../src/ui/art'
 
@@ -163,24 +164,47 @@ describe('PlantView in the yard', () => {
 })
 
 describe('PlantView in winter', () => {
-  test('white veil under the plant, snow above it, a muted plant', () => {
+  test('white veil under the plant, snow above it', () => {
     const { container } = render(
       <PlantView speciesId="dandelion" stage="winter" health={90} lightLow={false} place="desk" winter />,
     )
     const layers = [...container.querySelectorAll('[data-layer]')].map((el) => el.getAttribute('data-layer'))
     expect(layers).toEqual(['bg', 'winter', 'shadow', 'pot-back', 'plant', 'pot-front', 'snow'])
-    const plant = container.querySelector('[data-layer="plant"]') as HTMLElement
-    expect(plant.style.filter).toContain('grayscale(.7) brightness(.9) contrast(.9)')
-    expect(plant.style.opacity).toBe('0.85')
   })
 
-  test('the winter filter adds to the sick look', () => {
+  test('a species with a real winter picture shows it without the leafless filter', () => {
+    for (const id of ['apple', 'persimmon', 'forsythia', 'dandelion'] as const) {
+      const { container, unmount } = render(
+        <PlantView speciesId={id} stage="winter" health={90} lightLow={false} place="desk" winter />,
+      )
+      const plant = container.querySelector('[data-layer="plant"]') as HTMLElement
+      expect(plant.getAttribute('src'), id).toBe(`/plants/${id}/winter.webp`)
+      expect(plant.style.filter, id).not.toContain('grayscale')
+      expect(plant.style.opacity, id).toBe('')
+      expect(container.querySelector('[data-layer="winter"]'), id).not.toBeNull()
+      expect(container.querySelector('[data-layer="snow"]'), id).not.toBeNull()
+      unmount()
+    }
+  })
+
+  test('the sick look still applies to the real winter picture, without the winter filter', () => {
     const { container } = render(
       <PlantView speciesId="dandelion" stage="winter" health={10} lightLow={false} place="desk" winter />,
     )
     const f = (container.querySelector('[data-layer="plant"]') as HTMLElement).style.filter
     expect(f).toMatch(/sepia/)
-    expect(f).toMatch(/grayscale/)
+    expect(f).not.toMatch(/grayscale/)
+  })
+
+  test('a picture without a winter version (stand-in) is muted by the filter instead', () => {
+    // balsam has no winter stage, so its lookup falls back to the stand-in
+    const { container } = render(
+      <PlantView speciesId="balsam" stage="winter" health={90} lightLow={false} place="desk" winter />,
+    )
+    const plant = container.querySelector('[data-layer="plant"]') as HTMLElement
+    expect(plant.getAttribute('src')).toBe('/plants/standin.png')
+    expect(plant.style.filter).toContain('grayscale(.7) brightness(.9) contrast(.9)')
+    expect(plant.style.opacity).toBe('0.85')
   })
 
   test('no snow outside winter', () => {
@@ -200,16 +224,19 @@ describe('pictures and their anchors', () => {
     [1366, 768],
   ]
 
-  test('balsam and the annuals have their own pictures with measured anchors for every stage; the rest use the stand-in', () => {
-    for (const id of ['balsam', 'bean', 'morningGlory', 'rice', 'corn'] as const) {
-      for (const st of ['seed', ...BALSAM] as const) {
-        const art = plantArt(id, st)
-        expect(art.real, `${id}/${st}`).toBe(true)
-        expect(art.src).toBe(`/plants/${id}/${st}.webp`)
-        expect(art.a.stemY).toBeGreaterThan(art.a.top)
+  test('every species has its own picture with measured anchors for every stage it passes through', () => {
+    for (const sp of Object.values(SPECIES)) {
+      for (const st of sp.stages) {
+        const art = plantArt(sp.id, st)
+        expect(art.real, `${sp.id}/${st}`).toBe(true)
+        expect(art.src).toBe(`/plants/${sp.id}/${st}.webp`)
+        expect(art.a.stemY, `${sp.id}/${st}`).toBeGreaterThan(art.a.top)
       }
     }
-    const other = plantArt('apple', 'flower')
+  })
+
+  test('a stage a species does not have falls back to the shared stand-in', () => {
+    const other = plantArt('balsam', 'winter')
     expect(other.real).toBe(false)
     expect(other.src).toBe('/plants/standin.png')
   })

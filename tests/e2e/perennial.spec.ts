@@ -100,7 +100,10 @@ test('winter: snow, leafless look and the winter water band', async ({ page }) =
   expect(await page.locator('.pv-flake').count()).toBeGreaterThan(10)
   // water 30 is ideal in winter (20..40) but only just-ok in the growing season
   await expect(page.getByRole('group', { name: /^물 / })).toHaveAttribute('aria-label', /매우 좋음/)
-  await expect(page.locator('[data-layer="plant"]')).toHaveCSS('opacity', '0.85')
+  // dandelion has its own winter picture: shown as drawn, not muted by the leafless filter
+  await expect(page.locator('[data-layer="plant"]')).toHaveAttribute('src', '/plants/dandelion/winter.webp')
+  await expect(page.locator('[data-layer="plant"]')).toHaveCSS('opacity', '1')
+  await expect(page.locator('[data-layer="plant"]')).toHaveCSS('filter', 'none')
   // snow stays out of the way of the tools
   await expect(page.locator('[data-layer="snow"]')).toHaveCSS('pointer-events', 'none')
 })
@@ -156,6 +159,23 @@ test.describe('screenshots', () => {
     await expect(page.locator('[data-layer="snow"]')).toBeVisible()
     await page.screenshot({ path: `${SHOTS}/winter-1194.png` })
   })
+
+  const species: { name: string; plant: Parameters<typeof saveWith>[0] }[] = [
+    { name: 'yard-apple-1194', plant: { speciesId: 'apple', stageIndex: 5, place: 'yardSunny' } },
+    { name: 'winter-persimmon-1194', plant: { speciesId: 'persimmon', stageIndex: 6, place: 'yardSunny', water: 30, nutrient: 10 } },
+    { name: 'grow-dandelion-1194', plant: { speciesId: 'dandelion', stageIndex: 4, place: 'window' } },
+    { name: 'yard-forsythia-1194', plant: { speciesId: 'forsythia', stageIndex: 4, place: 'yardSunny' } },
+  ]
+  for (const s of species) {
+    test(`species scene ${s.name}`, async ({ page }) => {
+      await page.setViewportSize({ width: 1194, height: 834 })
+      await useSave(page, saveWith(s.plant))
+      await page.goto('/')
+      await ready(page)
+      await expect(page.locator('[data-layer="plant"]')).toBeVisible()
+      await page.screenshot({ path: `${SHOTS}/${s.name}.png` })
+    })
+  }
 
   test('winter in the room', async ({ page }) => {
     await page.setViewportSize({ width: 1194, height: 834 })

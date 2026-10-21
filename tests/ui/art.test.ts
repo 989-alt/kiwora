@@ -9,7 +9,7 @@ const real = (a: Partial<PlantArt['a']>): PlantArt => ({
 
 describe('bugSpots', () => {
   test('stand-in picture: undefined, so Bugs uses its own LEAF_SPOTS', () => {
-    expect(bugSpots(plantArt('apple', 'flower'))).toBeUndefined()
+    expect(bugSpots(plantArt('balsam', 'winter'))).toBeUndefined()
   })
 
   test('measured spots are used as they are', () => {
