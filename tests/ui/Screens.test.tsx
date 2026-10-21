@@ -41,12 +41,14 @@ describe('PickScreen', () => {
       const dispatch = vi.fn()
       render(<PickScreen state={base()} dispatch={dispatch} />)
       const cards = screen.getAllByRole('button').filter((b) => b.classList.contains('pk-card'))
-      expect(cards).toHaveLength(9) // nothing is approved yet
-      for (const c of cards) {
-        expect((c as HTMLButtonElement).disabled).toBe(true)
-        expect(within(c).getByText('준비 중')).toBeTruthy()
-      }
-      fireEvent.click(cards[0])
+      expect(cards).toHaveLength(9)
+      const ready = cards.filter((c) => !(c as HTMLButtonElement).disabled)
+      expect(ready).toHaveLength(1) // only balsam is approved
+      expect(within(ready[0]).queryByText('준비 중')).toBeNull()
+      const waiting = cards.filter((c) => (c as HTMLButtonElement).disabled)
+      expect(waiting).toHaveLength(8)
+      for (const c of waiting) expect(within(c).getByText('준비 중')).toBeTruthy()
+      fireEvent.click(waiting[0])
       expect(dispatch).not.toHaveBeenCalled()
     } finally {
       vi.unstubAllEnvs()
