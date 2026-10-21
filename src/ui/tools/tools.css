@@ -1,0 +1,185 @@
+/* Tools, slots and bugs on the grow screen. All are direct-manipulation targets. */
+.tool,
+.slot,
+.bug,
+.pv-pot-hit {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tool {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 84px;
+  border-radius: 24px;
+  border: 3px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font: inherit;
+  transition: transform 0.08s;
+}
+.tool img {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+  flex-shrink: 0;
+  pointer-events: none;
+}
+.tool-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  pointer-events: none;
+}
+.tool-name {
+  font-family: var(--font-title);
+  font-size: 24px;
+}
+.tool-hint {
+  font-size: 18px;
+  line-height: 1.2;
+  word-break: keep-all;
+}
+.tool:active:not(:disabled) {
+  transform: translateY(3px);
+}
+.tool:disabled {
+  cursor: default;
+  filter: grayscale(0.8);
+  opacity: 0.55;
+}
+.tool--water {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  box-shadow: 0 6px 0 #bfdbfe;
+}
+.tool--water .tool-name { color: #1e40af; }
+.tool--water .tool-hint { color: #1e3a8a; }
+.tool--fert {
+  border-color: #fed7aa;
+  background: #fff7ed;
+  box-shadow: 0 6px 0 #fed7aa;
+}
+.tool--fert .tool-name { color: #9a3412; }
+.tool--fert .tool-hint { color: #7c2d12; }
+
+.slots {
+  display: flex;
+  gap: 10px;
+  background: #fff;
+  border: 3px solid #d1e7da;
+  border-radius: 24px;
+  padding: 10px;
+  box-shadow: 0 6px 0 #cde5d5;
+}
+.slot {
+  width: 96px;
+  height: 84px;
+  border-radius: 18px;
+  border: 3px dashed #cbd5e1;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font-title);
+  font-size: 20px;
+  color: #475569;
+  cursor: pointer;
+}
+.slot svg { pointer-events: none; }
+.slot--here {
+  border: 3px solid #d97706;
+  background: #fff7ed;
+  color: #9a3412;
+}
+.slot--target {
+  border-color: #16a34a;
+  background: #f0fdf4;
+  color: #166534;
+}
+.slot--hover {
+  border-style: solid;
+  background: #dcfce7;
+  transform: scale(1.06);
+}
+.slot:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.bug {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.bug img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.bug:disabled { cursor: default; }
+.pv-plant-overlay { pointer-events: none; }
+
+.pot-ghost {
+  position: fixed;
+  width: 120px;
+  height: 120px;
+  margin: -60px 0 0 -60px;
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: 50;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.25));
+}
+.pellet-ghost {
+  position: fixed;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fde68a, #d97706 70%);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+  z-index: 50;
+}
+
+.water-stream {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.water-can {
+  position: absolute;
+  transform: rotate(-30deg);
+  transform-origin: 0 44%;
+}
+.water-drop {
+  position: absolute;
+  width: 5px;
+  border-radius: 3px;
+  background: linear-gradient(rgba(147, 197, 253, 0), rgba(59, 130, 246, 0.85));
+  animation: water-fall 0.5s linear infinite;
+}
+@keyframes water-fall {
+  from { transform: translateY(-30%); opacity: 0; }
+  30% { opacity: 1; }
+  to { transform: translateY(30%); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .water-drop { animation: none; }
+}
