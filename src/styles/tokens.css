@@ -1,0 +1,60 @@
+:root {
+  --c-primary: #15803d;
+  --c-secondary: #059669;
+  --c-accent: #d97706;
+  --c-bg: #f0fdf4;
+  --c-fg: #0f172a;
+  --c-border: #e2efe7;
+
+  /* status levels: 0 very bad .. 4 very good */
+  --lv-0: #dc2626;
+  --lv-1: #ea580c;
+  --lv-2: #ca8a04;
+  --lv-3: #16a34a;
+  --lv-4: #2563eb;
+  --lv-2-text: #713f12;
+
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --clay-shadow: 0 6px 0 rgba(21, 128, 61, 0.18), inset 0 -4px 0 rgba(0, 0, 0, 0.06);
+
+  --font-title: 'Jua', sans-serif;
+  --font-body: 'Gowun Dodum', sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-fg);
+  font-family: var(--font-body);
+  font-size: 18px;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-title);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
