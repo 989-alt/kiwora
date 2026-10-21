@@ -94,6 +94,21 @@ function growthAt(avg: number): number {
   return GROWTH_FOR[lo] + (GROWTH_FOR[hi] - GROWTH_FOR[lo]) * (avg - lo)
 }
 
+/**
+ * Step 1 of endDay on its own: apply care actions to water/nutrient/bugs/place with the same
+ * clamps (water/nutrient 0..150, bugs >= 0, non-finite numbers count as 0). The store uses it to
+ * show actions on the status board immediately.
+ */
+export function applyActions(s: PlantState, a: DayActions): PlantState {
+  return {
+    ...s,
+    water: clamp(s.water + num(a.waterAdded), 0, MAX_STORE),
+    nutrient: clamp(s.nutrient + num(a.pellets) * PELLET_NUTRIENT, 0, MAX_STORE),
+    bugs: Math.max(0, s.bugs - num(a.bugsRemoved)),
+    place: a.place,
+  }
+}
+
 export function endDay(
   s: PlantState,
   a: DayActions,
@@ -110,15 +125,14 @@ export function endDay(
   const lastStage = species.stages.length - 1
 
   // 1. apply actions
-  let water = clamp(s.water + num(a.waterAdded), 0, MAX_STORE)
-  let nutrient = clamp(s.nutrient + num(a.pellets) * PELLET_NUTRIENT, 0, MAX_STORE)
-  const bugsLeft = Math.max(0, s.bugs - num(a.bugsRemoved))
-  const place = a.place
+  const applied = applyActions(s, a)
+  let { water, nutrient } = applied
+  const { bugs: bugsLeft, place } = applied
 
   // 2. light exposure moving average ("too long in the sun" accumulates here)
   const lightExp = Math.round(0.5 * s.lightExp + 0.5 * PLACE_ENV[place].light)
 
-  let state: PlantState = { ...s, water, nutrient, bugs: bugsLeft, place, lightExp }
+  let state: PlantState = { ...applied, lightExp }
 
   // 3. statuses
   const phase = phaseOfState(state)
