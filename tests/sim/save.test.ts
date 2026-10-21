@@ -102,6 +102,35 @@ describe('save', () => {
   })
 })
 
+describe('shape validation', () => {
+  const load = (o: unknown) => loadSave(memStorage({ 'plantlife.v1': JSON.stringify(o) }))
+
+  it('empty plant object is corrupt', () => {
+    const r = load({ v: 1, plant: {} })
+    expect(r.data).toEqual(emptySave())
+    expect(r.warning).toBe('corrupt')
+    expect(importCode(exportCode({ v: 1, plant: {} } as unknown as SaveData)).ok).toBe(false)
+  })
+
+  it('filters junk journal entries and cleans scalars', () => {
+    const r = load({ v: 1, journal: [null, 5], pastTries: ['x'], dex: ['balsam', 'balsam', 'nope'], lastDayKey: 'yesterday', dayDone: 'yes', pendingActions: { waterAdded: 'a' } })
+    expect(r.warning).toBeUndefined()
+    expect(r.data).toEqual({ ...emptySave(), dex: ['balsam'] })
+  })
+
+  it('clamps and rounds bugs', () => {
+    const d = sample()
+    expect(load({ ...d, plant: { ...d.plant, bugs: -3 } }).data.plant!.bugs).toBe(0)
+    expect(load({ ...d, plant: { ...d.plant, bugs: 2.6 } }).data.plant!.bugs).toBe(3)
+  })
+
+  it('dead plant with deathCause round-trips', () => {
+    const d = sample()
+    d.plant = { ...d.plant!, dead: true, deathCause: '물이 부족했어요' }
+    expect(importCode(exportCode(d))).toEqual({ ok: true, data: d })
+  })
+})
+
 describe('restore code', () => {
   const BAD = '코드가 맞지 않아요. 다시 확인해 주세요.'
 
