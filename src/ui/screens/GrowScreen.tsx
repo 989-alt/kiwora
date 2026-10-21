@@ -142,7 +142,7 @@ export function GrowScreen({ state, dispatch }: Props) {
               sceneOverlay={(L) => (pouring ? <WaterStream layout={L} /> : null)}
             />
             {state.morning && (
-              <MorningCard key={`${plant.day}-${locked}`} report={state.morning} day={plant.day} dayDone={locked} />
+              <MorningCard key={`${plant.day}-${locked}`} report={state.morning} day={plant.day} dayDone={locked} stage={stage} />
             )}
           </div>
 

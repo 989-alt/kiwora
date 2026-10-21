@@ -184,6 +184,25 @@ describe('endDay', () => {
     expect(currentStatuses(at('apple', 'winter', { water: 30 })).water).toEqual({ level: 4, dir: null })
   })
 
+  it.each(PERENNIALS)('entering winter never hurts %s whose board was fine on the last fruit day', (id) => {
+    for (const nutrient of [75, 85]) {
+      const place = carePlace(id)
+      // last fruit day, fully grown: board all 적정 or better, nutrient high in the summer band
+      const s = at(id, 'fruit', { growth: 3.9, water: 62.5, nutrient, lightExp: PLACE_ENV[place].light, place })
+      const last = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place }, noBugs)
+      expect(last.report.healthDelta).toBeGreaterThanOrEqual(0)
+      expect(stageOf(last.state)).toBe('winter')
+      // the first winter day: the student follows the board (it shows nothing to fix), so no damage
+      const first = endDay(last.state, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place }, noBugs)
+      expect(first.report.healthDelta, `${id} nutrient ${nutrient}`).toBeGreaterThanOrEqual(0)
+      expect(first.state.health).toBe(100)
+      for (const st of Object.values(currentStatuses(last.state))) if (st.level !== null) expect(st.level).toBeGreaterThanOrEqual(3)
+      const wb = SPECIES[id].bands.winter
+      expect(last.state.nutrient).toBeLessThanOrEqual(wb.nutrient.hi)
+      expect(last.state.water).toBeLessThanOrEqual(wb.water.hi)
+    }
+  })
+
   it('seed phase uses no nutrient', () => {
     const s = at('balsam', 'seed', { nutrient: 40 })
     const { state } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs)
@@ -211,20 +230,49 @@ describe('endDay', () => {
     expect(state).toEqual(zero)
   })
 
-  it('height and leaves grow with growth and never shrink', () => {
+  it('height and leaves grow with growth after the seed stage and never shrink', () => {
     let s = newPlant('balsam')
     let prevH = s.heightCm
     let prevL = s.leaves
     for (let i = 0; i < 10; i++) {
+      const wasSeed = stageOf(s) === 'seed'
       const r = endDay(s, idealCare(s), noBugs)
       s = r.state
-      expect(r.report.heightDelta).toBeGreaterThan(0)
-      expect(s.heightCm).toBeGreaterThan(prevH)
+      if (!wasSeed) {
+        expect(r.report.heightDelta).toBeGreaterThan(0)
+        expect(s.heightCm).toBeGreaterThan(prevH)
+      }
       expect(s.leaves).toBeGreaterThanOrEqual(prevL)
       prevH = s.heightCm
       prevL = s.leaves
     }
     expect(s.leaves).toBeGreaterThan(0)
+  })
+
+  it.each([...ANNUALS, ...PERENNIALS])('a seed of %s does not grow taller or get leaves while it is still a seed', (id) => {
+    let s = newPlant(id)
+    while (stageOf(s) === 'seed') {
+      const r = endDay(s, idealCare(s), noBugs)
+      // the day the seed sprouts, only the growth earned past the seed stage counts
+      const expected = r.report.stageChanged ? Math.round(r.state.growth * 1.5 * 10) / 10 : 0
+      expect(r.report.heightDelta).toBe(expected)
+      if (!r.report.stageChanged) {
+        expect(r.state.heightCm).toBe(0)
+        expect(r.state.leaves).toBe(0)
+      }
+      s = r.state
+    }
+    expect(stageOf(s)).toBe('sprout')
+    expect(s.heightCm).toBe(Math.round(s.growth * 1.5 * 10) / 10)
+    expect(s.leaves).toBe(Math.floor(s.growth / 2))
+  })
+
+  it('day 1 of a new plant under ideal care stays 0 cm with 0 leaves', () => {
+    const { state, report } = endDay(newPlant('bean'), idealCare(newPlant('bean')), noBugs)
+    expect(stageOf(state)).toBe('seed')
+    expect(report.heightDelta).toBe(0)
+    expect(state.heightCm).toBe(0)
+    expect(state.leaves).toBe(0)
   })
 })
 

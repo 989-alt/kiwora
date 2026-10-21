@@ -170,15 +170,24 @@ export function endDay(
       if (stageIndex === lastStage) growth = 0
     }
   }
-  const heightDelta = round1(gained * CM_PER_POINT)
+  // A seed under the soil has no stem or leaves yet: only growth earned past the seed stage shows.
+  const seedPart = s.stageIndex === 0 ? Math.min(gained, STAGE_POINTS - s.growth) : 0
+  const heightDelta = round1(Math.max(0, gained - seedPart) * CM_PER_POINT)
   const heightCm = round1(s.heightCm + heightDelta)
-  const totalPoints = stageIndex * STAGE_POINTS + growth
-  const leaves = Math.max(s.leaves, Math.floor(totalPoints / POINTS_PER_LEAF))
+  const pastSeed = Math.max(0, (stageIndex - 1) * STAGE_POINTS + growth)
+  const leaves = stageIndex === 0 ? s.leaves : Math.max(s.leaves, Math.floor(pastSeed / POINTS_PER_LEAF))
 
   // 6. prepare the next morning
   water = Math.max(0, water - placeEnv(place, phase).evap)
   const nutrientUse = phase === 'grow' ? GROW_NUTRIENT_USE : phase === 'winter' ? WINTER_NUTRIENT_USE : 0
   nutrient = Math.max(0, nutrient - nutrientUse)
+  if (stageChanged && phaseOf(species.stages[stageIndex]) === 'winter') {
+    // Entering winter overnight: the plant takes up less, so the board's fine summer amounts never
+    // count against it on its first winter day (the student could not have prepared for the new band).
+    const wb = species.bands.winter
+    water = Math.min(water, wb.water.hi)
+    nutrient = Math.min(nutrient, wb.nutrient.hi)
+  }
   const newBugs = rollPests(statuses, rng)
   const bugs = Math.min(MAX_BUGS, bugsLeft + bugsLeft + newBugs) // unremoved bugs multiply overnight
 

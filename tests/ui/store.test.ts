@@ -99,6 +99,11 @@ describe('day flow', () => {
     expect(t.plant!.water).toBe(65 - 18)
   })
 
+  it('the day-1 journal row of a seed is 0 cm and 0 leaves', () => {
+    const t = reducer(play(started(), [{ type: 'water', amount: 5 }], D1), { type: 'endDay' }, D1)
+    expect(t.journal[0]).toMatchObject({ day: 1, stage: 'seed', heightCm: 0, leaves: 0 })
+  })
+
   it('same day after dayDone stays view-only on reload', () => {
     const s = play(started(), [{ type: 'endDay' }], D1)
     const r = boot(persist(s), D1)
