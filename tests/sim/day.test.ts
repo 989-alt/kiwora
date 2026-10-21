@@ -173,6 +173,17 @@ describe('endDay', () => {
     expect(currentStatuses(s).temp).toEqual({ level: 4, dir: null }) // desk 22 − 15 = 7, winter band 0..10
   })
 
+  it('winter prefers little water', () => {
+    for (const id of PERENNIALS) {
+      const winter = currentStatuses(at(id, 'winter', { water: 70 })).water
+      expect(winter).toMatchObject({ dir: 'high' })
+      expect(winter.level).toBeLessThanOrEqual(2)
+      // the same water is fine while growing
+      expect(currentStatuses(at(id, 'leafStem', { water: 70 })).water.level).toBeGreaterThanOrEqual(3)
+    }
+    expect(currentStatuses(at('apple', 'winter', { water: 30 })).water).toEqual({ level: 4, dir: null })
+  })
+
   it('seed phase uses no nutrient', () => {
     const s = at('balsam', 'seed', { nutrient: 40 })
     const { state } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs)

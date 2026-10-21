@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { currentStatuses } from '../../sim/day'
 import { seedFor } from '../../sim/rng'
-import { SPECIES, STAGE_LABEL } from '../../sim/species'
+import { phaseOf, SPECIES, STAGE_LABEL } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
 import type { Action, AppState } from '../../store'
-import { PlantView, faceFor } from '../PlantView'
+import { PlantView, faceFor, isYardPlace } from '../PlantView'
 import { StatusBoard } from '../StatusBoard'
 import { Tutorial } from '../Tutorial'
 import { installAudioUnlock } from '../sound'
@@ -68,6 +68,10 @@ export function GrowScreen({ state, dispatch }: Props) {
   const lightLow = light.level !== null && light.level <= 2 && light.dir === 'low'
   const title = `${species.name} · ${plant.day}일째 · ${STAGE_LABEL[stage]}`
   const inRoom = ROOM.includes(plant.place)
+  const yard = isYardPlace(plant.place)
+  const winter = phaseOf(stage) === 'winter'
+  // A grown tree shows how long it has been growing: first half of the stage = 1 year, second half = 2.
+  const yearsLater = stage === 'grownTree' ? (plant.growth < 2 ? '1년 뒤' : '2년 뒤') : null
 
   return (
     <div ref={rootRef} className={`gs${portrait ? ' gs--portrait' : ''}`}>
@@ -79,6 +83,7 @@ export function GrowScreen({ state, dispatch }: Props) {
           <span className="gs-name">{species.name}</span>
           <span className="gs-day">{plant.day}일째</span>
           <span className="gs-stage">{STAGE_LABEL[stage]}</span>
+          {yearsLater && <span className="gs-years">{yearsLater}</span>}
         </h1>
         <nav className="gs-menu" aria-label="메뉴">
           <button
@@ -110,13 +115,15 @@ export function GrowScreen({ state, dispatch }: Props) {
               health={plant.health}
               lightLow={lightLow}
               place={plant.place}
+              winter={winter}
               potHighlight={pelletDrag}
               potProps={{
                 ...(inRoom ? drag.potProps : {}),
                 role: 'img',
-                'aria-label': '화분 끌기',
+                // In the yard the soil around the trunk is only a place to drop fertilizer.
+                'aria-label': yard ? '나무 밑동' : '화분 끌기',
                 'data-drop': 'pot',
-                'data-tut': 'pot',
+                ...(yard ? {} : { 'data-tut': 'pot' }),
               }}
               plantOverlay={(scale) => (
                 <Bugs
@@ -157,6 +164,7 @@ export function GrowScreen({ state, dispatch }: Props) {
               sound={sound}
               onPellet={() => dispatch({ type: 'pellet' })}
               onDragChange={setPelletDrag}
+              target={yard ? '땅' : '화분'}
             />
           </div>
         </section>
@@ -179,7 +187,7 @@ export function GrowScreen({ state, dispatch }: Props) {
           style={{ left: drag.ghost.x, top: drag.ghost.y }}
         />
       )}
-      {!state.settings.tutorialSeen && <Tutorial rootRef={rootRef} onDone={() => dispatch({ type: 'tutorialDone' })} />}
+      {!state.settings.tutorialSeen && !yard && <Tutorial rootRef={rootRef} onDone={() => dispatch({ type: 'tutorialDone' })} />}
     </div>
   )
 }

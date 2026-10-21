@@ -304,3 +304,14 @@
   font-size: 18px;
   color: #92400e;
 }
+
+/* "1년 뒤" / "2년 뒤" badge of a grown tree, next to the stage pill. */
+.gs-years {
+  font-family: var(--font-title);
+  font-size: 20px;
+  color: #7c2d12;
+  background: #ffedd5;
+  border: 2px solid #fdba74;
+  border-radius: 999px;
+  padding: 2px 14px;
+}

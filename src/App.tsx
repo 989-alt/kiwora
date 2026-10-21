@@ -1,18 +1,18 @@
 import { SPECIES, type SpeciesId } from './sim/species'
 import { useApp, type Screen } from './store'
 import { GrowScreen } from './ui/screens/GrowScreen'
+import { TransplantScreen } from './ui/screens/TransplantScreen'
 import './App.css'
 
-const SCREEN_NAME: Record<Exclude<Screen, 'grow'>, string> = {
+const SCREEN_NAME: Record<Exclude<Screen, 'grow' | 'transplant'>, string> = {
   pick: '식물 고르기',
   dead: '식물이 죽었어요',
   journal: '관찰 일지',
   dex: '씨 도감',
   backup: '기록 지키기',
-  transplant: '땅에 옮겨 심기',
 }
 
-/** Screens the grow screen opens; placeholders until Tasks 10/11 replace them. */
+/** Screens the grow screen opens; placeholders until Task 11 replaces them. */
 const FROM_GROW: Screen[] = ['journal', 'dex', 'backup']
 
 export default function App() {
@@ -26,7 +26,15 @@ export default function App() {
     )
   }
 
-  const screen = s.screen === 'grow' ? 'pick' : s.screen
+  if (s.screen === 'transplant' && s.plant && !s.plant.dead) {
+    return (
+      <main>
+        <TransplantScreen plant={s.plant} dispatch={dispatch} />
+      </main>
+    )
+  }
+
+  const screen = s.screen === 'grow' || s.screen === 'transplant' ? 'pick' : s.screen
   const p = s.plant
   const stage = p ? SPECIES[p.speciesId].stages[p.stageIndex] : null
   const canReturn = p !== null && !p.dead && stage !== 'seedDone' && stage !== 'newShoot' && FROM_GROW.includes(screen)

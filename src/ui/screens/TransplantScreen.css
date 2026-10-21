@@ -1,0 +1,133 @@
+.tp {
+  min-height: 100vh;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+}
+.tp-title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  font-weight: 400;
+}
+.tp-name {
+  font-size: 22px;
+  color: #fff;
+  background: var(--c-primary);
+  border-radius: 999px;
+  padding: 4px 18px;
+}
+.tp-copy {
+  font-family: var(--font-title);
+  font-size: 34px;
+  line-height: 1.3;
+  color: var(--c-fg);
+}
+.tp-cards {
+  width: min(960px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.tp-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 14px 14px 18px;
+  border-radius: 28px;
+  border: 4px solid #d1e7da;
+  background: #fff;
+  box-shadow: 0 8px 0 #cde5d5;
+  font: inherit;
+  color: var(--c-fg);
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.tp-card:active {
+  transform: translateY(4px);
+  box-shadow: 0 4px 0 #cde5d5;
+}
+.tp-card:focus-visible {
+  outline: 4px solid var(--c-accent);
+  outline-offset: 3px;
+}
+.tp-art {
+  position: relative;
+  display: block;
+  height: 190px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(#5fb8f2, #dff3ff);
+}
+.tp-card--yardPartial .tp-art {
+  background: linear-gradient(#7fb4dc, #dbeaf5);
+}
+.tp-card--yardShade .tp-art {
+  background: linear-gradient(#8ea3b8, #cdd8e2);
+}
+/* Sun disk: bigger and brighter the more sun the spot gets. */
+.tp-sun {
+  position: absolute;
+  right: 18%;
+  top: 14%;
+  width: calc(40px + 70px * var(--sun));
+  height: calc(40px + 70px * var(--sun));
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 36%, #fffbd0, #fcd34d 62%, #f59e0b);
+  box-shadow: 0 0 calc(50px * var(--sun)) calc(8px * var(--sun)) rgba(253, 224, 71, 0.6);
+  opacity: calc(0.4 + 0.6 * var(--sun));
+}
+.tp-cloud {
+  position: absolute;
+  left: 14%;
+  top: 28%;
+  width: 46%;
+  height: 26px;
+  border-radius: 999px;
+  background: #fff;
+  opacity: calc(1 - var(--sun));
+}
+.tp-card--yardPartial .tp-cloud {
+  left: 36%;
+  top: 22%;
+  opacity: 0.9;
+}
+.tp-grass {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 34%;
+  background: linear-gradient(#6fd36b, #3fa34d 40%, #6f4727 41%, #4d2f19);
+}
+.tp-card--yardShade .tp-grass {
+  background: linear-gradient(#4c9f5d, #2f7a47 40%, #5e3d22 41%, #3a2412);
+}
+.tp-name-line {
+  font-family: var(--font-title);
+  font-size: 32px;
+  color: var(--c-primary);
+}
+.tp-line {
+  font-size: 22px;
+  color: #334155;
+}
+
+@media (max-width: 760px) {
+  .tp-cards {
+    grid-template-columns: 1fr;
+  }
+  .tp-art {
+    height: 130px;
+  }
+}

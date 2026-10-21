@@ -10,12 +10,14 @@ type Props = {
   onPellet: () => void
   /** True while a pellet is being dragged (the pot shows it is a drop target). */
   onDragChange: (dragging: boolean) => void
+  /** What the pellet is dragged to (a noun that takes '으로'): the pot, or the ground in the yard. */
+  target?: string
 }
 
 const overPot = (x: number, y: number) => document.elementFromPoint(x, y)?.closest('[data-drop="pot"]') != null
 
 /** Drag a pellet onto the pot (or just tap) to give 1 pellet. */
-export function Fertilizer({ disabled, sound, onPellet, onDragChange }: Props) {
+export function Fertilizer({ disabled, sound, onPellet, onDragChange, target = '화분' }: Props) {
   const start = useRef<{ id: number; x: number; y: number } | null>(null)
   // Whether this press became a drag is decided from the ref, not render state, so a fast flick is never a tap.
   const dragging = useRef(false)
@@ -90,7 +92,7 @@ export function Fertilizer({ disabled, sound, onPellet, onDragChange }: Props) {
         <img src="/tools/fertilizer.png" alt="" draggable={false} />
         <span className="tool-text">
           <span className="tool-name">영양분</span>
-          <span className="tool-hint">화분으로 끌어요</span>
+          <span className="tool-hint">{target}으로 끌어요</span>
         </span>
       </button>
       {ghost && <span className="pellet-ghost" aria-hidden="true" style={{ left: ghost.x, top: ghost.y }} />}

@@ -40,3 +40,7 @@
     transition: none;
   }
 }
+.pv-pot-hit--soil {
+  border-radius: 50%;
+  cursor: default;
+}
