@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
 import { newPlant } from '../../src/sim/day'
+import { SPECIES } from '../../src/sim/species'
 import { emptySave, exportCode } from '../../src/sim/save'
 import { boot, toSave, type AppState } from '../../src/store'
 import { BackupPanel } from '../../src/ui/screens/BackupPanel'
@@ -69,6 +70,19 @@ describe('DexScreen', () => {
     expect(screen.getAllByRole('list', { name: /한살이$/ })).toHaveLength(2)
     fireEvent.click(screen.getByRole('button', { name: '다른 식물 키우기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'pick' })
+  })
+})
+
+describe('DexScreen journal link', () => {
+  test('a completed current plant can reopen its journal; a growing one cannot', () => {
+    const dispatch = vi.fn()
+    const done = { ...newPlant('balsam'), stageIndex: SPECIES.balsam.stages.indexOf('seedDone') }
+    const { unmount } = render(<DexScreen state={{ ...base(), plant: done, dex: ['balsam'] }} dispatch={dispatch} />)
+    fireEvent.click(screen.getByRole('button', { name: '일지 다시 보기' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'journal' })
+    unmount()
+    render(<DexScreen state={{ ...base(), plant: newPlant('balsam') }} dispatch={dispatch} />)
+    expect(screen.queryByRole('button', { name: '일지 다시 보기' })).toBeNull()
   })
 })
 

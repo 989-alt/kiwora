@@ -1,5 +1,5 @@
 import { SPECIES, type SpeciesId } from '../../sim/species'
-import { growing, type Action, type AppState } from '../../store'
+import { growing, isComplete, type Action, type AppState } from '../../store'
 import { plantSrc } from '../PlantView'
 import './Screens.css'
 
@@ -22,6 +22,11 @@ export function DexScreen({ state, dispatch }: Props) {
           {growing(state.plant) && (
             <button type="button" className="sc-btn" onClick={() => dispatch({ type: 'open', screen: 'grow' })}>
               돌아가기
+            </button>
+          )}
+          {state.plant && !state.plant.dead && isComplete(state.plant) && (
+            <button type="button" className="sc-btn" onClick={() => dispatch({ type: 'open', screen: 'journal' })}>
+              일지 다시 보기
             </button>
           )}
           <button type="button" className="sc-btn sc-btn--primary" onClick={() => dispatch({ type: 'open', screen: 'pick' })}>
