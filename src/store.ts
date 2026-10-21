@@ -22,6 +22,8 @@ export type Action =
   | { type: 'open'; screen: Screen }
   | { type: 'restore'; data: SaveData }
   | { type: 'toggleSound' }
+  /** The backup panel was shown for the load warning; stop showing it. */
+  | { type: 'clearWarning' }
   | { type: 'tutorialDone' }
   /** Only checks for a new date (app left open past midnight). */
   | { type: 'tick' }
@@ -37,7 +39,7 @@ const stageOf = (p: PlantState): StageId => SPECIES[p.speciesId].stages[p.stageI
 const zeroActions = (place: Place): DayActions => ({ waterAdded: 0, pellets: 0, bugsRemoved: 0, place })
 
 /** Annual reached 'seedDone' or perennial reached 'newShoot'. */
-function isComplete(p: PlantState): boolean {
+export function isComplete(p: PlantState): boolean {
   const stage = stageOf(p)
   return SPECIES[p.speciesId].life === 'annual' ? stage === 'seedDone' : stage === 'newShoot'
 }
@@ -49,9 +51,9 @@ function needsTransplant(p: PlantState): boolean {
 }
 
 /** A plant the student can still care for (actions, endDay). */
-const growing = (p: PlantState | null): p is PlantState => p !== null && !p.dead && !isComplete(p)
+export const growing = (p: PlantState | null): p is PlantState => p !== null && !p.dead && !isComplete(p)
 
-function screenFor(p: PlantState | null): Screen {
+export function screenFor(p: PlantState | null): Screen {
   if (p === null) return 'pick'
   if (p.dead) return 'dead'
   if (isComplete(p)) return 'journal'
@@ -59,7 +61,7 @@ function screenFor(p: PlantState | null): Screen {
   return 'grow'
 }
 
-function toSave(s: AppState): SaveData {
+export function toSave(s: AppState): SaveData {
   const { screen: _screen, morning: _morning, warning: _warning, ...data } = s
   return data
 }
@@ -200,6 +202,10 @@ export function reducer(prev: AppState, a: Action, today: string): AppState {
     }
     case 'open':
       return { ...s, screen: a.screen }
+    case 'clearWarning': {
+      const { warning: _warning, ...rest } = s
+      return rest
+    }
     case 'toggleSound':
       return { ...s, settings: { ...s.settings, sound: !s.settings.sound } }
     case 'tutorialDone':
@@ -221,7 +227,8 @@ function initState(): AppState {
   // Keep the unreadable save before the first writeSave replaces it.
   if (warning === 'corrupt') backupCorrupt()
   const s = boot(data, todayKey())
-  return warning ? { ...s, warning } : s
+  // A save that could not be read: show the backup panel first so a written-down code can be entered.
+  return warning ? { ...s, warning, screen: 'backup' } : s
 }
 
 export function useApp(): [AppState, (a: Action) => void] {

@@ -170,8 +170,8 @@ const PLACE_NAME: Record<Place, string> = {
   yardShade: '그늘진 땅',
 }
 
-/** Stand-in picture for every species and stage until Task 12. */
-const plantSrc = (_id: SpeciesId, _stage: StageId) => '/plants/balsam/flower.png'
+/** Stand-in picture for every species and stage until Task 12. Every screen resolves plant pictures through this. */
+export const plantSrc = (_id: SpeciesId, _stage: StageId) => '/plants/balsam/flower.png'
 
 const DEFAULT_SIZE = { w: MOCK_W, h: 586 }
 

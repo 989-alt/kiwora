@@ -1,0 +1,92 @@
+/* Printing the observation journal: A4 portrait, only the stage strip, the table and the past tries. */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    color: #000;
+    -webkit-print-color-adjust: economy;
+    print-color-adjust: economy;
+  }
+
+  .no-print,
+  .sc-nav,
+  button {
+    display: none !important;
+  }
+
+  .jr {
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    gap: 8mm !important;
+    background: none !important;
+  }
+
+  .jr * {
+    background: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  .jr .sc-card {
+    border: 1px solid #555 !important;
+    border-radius: 0 !important;
+    padding: 4mm !important;
+    break-inside: auto;
+  }
+
+  .jr .sc-h1 {
+    color: #000 !important;
+    font-size: 22pt !important;
+  }
+  .jr-sub {
+    font-size: 12pt !important;
+    color: #000 !important;
+  }
+
+  .jr-strip {
+    flex-wrap: nowrap !important;
+  }
+  .jr-stage {
+    flex: 1 1 0 !important;
+  }
+  .jr-stage img {
+    height: 22mm !important;
+    border-radius: 0 !important;
+  }
+  .jr-stage-name,
+  .jr-stage-day {
+    color: #000 !important;
+    font-size: 10pt !important;
+  }
+
+  .jr-table {
+    font-size: 11pt !important;
+  }
+  .jr-table th {
+    color: #000 !important;
+    border-bottom: 1px solid #000;
+    font-size: 11pt !important;
+  }
+  .jr-table td {
+    border-top: 1px solid #888 !important;
+    padding: 2.5mm 2mm !important;
+  }
+  .jr-table tr {
+    break-inside: avoid;
+  }
+
+  .jr-h2,
+  .jr-past ul {
+    color: #000 !important;
+    font-size: 11pt !important;
+  }
+  .jr-past {
+    break-inside: avoid;
+  }
+}

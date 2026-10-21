@@ -385,6 +385,10 @@ describe('useApp', () => {
     const { result } = renderHook(() => useApp())
     expect(ls.getItem('plantlife.v1.bak')).toBe('{not json')
     expect(result.current[0].warning).toBe('corrupt')
+    // the backup panel opens first so a written-down code can be entered
+    expect(result.current[0].screen).toBe('backup')
+    act(() => result.current[1]({ type: 'clearWarning' }))
+    expect(result.current[0].warning).toBeUndefined()
     act(() => result.current[1]({ type: 'pick', id: 'bean' }))
     expect(JSON.parse(ls.getItem(SAVE_KEY)!).plant.speciesId).toBe('bean')
     expect(ls.getItem('plantlife.v1.bak')).toBe('{not json')
