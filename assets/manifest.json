@@ -43,168 +43,168 @@
   },
   {
     "path": "public/plants/bean/seed.webp",
-    "prompt": "Realistic botanical illustration of 2 to 3 real kidney bean (Phaseolus vulgaris) seeds in extreme close-up: kidney-shaped, glossy, mottled reddish-brown and cream, with a small pale scar (hilum) on the curve. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The seeds rest close together at the center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of 3 real kidney bean (Phaseolus vulgaris) seeds in close-up, lying close together at the center of the frame: each seed is kidney-shaped (bean-shaped), smooth and glossy, mottled with reddish-brown and cream speckles, with a small pale oval scar (hilum) on the curved inner edge. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Seeds only, no pot, no soil, no ground, no grass, no shadow, no pod, no plant. No text, no labels, no numbers.",
     "aspect": "1:1",
     "transparent": true,
     "species": "bean"
   },
   {
     "path": "public/plants/bean/sprout.webp",
-    "prompt": "Realistic botanical illustration of a newly sprouted kidney bean seedling: a thick pale green stem holding two large fleshy seed leaves (cotyledons, bean halves), and a pair of small heart-shaped first true leaves opening between them. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a newly sprouted kidney bean (Phaseolus vulgaris) seedling: a thick pale green stem with a small curved hook, carrying two thick fleshy bean halves (cotyledons, kidney-shaped, pale green-cream) opposite each other, and a pair of small heart-shaped first true leaves just opening above them. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "bean"
   },
   {
     "path": "public/plants/bean/leafStem.webp",
-    "prompt": "Realistic botanical illustration of a young kidney bean plant: a green stem with nodes, each leaf made of three heart-shaped to oval pointed leaflets (trifoliate) on long leaf stalks, tendril-like growing tip. No flowers yet. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young kidney bean (Phaseolus vulgaris) plant: a slender green stem with visible nodes, each leaf made of three broad pointed oval-to-heart-shaped leaflets (trifoliate) on a long leaf stalk, with a short curling growing tip. No flowers and no pods. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "bean"
   },
   {
     "path": "public/plants/bean/flower.webp",
-    "prompt": "Realistic botanical illustration of a flowering kidney bean plant: trifoliate leaves with three oval pointed leaflets, and small clusters of white to pale pink-lilac pea-like flowers on short stalks from the leaf axils. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a flowering kidney bean (Phaseolus vulgaris) plant: trifoliate leaves with three pointed leaflets each, and small clusters of white to pale lilac pea-like flowers (butterfly-shaped with a curled keel) on short stalks from the leaf axils. No pods yet. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "bean"
   },
   {
     "path": "public/plants/bean/fruit.webp",
-    "prompt": "Realistic botanical illustration of a kidney bean plant bearing fruit: trifoliate leaves and several long slender flat green bean pods hanging from the leaf axils, bumpy where the beans are. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a kidney bean (Phaseolus vulgaris) plant bearing fruit: trifoliate leaves and several long slender flat green bean pods hanging from the leaf axils, slightly bumpy where the beans swell, with one or two small faded flowers. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "bean"
   },
   {
     "path": "public/plants/bean/seedDone.webp",
-    "prompt": "Realistic botanical illustration of a mature kidney bean plant at seed time: yellowing trifoliate leaves, dry tan-brown pods, one pod split open showing kidney-shaped mottled reddish-brown beans. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a mature kidney bean (Phaseolus vulgaris) plant at seed time: yellowing trifoliate leaves, several dry papery tan-brown pods, and one pod split open showing the kidney-shaped mottled reddish-brown and cream beans inside. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "bean"
   },
   {
     "path": "public/plants/morningGlory/seed.webp",
-    "prompt": "Realistic botanical illustration of 2 to 3 real morning glory (Ipomoea) seeds in extreme close-up: black, matte, angular wedge-shaped seeds with one rounded back and two flat sides, finely wrinkled surface. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The seeds rest close together at the center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of 3 real morning glory (Ipomoea nil) seeds in close-up, lying close together at the center of the frame: each seed is black to dark brown, matte, wedge-shaped (like an orange segment, with one rounded back and two flat sides meeting in a ridge), with a finely wrinkled surface and a tiny pale scar at the narrow end. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Seeds only, no pot, no soil, no ground, no grass, no shadow, no pod, no plant. No text, no labels, no numbers.",
     "aspect": "1:1",
     "transparent": true,
     "species": "morningGlory"
   },
   {
     "path": "public/plants/morningGlory/sprout.webp",
-    "prompt": "Realistic botanical illustration of a newly sprouted morning glory seedling: a short pale green stem with two broad butterfly-shaped notched seed leaves (cotyledons, each with two rounded lobes), a tiny first true leaf just showing. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a newly sprouted morning glory (Ipomoea nil) seedling: a short pale green stem carrying two broad butterfly-shaped seed leaves (cotyledons), each with a deep V-shaped notch at the tip forming two rounded lobes, and a tiny first true leaf just showing between them. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "morningGlory"
   },
   {
     "path": "public/plants/morningGlory/leafStem.webp",
-    "prompt": "Realistic botanical illustration of a young morning glory vine: a thin twining stem winding up a slender bamboo stick, with heart-shaped pointed leaves on long leaf stalks. No flowers yet. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young morning glory (Ipomoea nil) vine: a thin green stem twining in a spiral up a single thin straight bamboo stake, with heart-shaped to three-lobed pointed leaves on long leaf stalks. No flowers and no buds. The bottom ends of the vine and the stake both end at the bottom center of the frame. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "morningGlory"
   },
   {
     "path": "public/plants/morningGlory/flower.webp",
-    "prompt": "Realistic botanical illustration of a flowering morning glory vine: a thin twining stem winding up a slender bamboo stick, heart-shaped leaves, and several open trumpet-shaped blue-violet flowers with a white star-shaped throat, plus a twisted bud. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a flowering morning glory (Ipomoea nil) vine: a thin green stem twining in a spiral up a single thin straight bamboo stake, with heart-shaped to three-lobed leaves and several open funnel-shaped (trumpet) blue-purple flowers with a pale whitish star-shaped throat, plus a twisted closed bud. The bottom ends of the vine and the stake both end at the bottom center of the frame. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "morningGlory"
   },
   {
     "path": "public/plants/morningGlory/fruit.webp",
-    "prompt": "Realistic botanical illustration of a morning glory vine bearing fruit: a thin twining stem winding up a slender bamboo stick, heart-shaped leaves, a wilted flower and several round green seed capsules wrapped by pointed green sepals. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a morning glory (Ipomoea nil) vine bearing fruit: a thin green stem twining in a spiral up a single thin straight bamboo stake, heart-shaped leaves, one wilted purple flower, and several round green seed capsules (like small green balls) each held by five pointed green sepals. The bottom ends of the vine and the stake both end at the bottom center of the frame. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "morningGlory"
   },
   {
     "path": "public/plants/morningGlory/seedDone.webp",
-    "prompt": "Realistic botanical illustration of a mature morning glory vine at seed time: dry yellowing heart-shaped leaves, round brown dry capsules, one capsule split open showing black wedge-shaped seeds. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a mature morning glory (Ipomoea nil) vine at seed time: a dry brown stem twining up a single thin straight bamboo stake, dry yellowing heart-shaped leaves, several round dry brown papery capsules, and one capsule split open showing black wedge-shaped seeds. The bottom ends of the vine and the stake both end at the bottom center of the frame. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "morningGlory"
   },
   {
     "path": "public/plants/rice/seed.webp",
-    "prompt": "Realistic botanical illustration of 2 to 3 real rice grains (unhulled paddy rice) in extreme close-up: golden-yellow oval husks with a pointed tip, fine lengthwise ridges and a few tiny hairs. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The seeds rest close together at the center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of 4 to 5 real hulled rice (Oryza sativa) grains in close-up, lying close together at the center of the frame: each grain is a slender oval, pointed at both ends, cream-white to pale golden, slightly translucent, with fine lengthwise ridges. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Seeds only, no pot, no soil, no ground, no grass, no shadow, no pod, no plant. No text, no labels, no numbers.",
     "aspect": "1:1",
     "transparent": true,
     "species": "rice"
   },
   {
     "path": "public/plants/rice/sprout.webp",
-    "prompt": "Realistic botanical illustration of a newly sprouted rice seedling: one slender pale green pointed shoot (a rolled first leaf) rising from a split golden rice husk, a few thin white roots cut off at the bottom. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a newly sprouted rice (Oryza sativa) seedling: a single narrow pale green pointed shoot (a rolled first leaf) with a short second blade starting, rising from one point at the bottom center. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "rice"
   },
   {
     "path": "public/plants/rice/leafStem.webp",
-    "prompt": "Realistic botanical illustration of a young rice plant in tillers: a clump of several long narrow arching grass-like green leaf blades with parallel veins, rising from one base. No panicles yet. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young rice (Oryza sativa) plant drawn as ONE clump: several long narrow arching grass-like green leaf blades with parallel veins, all converging at a single point at the bottom center of the frame. No panicles yet. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "rice"
   },
   {
     "path": "public/plants/rice/flower.webp",
-    "prompt": "Realistic botanical illustration of a heading rice plant: arching grass-like leaf blades and several upright panicles with many tiny pale green-white flowers (spikelets) with feathery yellow-white anthers. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a heading rice (Oryza sativa) plant drawn as ONE clump, with stems converging at a single point at the bottom center: arching grass-like leaf blades and several upright pale green panicles whose tiny white-green spikelets show small feathery white-yellow anthers (flowering). Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "rice"
   },
   {
     "path": "public/plants/rice/fruit.webp",
-    "prompt": "Realistic botanical illustration of a rice plant bearing fruit: long arching leaf blades and several green-yellow panicles starting to droop under filling grains. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a rice (Oryza sativa) plant drawn as ONE clump, with stems converging at a single point at the bottom center: long arching leaf blades and several panicles of green-yellow grains, the panicles drooping and arching over under the weight of the filling grains. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "rice"
   },
   {
     "path": "public/plants/rice/seedDone.webp",
-    "prompt": "Realistic botanical illustration of a ripe rice plant: golden-yellow heavy drooping panicles full of plump grains, long leaf blades turning yellow-green. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a ripe rice (Oryza sativa) plant drawn as ONE clump, with stems converging at a single point at the bottom center: heavy drooping golden-yellow panicles full of plump ripe grains with small awn tips, and long leaf blades turning yellow-green. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "rice"
   },
   {
     "path": "public/plants/corn/seed.webp",
-    "prompt": "Realistic botanical illustration of 2 to 3 real corn (maize) kernels in extreme close-up: glossy golden-yellow flat-topped kernels, wider at the top and narrow at the base. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The seeds rest close together at the center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of 4 real corn (maize, Zea mays) kernels in close-up, lying close together at the center of the frame: each kernel is bright golden-yellow, glossy, flat-topped with a slight dent, wider at the top and narrowing to a pale pointed tip at the base. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Seeds only, no pot, no soil, no ground, no grass, no shadow, no pod, no plant. No text, no labels, no numbers.",
     "aspect": "1:1",
     "transparent": true,
     "species": "corn"
   },
   {
     "path": "public/plants/corn/sprout.webp",
-    "prompt": "Realistic botanical illustration of a newly sprouted corn seedling: a single pointed green shoot unrolling into the first narrow leaf blade, a pale sheath at the base. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a newly sprouted corn (maize, Zea mays) seedling: a single pointed green shoot unrolling into the first narrow leaf blade with a parallel-veined surface, held in a pale sheath at the base. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "corn"
   },
   {
     "path": "public/plants/corn/leafStem.webp",
-    "prompt": "Realistic botanical illustration of a young corn plant: a sturdy straight stalk with long broad arching leaf blades with wavy edges and parallel veins, alternating up the stalk. No tassel yet. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a young corn (maize, Zea mays) plant: a sturdy straight stalk with visible nodes and several long broad strap-like arching leaf blades with a pale midrib and wavy edges, each wrapping the stalk at its base, alternating up the stalk. No tassel and no ears yet. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "corn"
   },
   {
     "path": "public/plants/corn/flower.webp",
-    "prompt": "Realistic botanical illustration of a flowering corn plant: a tall stalk with long broad arching leaves, a feathery tassel (male flowers) at the top and a green ear wrapped in husk with soft yellow-brown silks (female flowers) at a leaf joint. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a flowering corn (maize, Zea mays) plant: a tall straight stalk with broad strap-like arching leaves, a feathery branched tassel (male flowers) at the very top, and a young green ear wrapped in husk at a leaf joint with a tuft of soft yellow-green silks (female flowers) sticking out of its tip. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "corn"
   },
   {
     "path": "public/plants/corn/fruit.webp",
-    "prompt": "Realistic botanical illustration of a corn plant bearing fruit: a tall stalk with arching leaves, withered tassel, and two fat ears in green husks with brown silks, one husk peeled back showing rows of yellow kernels. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a corn (maize, Zea mays) plant bearing mature ears: a tall stalk with arching strap-like leaves, a withered tassel on top, and a fat ear in a green husk at a leaf joint with dry brown silks, the husk peeled partly back to show rows of plump yellow kernels. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "corn"
   },
   {
     "path": "public/plants/corn/seedDone.webp",
-    "prompt": "Realistic botanical illustration of a mature corn plant at seed time: dry yellowing leaves, a dry tan stalk, a large ear with husk peeled open showing full rows of golden-yellow ripe kernels. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
+    "prompt": "Realistic botanical illustration of a dried corn (maize, Zea mays) plant at seed time: a dry tan stalk with yellowing and browning leaves, and a large ear at a leaf joint with its dry papery husk peeled open showing full tight rows of golden-yellow kernels. Children's science encyclopedia watercolor and colored pencil style, fine ink outlines, soft natural colours, like a plate from an illustrated plant encyclopedia. Plant only, no pot, no soil, no ground, no grass, no shadow. The single stem base is cut cleanly and ends exactly at the bottom center of the frame. Upright composition. No text, no labels, no numbers.",
     "aspect": "3:4",
     "transparent": true,
     "species": "corn"

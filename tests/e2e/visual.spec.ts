@@ -13,6 +13,10 @@ async function ready(page: Page) {
 
 const shots: { name: string; w: number; h: number; plant: Parameters<typeof saveWith>[0] }[] = [
   { name: 'grow-1194', w: 1194, h: 834, plant: { stageIndex: 3, bugs: 2, place: 'window' } },
+  { name: 'grow-bean-1194', w: 1194, h: 834, plant: { speciesId: 'bean', stageIndex: 3, bugs: 1, place: 'window' } },
+  { name: 'grow-morningGlory-1194', w: 1194, h: 834, plant: { speciesId: 'morningGlory', stageIndex: 3, bugs: 1, place: 'window' } },
+  { name: 'grow-rice-1194', w: 1194, h: 834, plant: { speciesId: 'rice', stageIndex: 3, bugs: 1, place: 'window' } },
+  { name: 'grow-corn-1194', w: 1194, h: 834, plant: { speciesId: 'corn', stageIndex: 3, bugs: 1, place: 'window' } },
   { name: 'seed-1194', w: 1194, h: 834, plant: { stageIndex: 0, place: 'shade', day: 1 } },
   { name: 'grow-820x1180', w: 820, h: 1180, plant: { stageIndex: 3, bugs: 2, place: 'window' } },
   { name: 'grow-shade-1194', w: 1194, h: 834, plant: { stageIndex: 3, place: 'shade' } },

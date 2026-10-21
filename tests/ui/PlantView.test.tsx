@@ -200,14 +200,16 @@ describe('pictures and their anchors', () => {
     [1366, 768],
   ]
 
-  test('balsam has its own picture with measured anchors for every stage; other species use the stand-in', () => {
-    for (const st of ['seed', ...BALSAM] as const) {
-      const art = plantArt('balsam', st)
-      expect(art.real, st).toBe(true)
-      expect(art.src).toBe(`/plants/balsam/${st}.webp`)
-      expect(art.a.stemY).toBeGreaterThan(art.a.top)
+  test('balsam and the annuals have their own pictures with measured anchors for every stage; the rest use the stand-in', () => {
+    for (const id of ['balsam', 'bean', 'morningGlory', 'rice', 'corn'] as const) {
+      for (const st of ['seed', ...BALSAM] as const) {
+        const art = plantArt(id, st)
+        expect(art.real, `${id}/${st}`).toBe(true)
+        expect(art.src).toBe(`/plants/${id}/${st}.webp`)
+        expect(art.a.stemY).toBeGreaterThan(art.a.top)
+      }
     }
-    const other = plantArt('rice', 'flower')
+    const other = plantArt('apple', 'flower')
     expect(other.real).toBe(false)
     expect(other.src).toBe('/plants/standin.png')
   })
