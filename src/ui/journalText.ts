@@ -1,9 +1,9 @@
 import type { JournalEntry } from '../sim/save'
 import { newPlant } from '../sim/day'
-import type { SpeciesId, StageId } from '../sim/species'
+import { STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
 import type { ConditionKey, Place, Status } from '../sim/types'
 
-/** Short stage names for strips and sentences ("꽃 단계까지 자랐어요"). */
+/** Short stage names for strips and sentences ("꽃 단계까지 자랐어요"). Use stageName() to show one. */
 export const STAGE_SHORT: Record<StageId, string> = {
   seed: '씨',
   sprout: '싹',
@@ -14,6 +14,19 @@ export const STAGE_SHORT: Record<StageId, string> = {
   winter: '겨울나기',
   newShoot: '새순',
   seedDone: '씨 얻기',
+}
+
+/** Species whose stage reads differently: a dandelion is not a tree, its 'grownTree' is a big rosette. */
+const SPECIES_STAGE: Partial<Record<SpeciesId, Partial<Record<StageId, string>>>> = {
+  dandelion: { grownTree: '큰 포기' },
+}
+
+/**
+ * The name of a stage as shown to the student: 'short' for strips, tables and sentences,
+ * 'long' for the grow screen header (STAGE_LABEL). Species-aware.
+ */
+export function stageName(id: SpeciesId, stage: StageId, form: 'short' | 'long' = 'short'): string {
+  return SPECIES_STAGE[id]?.[stage] ?? (form === 'long' ? STAGE_LABEL[stage] : STAGE_SHORT[stage])
 }
 
 const hasFinalConsonant = (word: string): boolean => {

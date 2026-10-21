@@ -1,7 +1,7 @@
 import { SPECIES } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
 import { growing, isComplete, type Action, type AppState } from '../../store'
-import { dayReached, feelingText, journalRows, STAGE_SHORT } from '../journalText'
+import { dayReached, feelingText, journalRows, stageName } from '../journalText'
 import { plantSrc } from '../PlantView'
 import '../../styles/print.css'
 import './Screens.css'
@@ -71,7 +71,7 @@ export function JournalScreen({ state, dispatch }: Props) {
                 return (
                   <li key={`${stage}-${i}`} className={`jr-stage${day === null ? ' jr-stage--todo' : ''}`}>
                     <img src={plantSrc(plant.speciesId, stage)} alt="" draggable={false} />
-                    <span className="jr-stage-name">{STAGE_SHORT[stage]}</span>
+                    <span className="jr-stage-name">{stageName(plant.speciesId, stage)}</span>
                     <span className="jr-stage-day">{day === null ? '아직' : `${day}일`}</span>
                     {i < species.stages.length - 1 && <Arrow />}
                   </li>
@@ -96,7 +96,7 @@ export function JournalScreen({ state, dispatch }: Props) {
                 {rows.map(({ entry, did }) => (
                   <tr key={entry.day}>
                     <td>{entry.day}일</td>
-                    <td>{STAGE_SHORT[entry.stage]}</td>
+                    <td>{stageName(plant.speciesId, entry.stage)}</td>
                     <td>{Math.round(entry.heightCm)}cm</td>
                     <td>{Math.round(entry.leaves)}장</td>
                     <td>{did}</td>
@@ -116,7 +116,7 @@ export function JournalScreen({ state, dispatch }: Props) {
           <ul>
             {state.pastTries.map((t, i) => (
               <li key={i}>
-                <b>{SPECIES[t.speciesId].name}</b> · {t.days}일째 · {STAGE_SHORT[t.stage]} 단계까지 · {t.cause}
+                <b>{SPECIES[t.speciesId].name}</b> · {t.days}일째 · {stageName(t.speciesId, t.stage)} 단계까지 · {t.cause}
               </li>
             ))}
           </ul>

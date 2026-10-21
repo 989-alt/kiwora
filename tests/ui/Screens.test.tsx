@@ -7,6 +7,7 @@ import { boot, toSave, type AppState } from '../../src/store'
 import { BackupPanel } from '../../src/ui/screens/BackupPanel'
 import { DeathScreen } from '../../src/ui/screens/DeathScreen'
 import { DexScreen } from '../../src/ui/screens/DexScreen'
+import { GrowScreen } from '../../src/ui/screens/GrowScreen'
 import { PickScreen } from '../../src/ui/screens/PickScreen'
 
 // Lets one test pretend only some species are approved; undefined = the shipped assets/approved.json.
@@ -104,6 +105,35 @@ describe('DeathScreen', () => {
     expect(dispatch).toHaveBeenCalledWith({ type: 'replant', id: 'bean' })
     fireEvent.click(screen.getByRole('button', { name: '다른 식물 고르기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'pick' })
+  })
+
+  test('a dandelion died as a 큰 포기, not a 어린나무', () => {
+    const s: AppState = {
+      ...base(),
+      plant: { ...newPlant('dandelion'), stageIndex: 3, day: 7, health: 0, dead: true, deathCause: '물이 부족해서 말라 버렸어요.' },
+      pastTries: [{ speciesId: 'dandelion', days: 6, stage: 'grownTree', cause: '물이 부족해서 말라 버렸어요.' }],
+      screen: 'dead',
+    }
+    render(<DeathScreen state={s} dispatch={() => {}} />)
+    expect(screen.getByText('민들레 · 6일째 · 큰 포기 단계까지 자랐어요')).toBeTruthy()
+  })
+})
+
+describe('GrowScreen header', () => {
+  const growing = (id: 'dandelion' | 'apple'): AppState => ({
+    ...base(),
+    plant: { ...newPlant(id), stageIndex: 3, day: 7 },
+    settings: { sound: false, tutorialSeen: true },
+    screen: 'grow',
+  })
+
+  test('a growing dandelion is a 큰 포기; a tree keeps 적당한 크기로 자라요', () => {
+    const { unmount } = render(<GrowScreen state={growing('dandelion')} dispatch={() => {}} />)
+    expect(screen.getByRole('heading', { level: 1 }).getAttribute('aria-label')).toBe('민들레 · 7일째 · 큰 포기')
+    expect(screen.queryByText('적당한 크기로 자라요')).toBeNull()
+    unmount()
+    render(<GrowScreen state={growing('apple')} dispatch={() => {}} />)
+    expect(screen.getByRole('heading', { level: 1 }).getAttribute('aria-label')).toBe('사과나무 · 7일째 · 적당한 크기로 자라요')
   })
 })
 

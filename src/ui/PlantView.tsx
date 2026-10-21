@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
-import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
+import { SPECIES, type SpeciesId, type StageId } from '../sim/species'
+import { stageName } from './journalText'
 import type { Place } from '../sim/types'
 import { DEFAULTS, bgArt, bugSpots, plantArt, plantSrc, potArt, type BgAnchor, type BugSpots, type PlantAnchor, type PotAnchor } from './art'
 import { Mound, Signpost, Snow, WinterVeil } from './Scenery'
@@ -262,7 +263,7 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
       data-layer="plant"
       className="pv-layer pv-plant"
       src={plantPic.src}
-      alt={`${name} (${STAGE_LABEL[stage]})`}
+      alt={`${name} (${stageName(speciesId, stage, 'long')})`}
       draggable={false}
       style={{ ...plantBox, filter: plantFilter || 'none', opacity: fakeWinter ? 0.85 : undefined }}
     />

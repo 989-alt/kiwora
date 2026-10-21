@@ -4,7 +4,7 @@ import { newPlant } from '../../src/sim/day'
 import { emptySave, type JournalEntry } from '../../src/sim/save'
 import type { ConditionKey, Status } from '../../src/sim/types'
 import { boot, type AppState } from '../../src/store'
-import { actionsText, dayReached, feelingText, withGa } from '../../src/ui/journalText'
+import { actionsText, dayReached, feelingText, stageName, withGa } from '../../src/ui/journalText'
 import { JournalScreen } from '../../src/ui/screens/JournalScreen'
 
 const fine: Record<ConditionKey, Status> = {
@@ -95,6 +95,29 @@ describe('journal text', () => {
     expect(feelingText({ ...fine, water: { level: 2, dir: 'low' } })).toBe('물이 조금 부족했어요')
     expect(feelingText({ ...fine, water: { level: 2, dir: 'low' }, temp: { level: 0, dir: 'high' } })).toBe('많이 더웠어요')
     expect(feelingText({ ...fine, light: { level: null, notNeeded: true } })).toBe('건강해요')
+  })
+
+  test('stage names depend on the species: a dandelion is a 큰 포기, never a 어린나무', () => {
+    expect(stageName('dandelion', 'grownTree')).toBe('큰 포기')
+    expect(stageName('dandelion', 'grownTree', 'long')).toBe('큰 포기')
+    expect(stageName('apple', 'grownTree')).toBe('어린나무')
+    expect(stageName('apple', 'grownTree', 'long')).toBe('적당한 크기로 자라요')
+    expect(stageName('dandelion', 'flower')).toBe('꽃')
+    expect(stageName('balsam', 'seed', 'long')).toBe('씨')
+  })
+
+  test('dandelion journal: strip, table and past tries say 큰 포기', () => {
+    const dandelion = { ...newPlant('dandelion'), stageIndex: 3, day: 8 }
+    const s = stateWith([entry(7, { stage: 'grownTree' })], {
+      plant: dandelion,
+      pastTries: [{ speciesId: 'dandelion', days: 6, stage: 'grownTree', cause: '물이 부족해서 말라 버렸어요.' }],
+    })
+    render(<JournalScreen state={s} dispatch={() => {}} />)
+    expect(screen.queryByText(/어린나무/)).toBeNull()
+    const strip = screen.getByRole('list', { name: '한살이 단계' })
+    expect(within(strip).getByText('큰 포기')).toBeTruthy()
+    expect(within(screen.getByRole('table')).getByText('큰 포기')).toBeTruthy()
+    expect(screen.getByText(/큰 포기 단계까지/)).toBeTruthy()
   })
 
   test('dayReached and 가/이', () => {

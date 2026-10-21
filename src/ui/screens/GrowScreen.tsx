@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { currentStatuses } from '../../sim/day'
 import { seedFor } from '../../sim/rng'
-import { phaseOf, SPECIES, STAGE_LABEL } from '../../sim/species'
+import { phaseOf, SPECIES } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
 import type { Action, AppState } from '../../store'
 import { PlantView, faceFor, isYardPlace } from '../PlantView'
@@ -13,6 +13,7 @@ import { Bugs } from '../tools/Bugs'
 import { Fertilizer } from '../tools/Fertilizer'
 import { PlaceSlots, usePotDrag } from '../tools/PlaceSlots'
 import { WaterStream, WateringCan } from '../tools/WateringCan'
+import { stageName } from '../journalText'
 import { MorningCard } from './MorningCard'
 import './GrowScreen.css'
 
@@ -67,7 +68,7 @@ export function GrowScreen({ state, dispatch }: Props) {
   const statuses = currentStatuses(plant)
   const light = statuses.light
   const lightLow = light.level !== null && light.level <= 2 && light.dir === 'low'
-  const title = `${species.name} · ${plant.day}일째 · ${STAGE_LABEL[stage]}`
+  const title = `${species.name} · ${plant.day}일째 · ${stageName(plant.speciesId, stage, 'long')}`
   const inRoom = ROOM.includes(plant.place)
   const yard = isYardPlace(plant.place)
   const winter = phaseOf(stage) === 'winter'
@@ -83,7 +84,7 @@ export function GrowScreen({ state, dispatch }: Props) {
           </span>
           <span className="gs-name">{species.name}</span>
           <span className="gs-day">{plant.day}일째</span>
-          <span className="gs-stage">{STAGE_LABEL[stage]}</span>
+          <span className="gs-stage">{stageName(plant.speciesId, stage, 'long')}</span>
           {yearsLater && <span className="gs-years">{yearsLater}</span>}
         </h1>
         <nav className="gs-menu" aria-label="메뉴">

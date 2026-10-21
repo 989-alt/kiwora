@@ -1,7 +1,7 @@
 import { phaseOf, SPECIES } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
 import type { Action, AppState } from '../../store'
-import { STAGE_SHORT, withGa } from '../journalText'
+import { stageName, withGa } from '../journalText'
 import { PlantView } from '../PlantView'
 import './Screens.css'
 
@@ -32,7 +32,7 @@ export function DeathScreen({ state, dispatch }: Props) {
       </div>
 
       <div className="dt-body">
-        <p className="dt-line">{`${species.name} · ${days}일째 · ${STAGE_SHORT[stage]} 단계까지 자랐어요`}</p>
+        <p className="dt-line">{`${species.name} · ${days}일째 · ${stageName(plant.speciesId, stage)} 단계까지 자랐어요`}</p>
         <h1 className="sc-h1 dt-h1">{withGa(species.name)} 시들어 버렸어요</h1>
         <div className="dt-cause">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
