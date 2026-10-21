@@ -23,8 +23,11 @@ export type Action =
   | { type: 'restore'; data: SaveData }
   | { type: 'toggleSound' }
   | { type: 'tutorialDone' }
+  /** Only checks for a new date (app left open past midnight). */
+  | { type: 'tick' }
 
 export const BACKUP_KEY = `${SAVE_KEY}.bak`
+const TICK_MS = 60_000
 
 const ROOM_PLACES: readonly Place[] = ['window', 'desk', 'shade']
 const YARD_PLACES: readonly Place[] = ['yardSunny', 'yardPartial', 'yardShade']
@@ -82,7 +85,7 @@ function finalizeDay(s: AppState, dateKey: string): AppState {
     pendingActions: null,
     journal: [...s.journal, entry],
     morning: report,
-    screen: 'grow',
+    screen: s.screen === 'transplant' ? 'grow' : s.screen,
   }
   if (state.dead) {
     next = {
@@ -95,7 +98,7 @@ function finalizeDay(s: AppState, dateKey: string): AppState {
     }
   } else if (isComplete(state)) {
     next = { ...next, dex: s.dex.includes(state.speciesId) ? s.dex : [...s.dex, state.speciesId], screen: 'journal' }
-  } else if (report.stageChanged && stageOf(state) === 'grownTree' && needsTransplant(state)) {
+  } else if (needsTransplant(state)) {
     next = { ...next, screen: 'transplant' }
   }
   return next
@@ -103,13 +106,20 @@ function finalizeDay(s: AppState, dateKey: string): AppState {
 
 /** Called once when the app starts (and on restore). */
 export function boot(data: SaveData, today: string): AppState {
-  let s: AppState = { ...data, screen: screenFor(data.plant), morning: null }
+  return rollover({ ...data, screen: screenFor(data.plant), morning: null }, today)
+}
+
+/**
+ * Start a new date if today is after lastDayKey: finalize the unfinished day (under its own date)
+ * when it has actions, then reopen. Missed dates are not simulated. Returns `s` itself when nothing changes.
+ */
+function rollover(s: AppState, today: string): AppState {
   if (s.plant === null || !isNewDay(s.lastDayKey, today)) return s
+  let next = s
   if (!s.dayDone && s.pendingActions !== null && growing(s.plant)) {
-    s = finalizeDay(s, s.lastDayKey ?? today)
+    next = finalizeDay(s, s.lastDayKey ?? today)
   }
-  // A new date starts a new day; missed dates are not simulated.
-  return { ...s, dayDone: false, lastDayKey: today }
+  return { ...next, dayDone: false, lastDayKey: today }
 }
 
 function act(s: AppState, change: (p: PlantState, pending: DayActions) => [PlantState, DayActions] | null): AppState {
@@ -133,8 +143,12 @@ function startPlant(s: AppState, id: SpeciesId, today: string, dayDone: boolean)
   }
 }
 
-export function reducer(s: AppState, a: Action, today: string): AppState {
+export function reducer(prev: AppState, a: Action, today: string): AppState {
+  if (a.type === 'restore') return boot(a.data, today)
+  const s = rollover(prev, today)
   switch (a.type) {
+    case 'tick':
+      return s
     case 'pick': {
       if (!(a.id in SPECIES) || growing(s.plant)) return s
       // First plant ever: day 1 is today. After a death/completion, keep today's dayDone.
@@ -183,8 +197,6 @@ export function reducer(s: AppState, a: Action, today: string): AppState {
     }
     case 'open':
       return { ...s, screen: a.screen }
-    case 'restore':
-      return boot(a.data, today)
     case 'toggleSound':
       return { ...s, settings: { ...s.settings, sound: !s.settings.sound } }
     case 'tutorialDone':
@@ -214,6 +226,25 @@ export function useApp(): [AppState, (a: Action) => void] {
   useEffect(() => {
     writeSave(toSave(state))
   }, [state])
-  const dispatch = useCallback((a: Action) => setState((s) => reducer(s, a, todayKey())), [])
+  const dispatch = useCallback((a: Action) => {
+    // Read the date once, outside the updater (StrictMode may call the updater twice).
+    const today = todayKey()
+    setState((s) => reducer(s, a, today))
+  }, [])
+  useEffect(() => {
+    // Tools are disabled once the day is done, so check for a new date without user input.
+    const visible = () => typeof document === 'undefined' || document.visibilityState !== 'hidden'
+    const tick = () => {
+      if (visible()) dispatch({ type: 'tick' })
+    }
+    document.addEventListener('visibilitychange', tick)
+    window.addEventListener('focus', tick)
+    const id = setInterval(tick, TICK_MS)
+    return () => {
+      document.removeEventListener('visibilitychange', tick)
+      window.removeEventListener('focus', tick)
+      clearInterval(id)
+    }
+  }, [dispatch])
   return [state, dispatch]
 }

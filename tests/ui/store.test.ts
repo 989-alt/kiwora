@@ -288,6 +288,53 @@ describe('misc actions', () => {
   })
 })
 
+describe('rollover while the app stays open', () => {
+  it('a dispatch on the next date reopens a finished day', () => {
+    const s = play(started(), [{ type: 'endDay' }], D1)
+    const morning = s.morning
+    const t = reducer(s, { type: 'tick' }, D2)
+    expect(t.dayDone).toBe(false)
+    expect(t.lastDayKey).toBe(D2)
+    expect(t.plant).toEqual(s.plant)
+    expect(t.morning).toBe(morning)
+    expect(t.journal).toHaveLength(1)
+    // and the student can act on the new day
+    const u = reducer(t, { type: 'water', amount: 5 }, D2)
+    expect(u.pendingActions?.waterAdded).toBe(5)
+  })
+
+  it('pending actions of the old date are finalized under that date before the new action', () => {
+    const s = play(started(), [{ type: 'water', amount: 10 }], D1)
+    const t = reducer(s, { type: 'water', amount: 5 }, D2)
+    expect(t.journal).toHaveLength(1)
+    expect(t.journal[0]).toMatchObject({ day: 1, dateKey: D1, actions: { waterAdded: 10 } })
+    expect(t.plant!.day).toBe(2)
+    expect(t.morning).not.toBeNull()
+    expect(t.dayDone).toBe(false)
+    expect(t.lastDayKey).toBe(D2)
+    expect(t.pendingActions).toEqual({ waterAdded: 5, pellets: 0, bugsRemoved: 0, place: 'desk' })
+  })
+
+  it('keeps the current screen when nothing routes elsewhere', () => {
+    const s = play(started(), [{ type: 'water', amount: 10 }, { type: 'open', screen: 'dex' }], D1)
+    expect(reducer(s, { type: 'tick' }, D2).screen).toBe('dex')
+  })
+
+  it('tick on the same date changes nothing', () => {
+    const s = play(started(), [{ type: 'endDay' }], D1)
+    expect(reducer(s, { type: 'tick' }, D1)).toBe(s)
+  })
+
+  it('stays on the transplant screen after every finalize while not in the yard', () => {
+    const st = SPECIES.apple.stages
+    const base = started('apple')
+    const s: AppState = { ...base, plant: { ...newPlant('apple'), stageIndex: st.indexOf('grownTree') }, screen: 'grow' }
+    const t = reducer(s, { type: 'endDay' }, D1)
+    expect(t.plant!.dead).toBe(false)
+    expect(t.screen).toBe('transplant')
+  })
+})
+
 describe('useApp', () => {
   function fakeStorage(init: Record<string, string> = {}): Storage {
     const m = new Map(Object.entries(init))
@@ -316,6 +363,36 @@ describe('useApp', () => {
     act(() => result.current[1]({ type: 'pick', id: 'bean' }))
     expect(JSON.parse(ls.getItem(SAVE_KEY)!).plant.speciesId).toBe('bean')
     expect(ls.getItem('plantlife.v1.bak')).toBe('{not json')
+  })
+
+  it('reopens the day on focus, visibility and the interval after midnight', () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
+    try {
+      vi.setSystemTime(new Date(2026, 9, 21, 23, 59))
+      vi.stubGlobal('localStorage', fakeStorage())
+      const { result } = renderHook(() => useApp())
+      act(() => result.current[1]({ type: 'pick', id: 'bean' }))
+      act(() => result.current[1]({ type: 'endDay' }))
+      expect(result.current[0].dayDone).toBe(true)
+
+      vi.setSystemTime(new Date(2026, 9, 22, 8, 0))
+      act(() => void window.dispatchEvent(new Event('focus')))
+      expect(result.current[0].dayDone).toBe(false)
+      expect(result.current[0].lastDayKey).toBe('2026-10-22')
+
+      act(() => result.current[1]({ type: 'endDay' }))
+      vi.setSystemTime(new Date(2026, 9, 23, 8, 0))
+      act(() => void document.dispatchEvent(new Event('visibilitychange')))
+      expect(result.current[0].lastDayKey).toBe('2026-10-23')
+
+      act(() => result.current[1]({ type: 'endDay' }))
+      vi.setSystemTime(new Date(2026, 9, 24, 8, 0))
+      act(() => void vi.advanceTimersByTime(60_000))
+      expect(result.current[0].lastDayKey).toBe('2026-10-24')
+      expect(result.current[0].dayDone).toBe(false)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('saves after each dispatch', () => {
