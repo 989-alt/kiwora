@@ -1,0 +1,204 @@
+import { describe, expect, it } from 'vitest'
+import { currentStatuses, endDay, newPlant, PLACE_ENV } from '../../src/sim/day'
+import { mulberry32, seedFor } from '../../src/sim/rng'
+import { phaseOf, SPECIES, type SpeciesId, type StageId } from '../../src/sim/species'
+import type { Band, DayActions, DayReport, Place, PlantState } from '../../src/sim/types'
+
+const noBugs = () => 0.99
+const mid = (b: Band) => (b.idealLo + b.idealHi) / 2
+const stageOf = (s: PlantState): StageId => SPECIES[s.speciesId].stages[s.stageIndex]
+
+function at(id: SpeciesId, stage: StageId, over: Partial<PlantState> = {}): PlantState {
+  return { ...newPlant(id), stageIndex: SPECIES[id].stages.indexOf(stage), ...over }
+}
+
+/** Sets water/nutrient to the current phase band's ideal midpoint and removes all bugs. */
+function idealCare(s: PlantState, place: Place = 'desk'): DayActions {
+  const b = SPECIES[s.speciesId].bands[phaseOf(stageOf(s))]
+  return {
+    waterAdded: mid(b.water) - s.water,
+    pellets: (mid(b.nutrient) - s.nutrient) / 15,
+    bugsRemoved: s.bugs,
+    place,
+  }
+}
+
+function run(s: PlantState, days: number, place: Place = 'desk') {
+  let state = s
+  let report!: DayReport
+  for (let i = 0; i < days; i++) {
+    const r = endDay(state, idealCare(state, place), noBugs)
+    state = r.state
+    report = r.report
+  }
+  return { state, report }
+}
+
+describe('endDay', () => {
+  it('ideal care finishes annual in 10 days', () => {
+    const nine = run(newPlant('balsam'), 9).state
+    expect(stageOf(nine)).toBe('fruit')
+    const { state } = run(newPlant('balsam'), 10)
+    expect(stageOf(state)).toBe('seedDone')
+    expect(state.dead).toBe(false)
+    expect(state.day).toBe(11)
+  })
+
+  it('ideal care finishes perennial in 14 days', () => {
+    const thirteen = run(newPlant('dandelion'), 13).state
+    expect(stageOf(thirteen)).toBe('winter')
+    const { state } = run(newPlant('dandelion'), 14)
+    expect(stageOf(state)).toBe('newShoot')
+    expect(state.dead).toBe(false)
+  })
+
+  it('stops advancing at the final stage', () => {
+    const { state, report } = run(newPlant('balsam'), 13)
+    expect(stageOf(state)).toBe('seedDone')
+    expect(state.stageIndex).toBe(SPECIES.balsam.stages.length - 1)
+    expect(report.stageChanged).toBe(false)
+    expect(report.grew).toBe(false)
+  })
+
+  it('single very-dangerous day never kills from half health', () => {
+    const s = at('balsam', 'leafStem', { health: 50, water: 0, nutrient: 50 })
+    const { state, report } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs)
+    expect(report.statuses.water).toEqual({ level: 0, dir: 'low' })
+    expect(state.health).toBe(25)
+    expect(report.healthDelta).toBe(-25)
+    expect(state.dead).toBe(false)
+  })
+
+  it('seed stage ignores light and nutrient', () => {
+    const s = at('balsam', 'seed', { nutrient: 0, lightExp: 30 })
+    const { report } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'shade' }, noBugs)
+    expect(report.statuses.light).toEqual({ level: null, notNeeded: true })
+    expect(report.statuses.nutrient).toEqual({ level: null, notNeeded: true })
+    expect(report.statuses.pest).toEqual({ level: null, notNeeded: true })
+    expect(report.healthDelta).toBeGreaterThanOrEqual(0)
+    expect(report.newBugs).toBe(0)
+  })
+
+  it('shade after sprout weakens plant', () => {
+    const { state, report } = run(at('balsam', 'leafStem'), 3, 'shade')
+    expect(state.lightExp).toBe(35)
+    expect(report.statuses.light.level).toBeLessThanOrEqual(2)
+    expect(report.statuses.light).toMatchObject({ dir: 'low' })
+  })
+
+  it('window for many days over light-limit', () => {
+    const r = run(at('balsam', 'leafStem'), 5, 'window')
+    expect(r.state.lightExp).toBe(90)
+    // default band idealHi 85, hi 95 → 90 is level 3 (levelFor rule)
+    expect(r.report.statuses.light).toEqual({ level: 3, dir: null })
+
+    const bands = SPECIES.balsam.bands.grow
+    const saved = bands.light
+    try {
+      bands.light = { lo: 45, idealLo: 60, idealHi: 70, hi: 80, span: 15 }
+      const r2 = run(at('balsam', 'leafStem'), 5, 'window')
+      expect(r2.report.statuses.light.level).toBeLessThanOrEqual(2)
+      expect(r2.report.statuses.light).toMatchObject({ dir: 'high' })
+    } finally {
+      bands.light = saved
+    }
+  })
+
+  it('water and nutrient clamp', () => {
+    const s = at('balsam', 'leafStem')
+    const { state } = endDay(s, { waterAdded: 1e9, pellets: 1e6, bugsRemoved: 0, place: 'desk' }, noBugs)
+    expect(state.water).toBeLessThanOrEqual(150)
+    expect(state.nutrient).toBeLessThanOrEqual(150)
+    for (const v of Object.values(state)) {
+      if (typeof v === 'number') expect(Number.isFinite(v)).toBe(true)
+    }
+  })
+
+  it('dead plant does not grow', () => {
+    const s = at('balsam', 'leafStem', { health: 10, water: 0, nutrient: 150 })
+    const { state, report } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs)
+    expect(report.statuses.water.level).toBe(0)
+    expect(report.statuses.nutrient.level).toBe(0)
+    expect(state.dead).toBe(true)
+    expect(report.died).toBe(true)
+    expect(state.health).toBe(0)
+    expect(state.stageIndex).toBe(s.stageIndex)
+    expect(state.growth).toBe(s.growth)
+    expect(report.grew).toBe(false)
+    expect(state.deathCause).toBe('물이 부족해서 말라 버렸어요.')
+  })
+
+  it('records the last 3 days of statuses for the death cause', () => {
+    let s = at('balsam', 'leafStem', { nutrient: 150 })
+    for (let i = 0; i < 4; i++) s = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs).state
+    expect(s.history).toHaveLength(3)
+    expect(s.history[2].nutrient).toMatchObject({ dir: 'high' })
+  })
+
+  it('unremoved bugs multiply and new ones are added', () => {
+    const s = at('balsam', 'leafStem', { bugs: 3, water: 62.5, nutrient: 50 })
+    const { state, report } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 1, place: 'desk' }, () => 0)
+    expect(report.statuses.pest).toEqual({ level: 2, dir: 'high' })
+    expect(report.newBugs).toBe(1)
+    expect(state.bugs).toBe(2 * 2 + 1)
+  })
+
+  it('evaporates water and uses nutrient in grow phase', () => {
+    const s = at('balsam', 'leafStem', { water: 62.5, nutrient: 50 })
+    const { state } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'window' }, noBugs)
+    expect(state.water).toBe(62.5 - PLACE_ENV.window.evap)
+    expect(state.nutrient).toBe(45)
+  })
+
+  it('winter is colder and evaporates half', () => {
+    const s = at('dandelion', 'winter', { water: 30, nutrient: 10 })
+    const { state } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs)
+    expect(state.water).toBe(30 - PLACE_ENV.desk.evap * 0.5)
+    expect(state.nutrient).toBe(10)
+    expect(currentStatuses(s).temp).toEqual({ level: 4, dir: null }) // desk 22 − 15 = 7, winter band 0..10
+  })
+
+  it('height and leaves grow with growth and never shrink', () => {
+    let s = newPlant('balsam')
+    let prevH = s.heightCm
+    let prevL = s.leaves
+    for (let i = 0; i < 10; i++) {
+      const r = endDay(s, idealCare(s), noBugs)
+      s = r.state
+      expect(r.report.heightDelta).toBeGreaterThan(0)
+      expect(s.heightCm).toBeGreaterThan(prevH)
+      expect(s.leaves).toBeGreaterThanOrEqual(prevL)
+      prevH = s.heightCm
+      prevL = s.leaves
+    }
+    expect(s.leaves).toBeGreaterThan(0)
+  })
+})
+
+describe('newPlant', () => {
+  it('starting values', () => {
+    expect(newPlant('bean')).toMatchObject({
+      speciesId: 'bean', stageIndex: 0, growth: 0, health: 100, water: 55, nutrient: 40,
+      place: 'desk', lightExp: 65, bugs: 0, day: 1, dead: false, history: [],
+    })
+  })
+})
+
+describe('rng', () => {
+  it('mulberry32 is deterministic in [0,1)', () => {
+    const a = mulberry32(42)
+    const b = mulberry32(42)
+    for (let i = 0; i < 100; i++) {
+      const x = a()
+      expect(x).toBe(b())
+      expect(x).toBeGreaterThanOrEqual(0)
+      expect(x).toBeLessThan(1)
+    }
+  })
+
+  it('seedFor depends on day and species', () => {
+    expect(seedFor(3, 'balsam')).toBe(seedFor(3, 'balsam'))
+    expect(seedFor(3, 'balsam')).not.toBe(seedFor(4, 'balsam'))
+    expect(seedFor(3, 'balsam')).not.toBe(seedFor(3, 'bean'))
+  })
+})
