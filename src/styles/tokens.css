@@ -34,6 +34,10 @@ body {
   min-height: 100%;
 }
 
+html {
+  touch-action: manipulation;
+}
+
 body {
   background: var(--c-bg);
   color: var(--c-fg);

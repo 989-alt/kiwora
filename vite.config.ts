@@ -7,6 +7,7 @@ export default defineConfig({
   server: { port: 5173, strictPort: true },
   test: {
     environment: 'jsdom',
-    include: ['tests/ui/**/*.test.{ts,tsx}', 'tests/unit/**/*.test.{ts,tsx}'],
+    setupFiles: ['tests/setup.ts'],
+    include: ['tests/ui/**/*.test.{ts,tsx}', 'tests/unit/**/*.test.{ts,tsx}', 'tests/sim/**/*.test.{ts,tsx}'],
   },
 })
