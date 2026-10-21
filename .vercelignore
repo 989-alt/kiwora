@@ -1,0 +1,13 @@
+# Vercel builds from source on its own machines (npm run build); the CLI does not read .gitignore.
+# Keep only what the build needs: src, public, assets/approved.json + manifest.json, configs.
+node_modules
+dist
+assets/raw
+assets/review
+docs
+.superpowers
+test-results
+playwright-report
+.pytest_cache
+scripts/__pycache__
+tests

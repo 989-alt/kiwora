@@ -12,6 +12,8 @@ export default defineConfig({
       manifest: false, // public/manifest.webmanifest is served as-is
       workbox: {
         globPatterns: ['**/*.{js,css,html,woff,woff2,png,webp,json,webmanifest}'],
+        // The shared stand-in picture (1 MB) is never shown once every species has its own art.
+        globIgnores: ['**/plants/standin.png'],
         // Art is .webp (<= 1024 px); the largest files (backgrounds, stand-in .png) stay well under this.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
