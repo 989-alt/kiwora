@@ -36,7 +36,8 @@ export function JournalScreen({ state, dispatch, record }: Props) {
   const species = speciesId ? SPECIES[speciesId] : null
   const complete = kept !== undefined || (plant !== null && isComplete(plant))
   const rows = speciesId ? journalRows(journal, speciesId) : []
-  const lastDay = journal.length > 0 ? journal[journal.length - 1].day : 0
+  // Without a journal (a plant restored from the short code) the plant itself counts the finished days.
+  const lastDay = journal.length > 0 ? journal[journal.length - 1].day : Math.max(0, (plant?.day ?? 1) - 1)
   const back = backTarget(plant)
   const pastTries = kept ? state.pastTries.filter((t) => t.speciesId === speciesId) : state.pastTries
 

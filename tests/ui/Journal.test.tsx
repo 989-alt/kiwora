@@ -81,6 +81,12 @@ describe('JournalScreen', () => {
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'dex' })
     expect(screen.queryByRole('button', { name: '돌아가기' })).toBeNull()
   })
+
+  test('a plant restored from a short code (no journal) still counts its days', () => {
+    const done = { ...newPlant('balsam'), stageIndex: 5, day: 11 }
+    render(<JournalScreen state={stateWith([], { plant: done, dex: ['balsam'] })} dispatch={() => {}} />)
+    expect(screen.getByText('10일 만에 씨를 얻었어요!')).toBeTruthy()
+  })
 })
 
 describe('journal text', () => {
