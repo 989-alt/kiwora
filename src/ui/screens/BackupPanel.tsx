@@ -1,6 +1,5 @@
-import QRCode from 'qrcode'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { exportCode, importCode, type SaveData } from '../../sim/save'
+import { useMemo, useRef, useState } from 'react'
+import { exportCode, importCode, shortCode, type SaveData } from '../../sim/save'
 import { toSave, type Action, type AppState, type Screen } from '../../store'
 import './Screens.css'
 
@@ -18,27 +17,21 @@ const WARNING_LINE: Record<string, string> = {
   unavailable: '이 기기에는 기록을 저장할 수 없어요. 적어 둔 코드가 있으면 넣어 주세요.',
 }
 
+/** Nothing worth keeping yet: no plant, no dex, no past tries, no kept journals. */
+function isEmpty(d: SaveData): boolean {
+  return d.plant === null && d.dex.length === 0 && d.pastTries.length === 0 && Object.keys(d.finished ?? {}).length === 0
+}
+
 export function BackupPanel({ state, dispatch, back }: Props) {
-  const code = useMemo(() => exportCode(toSave(state)), [state])
+  const data = useMemo(() => toSave(state), [state])
+  // The long code holds everything (journals too) and is for copying; the short one is for writing down.
+  const code = useMemo(() => exportCode(data), [data])
+  const short = useMemo(() => shortCode(data), [data])
   const codeRef = useRef<HTMLDivElement>(null)
   const [copy, setCopy] = useState<CopyState>('idle')
-  const [qr, setQr] = useState<string | null>(null)
-  const [qrFailed, setQrFailed] = useState(false)
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<SaveData | null>(null)
-
-  useEffect(() => {
-    let alive = true
-    setQr(null)
-    setQrFailed(false)
-    QRCode.toDataURL(code, { errorCorrectionLevel: 'L', margin: 2, width: 260 })
-      .then((url) => alive && setQr(url))
-      .catch(() => alive && setQrFailed(true))
-    return () => {
-      alive = false
-    }
-  }, [code])
 
   const selectCode = (): boolean => {
     const el = codeRef.current
@@ -86,6 +79,8 @@ export function BackupPanel({ state, dispatch, back }: Props) {
   }
 
   const warningLine = state.warning ? (WARNING_LINE[state.warning] ?? WARNING_LINE.corrupt) : null
+  // Nothing to write down while the save is empty or could not be read (its code would be an empty one).
+  const showSave = !warningLine && !isEmpty(data)
 
   return (
     <div className="sc bk">
@@ -100,32 +95,41 @@ export function BackupPanel({ state, dispatch, back }: Props) {
 
       {warningLine && <p className="bk-warning">{warningLine}</p>}
 
-      <div className="bk-cols">
-        <section className="sc-card bk-save" aria-label="코드 적어 두기">
-          <h2 className="jr-h2">내 기록 코드</h2>
-          <p className="bk-help">이 코드를 실험관찰에 적어 두세요. 기록이 사라져도 코드로 되살릴 수 있어요.</p>
-          <div className="bk-code" ref={codeRef} role="textbox" aria-readonly="true" aria-label="복원 코드" tabIndex={0}>
-            {code}
-          </div>
-          <div className="bk-row">
-            <button type="button" className="sc-btn" onClick={doCopy}>
-              복사하기
-            </button>
-            <span className="bk-copied" role="status">
-              {copy === 'copied' && '복사했어요!'}
-              {copy === 'selected' && '글자를 골랐어요. 길게 눌러 복사해 주세요.'}
-            </span>
-          </div>
-          <div className="bk-qr">
-            {qr && <img src={qr} alt="기록 코드 QR" width={200} height={200} draggable={false} />}
-            {qrFailed && <p className="bk-help">코드가 길어서 QR을 만들지 못했어요. 위의 글자 코드를 적어 두세요.</p>}
-          </div>
-        </section>
+      <div className={`bk-cols${showSave ? '' : ' bk-cols--one'}`}>
+        {showSave && (
+          <section className="sc-card bk-save" aria-label="코드 적어 두기">
+            <h2 className="jr-h2">내 기록 코드</h2>
+            <p className="bk-help">이 짧은 코드를 실험관찰에 적어 두세요. 기록이 사라져도 코드로 되살릴 수 있어요.</p>
+            <div className="bk-short" role="textbox" aria-readonly="true" aria-label="짧은 기록 코드" tabIndex={0}>
+              {short.split('-').map((g, i) => (
+                <span key={i} className="bk-group">
+                  {g}
+                </span>
+              ))}
+            </div>
+            <p className="bk-note">짧은 코드는 식물과 도감만 되살려요.</p>
+
+            <h3 className="bk-h3">일지까지 모두 지키려면</h3>
+            <p className="bk-help">전체 코드를 복사해서 메모장 같은 곳에 붙여 두세요.</p>
+            <div className="bk-code" ref={codeRef} role="textbox" aria-readonly="true" aria-label="전체 기록 코드" tabIndex={0}>
+              {code}
+            </div>
+            <div className="bk-row">
+              <button type="button" className="sc-btn" onClick={doCopy}>
+                복사하기
+              </button>
+              <span className="bk-copied" role="status">
+                {copy === 'copied' && '복사했어요!'}
+                {copy === 'selected' && '글자를 골랐어요. 길게 눌러 복사해 주세요.'}
+              </span>
+            </div>
+          </section>
+        )}
 
         <section className="sc-card bk-restore" aria-label="기록 되살리기">
           <h2 className="jr-h2">기록 되살리기</h2>
           <label className="bk-help" htmlFor="bk-input">
-            적어 둔 코드를 여기에 넣어요.
+            적어 둔 짧은 코드나 복사해 둔 전체 코드를 여기에 넣어요.
           </label>
           <textarea
             id="bk-input"

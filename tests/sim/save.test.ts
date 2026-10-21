@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { newPlant } from '../../src/sim/day'
-import { emptySave, exportCode, importCode, loadSave, requestPersist, writeSave, type SaveData } from '../../src/sim/save'
+import { emptySave, exportCode, importCode, loadSave, requestPersist, shortCode, writeSave, type SaveData } from '../../src/sim/save'
 
 function memStorage(initial: Record<string, string> = {}): Storage {
   const m = new Map(Object.entries(initial))
@@ -196,6 +196,114 @@ describe('restore code', () => {
     const v2 = 'PL1-' + exportCode({ ...sample(), v: 2 } as unknown as SaveData).slice(4)
     expect(importCode(v2)).toEqual({ ok: false, message: BAD })
     expect(importCode(null as unknown as string)).toEqual({ ok: false, message: BAD })
+  })
+})
+
+describe('short code (for writing down)', () => {
+  const BAD = '코드가 맞지 않아요. 다시 확인해 주세요.'
+  const FORMAT = /^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4})+$/
+
+  /** What a short code brings back: plant (no history), dex, day gating, settings; no journal or past tries. */
+  const expected = (d: SaveData): SaveData => ({
+    ...emptySave(),
+    plant: d.plant ? { ...d.plant, history: [] } : null,
+    pendingActions: d.pendingActions,
+    lastDayKey: d.lastDayKey,
+    dayDone: d.dayDone,
+    dex: d.dex,
+    settings: d.settings,
+  })
+
+  function growingBean(): SaveData {
+    const d = emptySave()
+    d.plant = {
+      ...newPlant('bean'),
+      stageIndex: 2,
+      growth: 1.5,
+      health: 88,
+      water: 47,
+      nutrient: 35,
+      lightExp: 78,
+      place: 'window',
+      bugs: 2,
+      day: 5,
+      heightCm: 4.5,
+      leaves: 2,
+      history: [{ water: { level: 4, dir: null }, light: { level: 3, dir: null }, temp: { level: 4, dir: null }, nutrient: { level: 3, dir: null }, pest: { level: 2, dir: 'high' } }],
+    }
+    d.pendingActions = { waterAdded: 1, pellets: 2, bugsRemoved: 1, place: 'window' }
+    d.lastDayKey = '2026-10-22'
+    d.dayDone = false
+    d.dex = ['balsam', 'rice']
+    d.settings = { sound: false, tutorialSeen: true }
+    d.journal = [{ day: 4, dateKey: '2026-10-21', stage: 'leafStem', heightCm: 3, leaves: 1, actions: { waterAdded: 10, pellets: 0, bugsRemoved: 0, place: 'desk' }, statuses: d.plant.history[0] }]
+    d.pastTries = [{ speciesId: 'corn', days: 3, stage: 'sprout', cause: '물이 부족해서 말라 버렸어요.' }]
+    return d
+  }
+
+  it('is short, in groups of 4, without I, L, O or U', () => {
+    const code = shortCode(growingBean())
+    expect(code.length).toBeLessThanOrEqual(32)
+    expect(code).toMatch(FORMAT)
+  })
+
+  it('round-trips an in-progress plant with its dex, day and settings (journal and past tries are not kept)', () => {
+    const d = growingBean()
+    const r = importCode(shortCode(d))
+    expect(r).toEqual({ ok: true, data: expected(d) })
+  })
+
+  it('round-trips a dead plant with its cause', () => {
+    const d = emptySave()
+    d.plant = { ...newPlant('corn'), stageIndex: 3, health: 0, water: 0, day: 7, heightCm: 6, leaves: 3, dead: true, deathCause: '물이 부족해서 말라 버렸어요.' }
+    d.lastDayKey = '2026-10-23'
+    d.dayDone = true
+    d.dex = ['corn']
+    expect(importCode(shortCode(d))).toEqual({ ok: true, data: expected(d) })
+  })
+
+  it('round-trips a perennial planted in the yard, and a save without a plant', () => {
+    const d = emptySave()
+    d.plant = { ...newPlant('apple'), stageIndex: 5, growth: 0.25, place: 'yardSunny', water: 62, nutrient: 50, lightExp: 90, day: 12, heightCm: 22.5, leaves: 11 }
+    d.lastDayKey = '2027-03-02'
+    d.dex = ['balsam', 'bean', 'morningGlory', 'rice', 'corn', 'apple', 'dandelion', 'forsythia', 'persimmon']
+    expect(importCode(shortCode(d))).toEqual({ ok: true, data: expected(d) })
+    const none = { ...emptySave(), dex: ['bean' as const] }
+    expect(importCode(shortCode(none))).toEqual({ ok: true, data: expected(none) })
+  })
+
+  it('accepts lower case, spaces, missing dashes and O/I/L for 0/1', () => {
+    const d = growingBean()
+    const code = shortCode(d)
+    const sloppy = ` ${code.toLowerCase().replace(/-/g, ' ').replace(/0/g, 'o').replace(/1/g, 'l')} `
+    expect(importCode(sloppy)).toEqual({ ok: true, data: expected(d) })
+    expect(importCode(code.replace(/-/g, ''))).toEqual({ ok: true, data: expected(d) })
+  })
+
+  it('a typo (one wrong letter, two swapped letters, one missing) is rejected with the friendly message', () => {
+    const code = shortCode(growingBean())
+    const chars = code.replace(/-/g, '').split('')
+    const ALPHA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
+    for (let i = 0; i < chars.length; i++) {
+      for (const c of ALPHA) {
+        if (c === chars[i]) continue
+        const typo = [...chars]
+        typo[i] = c
+        expect(importCode(typo.join(''))).toEqual({ ok: false, message: BAD })
+      }
+      if (i + 1 < chars.length && chars[i] !== chars[i + 1]) {
+        const swapped = [...chars]
+        ;[swapped[i], swapped[i + 1]] = [swapped[i + 1], swapped[i]]
+        expect(importCode(swapped.join(''))).toEqual({ ok: false, message: BAD })
+      }
+    }
+    expect(importCode(chars.slice(1).join(''))).toEqual({ ok: false, message: BAD })
+    expect(importCode(code + 'U')).toEqual({ ok: false, message: BAD })
+  })
+
+  it('the long code still restores everything', () => {
+    const d = growingBean()
+    expect(importCode(exportCode(d))).toEqual({ ok: true, data: { ...d, finished: {} } })
   })
 })
 

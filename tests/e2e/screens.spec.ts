@@ -128,11 +128,10 @@ test('backup roundtrip: copy the code, empty the storage, paste, restore the sam
   await useSave(page, saveWith({ day: 4 }))
   await page.goto('/')
   await page.getByRole('button', { name: '기록 지키기' }).tap()
-  const code = (await page.getByLabel('복원 코드').textContent()) ?? ''
+  const code = (await page.getByLabel('전체 기록 코드').textContent()) ?? ''
   expect(code.startsWith('PL1-')).toBe(true)
   await page.getByRole('button', { name: '복사하기' }).tap()
   await expect(page.getByRole('status')).toContainText(/복사했어요|골랐어요/)
-  await expect(page.getByRole('img', { name: '기록 코드 QR' })).toBeVisible()
 
   await page.evaluate(() => localStorage.clear())
   await page.reload()
@@ -143,6 +142,26 @@ test('backup roundtrip: copy the code, empty the storage, paste, restore the sam
   await expect(page.getByText('지금 기록이 바뀌어요. 계속할까요?')).toBeVisible()
   await page.getByRole('button', { name: '그만두기' }).tap()
   await expect(page.getByText('지금 기록이 바뀌어요. 계속할까요?')).toBeHidden()
+  await page.getByRole('button', { name: '기록 되살리기' }).tap()
+  await page.getByRole('button', { name: '바꾸기' }).tap()
+  await expect(page.getByRole('heading', { name: /봉숭아 · 4일째/ })).toBeVisible()
+})
+
+test('backup: the short code written down by hand brings the plant back', async ({ page }) => {
+  await useSave(page, saveWith({ day: 4 }))
+  await page.goto('/')
+  await page.getByRole('button', { name: '기록 지키기' }).tap()
+  const groups = await page.getByLabel('짧은 기록 코드').locator('.bk-group').allTextContents()
+  expect(groups).toHaveLength(6)
+  expect(groups.join('').length).toBeLessThanOrEqual(32)
+
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+  await page.getByRole('button', { name: '기록 지키기' }).tap()
+  // no code to write down for an empty record
+  await expect(page.getByText('내 기록 코드')).toBeHidden()
+  // as a student copies it from the notebook: lower case, spaces between the groups
+  await page.getByLabel('되살릴 코드').fill(groups.join(' ').toLowerCase())
   await page.getByRole('button', { name: '기록 되살리기' }).tap()
   await page.getByRole('button', { name: '바꾸기' }).tap()
   await expect(page.getByRole('heading', { name: /봉숭아 · 4일째/ })).toBeVisible()
@@ -217,7 +236,7 @@ test.describe('screenshots', () => {
     await useSave(page, saveWith({ day: 4 }))
     await page.goto('/')
     await page.getByRole('button', { name: '기록 지키기' }).click()
-    await expect(page.getByRole('img', { name: '기록 코드 QR' })).toBeVisible()
+    await expect(page.getByLabel('짧은 기록 코드')).toBeVisible()
     await ready(page)
     await page.screenshot({ path: `${SHOTS}/backup-1194.png`, fullPage: true })
   })

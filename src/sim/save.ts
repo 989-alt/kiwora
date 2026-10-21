@@ -1,5 +1,6 @@
 import LZString from 'lz-string'
 import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from './species'
+import { decodeShort, encodeShort } from './shortCode'
 import type { ConditionKey, DayActions, DayReport, Place, PlantState, Status } from './types'
 
 export type JournalEntry = {
@@ -201,17 +202,29 @@ export function writeSave(data: SaveData, storage?: Storage): boolean {
   }
 }
 
+/** The full code (everything, journals included): long, for copying. */
 export function exportCode(data: SaveData): string {
   return CODE_PREFIX + LZString.compressToEncodedURIComponent(JSON.stringify(data))
 }
 
+/** The short code for writing down: plant, dex, day and settings only (see shortCode.ts). */
+export function shortCode(data: SaveData): string {
+  return encodeShort(data)
+}
+
+/** Accepts the long PL1- code and the short code. */
 export function importCode(code: string): { ok: true; data: SaveData } | { ok: false; message: string } {
   try {
     const text = String(code).trim()
-    if (!text.startsWith(CODE_PREFIX)) throw new Error('prefix')
-    const json = LZString.decompressFromEncodedURIComponent(text.slice(CODE_PREFIX.length))
-    if (!json) throw new Error('empty')
-    const data = normalize(JSON.parse(json))
+    let raw: unknown
+    if (text.startsWith(CODE_PREFIX)) {
+      const json = LZString.decompressFromEncodedURIComponent(text.slice(CODE_PREFIX.length))
+      if (!json) throw new Error('empty')
+      raw = JSON.parse(json)
+    } else {
+      raw = decodeShort(text)
+    }
+    const data = normalize(raw)
     if (!data) throw new Error('shape')
     return { ok: true, data }
   } catch {

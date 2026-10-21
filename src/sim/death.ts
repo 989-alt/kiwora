@@ -10,6 +10,19 @@ const SENTENCE: Record<Exclude<ConditionKey, 'pest'>, Record<'low' | 'high', str
 }
 const PEST_SENTENCE = '벌레가 너무 많아져서 잎을 다 갉아 먹었어요.'
 
+/** Every sentence deathCause can give, in a fixed order: the short backup code stores the index. Only append. */
+export const DEATH_CAUSES: readonly string[] = [
+  SENTENCE.water.low,
+  SENTENCE.water.high,
+  SENTENCE.light.low,
+  SENTENCE.light.high,
+  SENTENCE.temp.low,
+  SENTENCE.temp.high,
+  SENTENCE.nutrient.low,
+  SENTENCE.nutrient.high,
+  PEST_SENTENCE,
+]
+
 /**
  * One-sentence cause of death. Looks at the last 3 days (newest last), sums each condition's level
  * (notNeeded counts as 4) and picks the lowest sum; ties go to KEYS order. Direction comes from the

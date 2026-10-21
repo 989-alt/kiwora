@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, test, vi } from 'vitest'
 import { newPlant } from '../../src/sim/day'
 import { SPECIES } from '../../src/sim/species'
-import { emptySave, exportCode, type JournalEntry } from '../../src/sim/save'
+import { emptySave, exportCode, shortCode, type JournalEntry } from '../../src/sim/save'
 import { boot, toSave, type AppState } from '../../src/store'
 import { BackupPanel } from '../../src/ui/screens/BackupPanel'
 import { DeathScreen } from '../../src/ui/screens/DeathScreen'
@@ -249,11 +249,39 @@ describe('BackupPanel', () => {
     screen: 'backup',
   })
 
-  test('shows the code of the current record', () => {
+  test('shows the short code to write down and the full code to copy', () => {
     const s = withPlant()
     render(<BackupPanel state={s} dispatch={() => {}} back="grow" />)
-    expect(screen.getByLabelText('복원 코드').textContent).toBe(exportCode(toSave(s)))
-    expect(screen.getByText(/실험관찰에 적어 두세요/)).toBeTruthy()
+    const short = screen.getByLabelText('짧은 기록 코드')
+    expect(short.textContent).toBe(shortCode(toSave(s)).replace(/-/g, ''))
+    expect(short.querySelectorAll('.bk-group')).toHaveLength(6)
+    expect(screen.getByText(/이 짧은 코드를 실험관찰에 적어 두세요/)).toBeTruthy()
+    expect(screen.getByText('짧은 코드는 식물과 도감만 되살려요.')).toBeTruthy()
+    expect(screen.getByLabelText('전체 기록 코드').textContent).toBe(exportCode(toSave(s)))
+    expect(screen.queryByRole('img')).toBeNull() // no QR
+  })
+
+  test('the written-down short code restores the plant', () => {
+    const dispatch = vi.fn()
+    const other = { ...base(), plant: { ...newPlant('rice'), day: 9 }, dex: ['bean' as const] }
+    render(<BackupPanel state={withPlant()} dispatch={dispatch} back="grow" />)
+    fireEvent.change(screen.getByLabelText('되살릴 코드'), { target: { value: shortCode(toSave(other)).toLowerCase() } })
+    fireEvent.click(screen.getByRole('button', { name: '기록 되살리기' }))
+    fireEvent.click(screen.getByRole('button', { name: '바꾸기' }))
+    const a = dispatch.mock.calls[0][0]
+    expect(a.type).toBe('restore')
+    expect(a.data.plant).toMatchObject({ speciesId: 'rice', day: 9 })
+    expect(a.data.dex).toEqual(['bean'])
+  })
+
+  test('no code card for an empty save or while the load warning shows', () => {
+    const { unmount } = render(<BackupPanel state={{ ...base(), screen: 'backup' }} dispatch={() => {}} back="pick" />)
+    expect(screen.queryByText('내 기록 코드')).toBeNull()
+    expect(screen.getByRole('button', { name: '기록 되살리기' })).toBeTruthy()
+    unmount()
+    render(<BackupPanel state={{ ...withPlant(), warning: 'corrupt' }} dispatch={() => {}} back="pick" />)
+    expect(screen.queryByText('내 기록 코드')).toBeNull()
+    expect(screen.queryByLabelText('짧은 기록 코드')).toBeNull()
   })
 
   test('good code asks first, then restores', () => {
