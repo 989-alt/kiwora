@@ -1,0 +1,9 @@
+[
+ {"filename":"plant_balsam_bud.png","aspect":"3:4","prompt":"Realistic botanical illustration of a young garden balsam (Impatiens balsamina) plant, upright green stem with visible nodes, narrow lance-shaped serrated leaves arranged spirally, two pink flower buds, children's science encyclopedia watercolor and colored pencil style. Plant only, no pot, no soil, stem base cut cleanly at bottom."},
+ {"filename":"pot_happy.png","aspect":"1:1","prompt":"Cute kawaii terracotta flower pot with soil on top, simple happy smiling face with rosy cheeks, soft pastel shading, thick clean outlines, chunky toy-like claymorphism look. Empty pot, no plant."},
+ {"filename":"pot_worried.png","aspect":"1:1","prompt":"Cute kawaii terracotta flower pot with soil on top, simple worried face with a small sweat drop and downturned eyebrows, soft pastel shading, thick clean outlines, chunky toy-like claymorphism look. Empty pot, no plant."},
+ {"filename":"bg_window.png","opaque":true,"aspect":"16:9","prompt":"Cozy sunny classroom windowsill scene illustration for a kids game background, large bright window with warm sunlight rays on the left, wooden sill and shelf, soft pastel colors, gentle blur, empty center space for placing a flower pot, cute storybook style."},
+ {"filename":"bug_aphid.png","aspect":"1:1","prompt":"Cute small green aphid bug character for a kids game, simple round body, tiny legs and antennae, slightly mischievous face, thick clean outline, sticker style."},
+ {"filename":"watering_can.png","aspect":"1:1","prompt":"Cute chunky blue watering can toy icon, claymorphism soft 3D style, rounded shapes, glossy highlights."},
+ {"filename":"fertilizer.png","aspect":"1:1","prompt":"Cute small pile of round fertilizer pellets in a little wooden scoop, claymorphism soft 3D style, warm earthy colors."}
+]

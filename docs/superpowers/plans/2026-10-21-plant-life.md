@@ -411,10 +411,16 @@ endDay 순서(바꾸지 말 것):
 - **PlaceSlots:** 화분을 끌어서 슬롯 위에서 놓으면 `move`를 보낸다. 8px 이상 움직여야 끌기가 시작된다. 놓을 수 있는 슬롯은 강조한다. 끌기가 어려운 학생을 위해 슬롯을 탭해도 이동하게 한다.
 - **Fertilizer:** 알갱이를 화분 영역에 놓으면 `pellet`을 보낸다. 탭해도 1알이 들어간다.
 - **Bugs:** `plant.bugs`만큼 잎 위 고정 좌표(seed rng)에 그린다. 각 벌레는 48px 이상의 버튼이고 `aria-label="벌레 잡기"`. 탭하면 `removeBug`를 보내고 톡 소리를 낸다.
+- **PlantView 레이어 (시안에서 검증한 방식, `docs/mockup/compose.py`):**
+  - 쌓는 순서: 배경 → 화분 그림자 → 화분 뒤판(전체) → 식물 → 화분 앞판(흙 타원 가운데 선 아래만 남긴 화분).
+  - 식물은 줄기 밑동 좌표를 흙 타원 가운데 선보다 9px 아래에 맞춘다. 그래야 줄기가 흙에 묻혀 보인다.
+  - 화분 바닥은 배경의 창턱·책상 윗면 깊이 중간에 맞춘다.
+  - 앵커 값은 그림마다 `public/anchors.json`에 기록하고 PlantView가 읽는다. 기록할 값: 화분 `{soilY, cx, bottom}`, 식물 `{stemX, stemY}`, 배경 `{surfaceY}`.
+  - 화분 앞판 png는 Task 12 스크립트가 자동으로 잘라 만든다.
 - **PlantView 건강 효과:** health에 따라 `filter: saturate(…) sepia(…)`와 줄기 기울기 `rotate`를 적용한다. `lightLow`(light level ≤ 2, dir low)면 `saturate(.5) brightness(1.15)`와 `scaleX(.85) scaleY(1.06)`로 "연하고 가늘게" 보이게 한다. reduced-motion이면 전환 애니메이션을 끈다.
 - **GrowScreen:** 상단에 "봉숭아 · 4일째 · 잎과 줄기가 자라요"를 표시한다. 그 아래 PlantView, PlaceSlots, 도구, StatusBoard, [하루 마치기](주 버튼 1개)가 온다.
   - dayDone이면 도구를 비활성화하고 "내일 다시 만나요"를 표시한다.
-  - 레이아웃은 교사가 고른 시안(A: 상태판 오른쪽 / B: 상태판 아래)을 따른다. 세로 화면에서는 B로 자동 전환한다.
+  - 레이아웃은 **A안(상태판 오른쪽, 교사 선택)**을 따른다. 세로 화면에서는 상태판을 아래로 내린다.
 - **MorningCard:** 새 날 진입 시 report로 한 줄 요약을 만든다(키가 Ncm 자랐어요 / 잎이 처졌어요 / 벌레가 N마리 생겼어요 / 단계가 바뀌었어요). 탭하면 닫힌다(진행을 막지 않는 카드).
 - **Tutorial:** `tutorialSeen`이 false면 물뿌리개 → 화분 → 벌레 순서로 말풍선 3개를 띄운다. 각 말풍선은 탭하면 넘어간다.
 - **sound:** WebAudio 짧은 효과음이고 `settings.sound`가 false면 무음이다.
@@ -511,6 +517,8 @@ endDay 순서(바꾸지 말 것):
 - 'seed' 그림은 그 종의 실제 씨 2~3알 클로즈업이다. 'winter'는 잎 없는 가지다.
 - transplant 종의 'grownTree' 이후 그림은 땅에 선 나무다(밑동이 흙에 닿음, 배경 투명).
 - 화분 4종·배경 6종·벌레 2종은 클레이풍이고 기준은 `docs/style-samples/A_cute.png`의 화분·배경이다.
+- 배경은 놓는 면(창턱·책상·땅)이 화면 아래 1/3에 평평하게 가로로 펼쳐지고 가운데가 비어 있어야 한다(기준 `docs/mockup/img/bg_sill.png`). 화분 4종은 같은 모양·크기여야 표정만 바꿔 끼울 수 있다. 4종을 따로 생성하지 말고, 한 장을 생성한 뒤 얼굴만 바꾸는 편집(image-to-image)으로 만든다.
+- 생성 후 `scripts/anchors.py`가 앵커 값을 잰다. 화분은 흙(어두운 갈색) 영역의 가운데 y, 식물은 알파 최하단 줄기의 가운데 x를 잰다. 결과는 `public/anchors.json`에 쓰고, 화분 앞판 png도 이때 잘라 만든다.
 
 검수 관문(종마다 반복):
 1. 해당 종을 생성한다.
