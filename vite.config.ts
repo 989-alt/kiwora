@@ -12,7 +12,7 @@ export default defineConfig({
       manifest: false, // public/manifest.webmanifest is served as-is
       workbox: {
         globPatterns: ['**/*.{js,css,html,woff,woff2,png,webp,json,webmanifest}'],
-        // Art is still large .png placeholders (up to ~1.7 MB) until the .webp set lands.
+        // Art is .webp (<= 1024 px); the largest files (backgrounds, stand-in .png) stay well under this.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
         runtimeCaching: [

@@ -4,7 +4,16 @@ import type { Place } from '../sim/types'
 
 /** Anchor numbers of one picture (px of the picture file). Measured by scripts/anchors.py. */
 export type PotAnchor = { w: number; h: number; soilY: number; cx: number; bottom: number; bbox: [number, number, number, number] }
-export type PlantAnchor = { w: number; h: number; stemX: number; stemY: number; top: number; spots?: [number, number][] }
+export type PlantAnchor = {
+  w: number
+  h: number
+  stemX: number
+  stemY: number
+  top: number
+  left?: number
+  right?: number
+  spots?: [number, number][]
+}
 export type BgAnchor = { w: number; h: number; surfaceY: number }
 
 type Files = Record<string, { kind: string } & Partial<PotAnchor & PlantAnchor & BgAnchor>>
@@ -37,3 +46,23 @@ export function plantArt(id: SpeciesId, stage: StageId): PlantArt {
 }
 
 export const plantSrc = (id: SpeciesId, stage: StageId) => plantArt(id, stage).src
+
+/**
+ * Bug places for a real plant picture: its measured leaf spots, or - when none were measured - points inside
+ * that picture's own bounding box (never the stand-in's coordinates). undefined for the stand-in.
+ */
+export function bugSpots(pic: PlantArt): [number, number][] | undefined {
+  if (!pic.real) return undefined
+  if (pic.a.spots && pic.a.spots.length > 0) return pic.a.spots
+  const { w, stemY, top } = pic.a
+  const left = pic.a.left ?? 0
+  const right = pic.a.right ?? w
+  const pts: [number, number][] = []
+  // a 3 x 4 grid over the middle 60% of the box, so every point is well inside the picture
+  for (let r = 0; r < 4; r++) {
+    for (let c = 0; c < 3; c++) {
+      pts.push([Math.round(left + (right - left) * (0.2 + 0.3 * c)), Math.round(top + (stemY - top) * (0.15 + 0.2 * r))])
+    }
+  }
+  return pts
+}

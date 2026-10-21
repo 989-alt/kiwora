@@ -71,6 +71,9 @@ def defringe(im: Image.Image) -> Image.Image:
 def run_generator(rows: list[dict], key: str) -> dict[str, str]:
     """Calls image_gen.py in manifest mode for the rows. Returns {path: 'OK' | 'FAILED'}."""
     RAW.mkdir(parents=True, exist_ok=True)
+    # A stale png from an earlier run must not pass for this run's result: no file after the call = FAILED.
+    for r in rows:
+        (RAW / raw_name(r["path"])).unlink(missing_ok=True)
     jobs = [
         {"filename": raw_name(r["path"]), "prompt": r["prompt"], "aspect": r["aspect"], "opaque": not r["transparent"]}
         for r in rows
@@ -87,8 +90,10 @@ def run_generator(rows: list[dict], key: str) -> dict[str, str]:
         encoding="utf-8",
     )
     job_file.unlink(missing_ok=True)
-    if proc.stderr.strip():
-        print(proc.stderr.strip().replace(key, "***"), file=sys.stderr)
+    # The generator reports "FAILED ..." on stderr; show everything it said (key masked) so a failure is visible.
+    for stream, out in ((proc.stdout, sys.stdout), (proc.stderr, sys.stderr)):
+        if stream.strip():
+            print(stream.strip().replace(key, "***"), file=out)
     return {r["path"]: ("OK" if (RAW / raw_name(r["path"])).exists() else "FAILED") for r in rows}
 
 

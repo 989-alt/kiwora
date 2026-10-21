@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
 import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
 import type { Place } from '../sim/types'
-import { DEFAULTS, bgArt, plantArt, plantSrc, potArt, type BgAnchor, type PlantAnchor, type PotAnchor } from './art'
+import { DEFAULTS, bgArt, bugSpots, plantArt, plantSrc, potArt, type BgAnchor, type PlantAnchor, type PotAnchor } from './art'
 import { Mound, Signpost, Snow, WinterVeil } from './Scenery'
 import './PlantView.css'
 
@@ -266,7 +266,7 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
   )
   const bugs = hasPlant && plantOverlay && (
     <div className="pv-layer pv-plant-overlay" style={plantBox}>
-      {plantOverlay(L.plant.scale, plantPic.real ? plantPic.a.spots : undefined)}
+      {plantOverlay(L.plant.scale, bugSpots(plantPic))}
     </div>
   )
   const shadow = (
