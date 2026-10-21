@@ -5,6 +5,7 @@ import { phaseOf, SPECIES, STAGE_LABEL } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
 import type { Action, AppState } from '../../store'
 import { PlantView, faceFor, isYardPlace } from '../PlantView'
+import { potArt } from '../art'
 import { StatusBoard } from '../StatusBoard'
 import { Tutorial } from '../Tutorial'
 import { installAudioUnlock } from '../sound'
@@ -125,12 +126,13 @@ export function GrowScreen({ state, dispatch }: Props) {
                 'data-drop': 'pot',
                 ...(yard ? {} : { 'data-tut': 'pot' }),
               }}
-              plantOverlay={(scale) => (
+              plantOverlay={(scale, spots) => (
                 <Bugs
                   key={seedFor(plant.day, plant.speciesId)}
                   count={plant.bugs}
                   seed={seedFor(plant.day, plant.speciesId)}
                   scale={scale}
+                  spots={spots}
                   disabled={locked}
                   sound={sound}
                   onCatch={() => dispatch({ type: 'removeBug' })}
@@ -181,7 +183,7 @@ export function GrowScreen({ state, dispatch }: Props) {
       {drag.ghost && (
         <img
           className="pot-ghost"
-          src={`/pots/${faceFor(plant.health)}.png`}
+          src={potArt(faceFor(plant.health)).src}
           alt=""
           aria-hidden="true"
           style={{ left: drag.ghost.x, top: drag.ghost.y }}

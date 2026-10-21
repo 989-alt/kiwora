@@ -1,24 +1,8 @@
 import type { CSSProperties } from 'react'
-import type { Place } from '../sim/types'
+import { potArt } from './art'
 import './Scenery.css'
 
 type Vars = CSSProperties & Record<`--${string}`, string | number>
-
-/** CSS-only yard until Task 12 brings pictures: sky, sun by brightness, clouds, hills, a grass band over soil. */
-export function YardBackdrop({ place, surface, unit }: { place: Place; surface: number; unit: number }) {
-  const style: Vars = { '--u': `${unit}px`, '--surface': `${surface}px` }
-  return (
-    <div data-layer="yard-bg" className={`pv-yard pv-yard--${place}`} style={style} aria-hidden="true">
-      <div className="pv-sky" />
-      <span className="pv-sun" />
-      <span className="pv-cloud pv-cloud--a" />
-      <span className="pv-cloud pv-cloud--b" />
-      <span className="pv-hill pv-hill--far" />
-      <span className="pv-hill pv-hill--near" />
-      <div className="pv-ground" />
-    </div>
-  )
-}
 
 /** Dark soil heap over the stem base, so the tree reads as planted in the ground. */
 export function Mound({ cx, cy, rx, ry }: { cx: number; cy: number; rx: number; ry: number }) {
@@ -44,7 +28,7 @@ export function Signpost({ face, filter, cx, bottom }: { face: string; filter?: 
       <span className="pv-sign-post" />
       <span className="pv-sign-plate">
         <span className="pv-sign-face">
-          <img src={`/pots/${face}.png`} alt="" draggable={false} style={{ filter }} />
+          <img src={potArt(face).src} alt="" draggable={false} style={{ filter }} />
         </span>
       </span>
     </div>

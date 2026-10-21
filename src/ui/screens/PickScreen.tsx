@@ -1,3 +1,4 @@
+import { isApproved } from '../../sim/approved'
 import { SPECIES, type SpeciesId } from '../../sim/species'
 import type { Action, AppState } from '../../store'
 import { plantSrc } from '../PlantView'
@@ -37,16 +38,27 @@ export function PickScreen({ state, dispatch }: Props) {
             {g.title} <span>{g.note}</span>
           </h2>
           <div className="pk-grid">
-            {IDS.filter((id) => SPECIES[id].life === g.life).map((id) => (
-              <button key={id} type="button" className="pk-card" onClick={() => dispatch({ type: 'pick', id })}>
-                <span className="pk-art">
-                  <img src={plantSrc(id, 'flower')} alt="" draggable={false} />
-                  {done.has(id) && <span className="pk-badge">완성</span>}
-                </span>
-                <span className="pk-name">{SPECIES[id].name}</span>
-                <span className="pk-blurb">{SPECIES[id].blurb}</span>
-              </button>
-            ))}
+            {IDS.filter((id) => SPECIES[id].life === g.life).map((id) => {
+              // The shipped app only offers species whose pictures the teacher has approved.
+              const soon = import.meta.env.PROD && !isApproved(id)
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  className={`pk-card${soon ? ' pk-card--soon' : ''}`}
+                  disabled={soon}
+                  onClick={() => dispatch({ type: 'pick', id })}
+                >
+                  <span className="pk-art">
+                    <img src={plantSrc(id, 'flower')} alt="" draggable={false} />
+                    {done.has(id) && <span className="pk-badge">완성</span>}
+                    {soon && <span className="pk-soon">준비 중</span>}
+                  </span>
+                  <span className="pk-name">{SPECIES[id].name}</span>
+                  <span className="pk-blurb">{SPECIES[id].blurb}</span>
+                </button>
+              )
+            })}
           </div>
         </section>
       ))}

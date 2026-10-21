@@ -143,6 +143,26 @@
 .pk-card:active {
   transform: translateY(3px);
 }
+/* Species whose pictures are not approved yet (shipped build only). */
+.pk-card--soon {
+  cursor: default;
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+.pk-card--soon:active {
+  transform: none;
+}
+.pk-soon {
+  position: absolute;
+  inset: auto 8px 8px 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #334155;
+  color: #fff;
+  font-family: var(--font-title);
+  font-size: 20px;
+  text-align: center;
+}
 .pk-art {
   position: relative;
   height: 150px;

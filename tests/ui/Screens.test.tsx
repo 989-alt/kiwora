@@ -34,6 +34,29 @@ describe('PickScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: '기록 지키기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'backup' })
   })
+
+  test('in the shipped build, species without teacher-approved pictures are disabled and say 준비 중', () => {
+    vi.stubEnv('PROD', true)
+    try {
+      const dispatch = vi.fn()
+      render(<PickScreen state={base()} dispatch={dispatch} />)
+      const cards = screen.getAllByRole('button').filter((b) => b.classList.contains('pk-card'))
+      expect(cards).toHaveLength(9) // nothing is approved yet
+      for (const c of cards) {
+        expect((c as HTMLButtonElement).disabled).toBe(true)
+        expect(within(c).getByText('준비 중')).toBeTruthy()
+      }
+      fireEvent.click(cards[0])
+      expect(dispatch).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllEnvs()
+    }
+  })
+
+  test('in development every species can be picked', () => {
+    render(<PickScreen state={base()} dispatch={() => {}} />)
+    expect(screen.queryByText('준비 중')).toBeNull()
+  })
 })
 
 describe('DeathScreen', () => {

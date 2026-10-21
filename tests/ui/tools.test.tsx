@@ -71,6 +71,22 @@ test('a fast flick away from the fertilizer is not a tap', () => {
   expect(onPellet).toHaveBeenCalledTimes(1)
 })
 
+test('bugs sit on the leaf spots of the current plant picture, as aphids or caterpillars', () => {
+  const spots: [number, number][] = [
+    [100, 200],
+    [300, 400],
+    [500, 600],
+  ]
+  render(<Bugs count={3} seed={7} scale={0.5} spots={spots} disabled={false} sound={false} onCatch={() => {}} />)
+  const placed = screen
+    .getAllByRole('button', { name: '벌레 잡기' })
+    .map((b) => [parseFloat(b.style.left) + parseFloat(b.style.width) / 2, parseFloat(b.style.top) + parseFloat(b.style.height) / 2])
+  expect(placed.map(([x, y]) => [x / 0.5, y / 0.5]).sort()).toEqual(spots)
+  for (const img of document.querySelectorAll('.bug img')) {
+    expect(img.getAttribute('src')).toMatch(/^\/bugs\/(aphid|caterpillar)\.webp$/)
+  }
+})
+
 test('bug buttons stay at least 48 px under the low-light scaleX(0.85)', () => {
   render(<Bugs count={2} seed={1} scale={0.2} disabled={false} sound={false} onCatch={() => {}} />)
   for (const b of screen.getAllByRole('button', { name: '벌레 잡기' })) {

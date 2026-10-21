@@ -15,6 +15,7 @@ const shots: { name: string; w: number; h: number; plant: Parameters<typeof save
   { name: 'grow-1194', w: 1194, h: 834, plant: { stageIndex: 3, bugs: 2, place: 'window' } },
   { name: 'seed-1194', w: 1194, h: 834, plant: { stageIndex: 0, place: 'shade', day: 1 } },
   { name: 'grow-820x1180', w: 820, h: 1180, plant: { stageIndex: 3, bugs: 2, place: 'window' } },
+  { name: 'grow-shade-1194', w: 1194, h: 834, plant: { stageIndex: 3, place: 'shade' } },
   { name: 'sprout-sick-1194', w: 1194, h: 834, plant: { stageIndex: 1, health: 20, place: 'desk' } },
   { name: 'chromebook-1366x768', w: 1366, h: 768, plant: { stageIndex: 2, bugs: 1, place: 'desk' } },
 ]

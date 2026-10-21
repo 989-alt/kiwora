@@ -1,8 +1,8 @@
 import { useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
-import anchors from '../../public/anchors.json'
 import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
 import type { Place } from '../sim/types'
-import { Mound, Signpost, Snow, WinterVeil, YardBackdrop } from './Scenery'
+import { DEFAULTS, bgArt, plantArt, plantSrc, potArt, type BgAnchor, type PlantAnchor, type PotAnchor } from './art'
+import { Mound, Signpost, Snow, WinterVeil } from './Scenery'
 import './PlantView.css'
 
 export type Face = 'happy' | 'normal' | 'worried' | 'sick'
@@ -14,7 +14,7 @@ export function faceFor(health: number): Face {
   return 'sick'
 }
 
-/** Plant size per stage until every stage has its own picture (Task 12). Seed = no plant. */
+/** Visible plant height per stage, as a share of the full-grown plant. Seed = no plant is drawn. */
 export function stageScale(stage: StageId): number {
   if (stage === 'seed') return 0
   if (stage === 'sprout') return 0.35
@@ -25,12 +25,17 @@ export function stageScale(stage: StageId): number {
 // Numbers of the approved composition (docs/mockup/compose.py, 746×586 scene).
 const MOCK_W = 746
 const MOCK_SURFACE = 502
-const POT_SCALE = 0.216
-const PLANT_SCALE = 0.22
+/** Visible width of the pot (picture bbox) and visible height of a full-grown plant in that scene, in mockup px. */
+const MOCK_POT_W = 972 * 0.216
+const MOCK_PLANT_H = 0.22 * (1415 - 23)
 /** The stem base sits this far (mockup px) below the soil line, so it is buried in the soil. */
 const STEM_DEPTH = 9
 /** Keeps the pot from filling a very narrow scene. */
 const MAX_UNIT_PER_WIDTH = 1.3 / MOCK_W
+
+/** Anchors of the pictures a scene is built from. */
+export type SceneArt = { bg: BgAnchor; pot: PotAnchor; plant: PlantAnchor }
+const DEFAULT_ART: SceneArt = DEFAULTS
 
 export type Box = { x: number; y: number; w: number; h: number; scale: number }
 export type SceneLayout = {
@@ -44,21 +49,29 @@ export type SceneLayout = {
   shadow: { cx: number; cy: number; rx: number; ry: number; blur: number }
 }
 
+/** Picture px per scene px so the visible pot is MOCK_POT_W wide and the visible plant is `heightShare` of the full height. */
+const potScale = (potA: PotAnchor, unit: number) => (MOCK_POT_W * unit) / (potA.bbox[2] - potA.bbox[0])
+const plantScale = (plA: PlantAnchor, unit: number, heightShare: number) =>
+  (MOCK_PLANT_H * unit * heightShare) / (plA.stemY - plA.top)
+
+/** Background covers the scene, bottom aligned so the placing surface stays in view. */
+function coverBg(W: number, H: number, bgA: BgAnchor) {
+  const s = Math.max(W / bgA.w, H / bgA.h)
+  const bg: Box = { w: bgA.w * s, h: bgA.h * s, x: (W - bgA.w * s) / 2, y: H - bgA.h * s, scale: s }
+  return { bg, surface: bg.y + bgA.surfaceY * s }
+}
+
 /**
  * Port of compose.py: background covers the scene (bottom aligned so the sill stays in view),
  * pot bottom stands on the surface line, plant stem base 9 mockup-px under the soil line.
  */
-export function sceneLayout(W: number, H: number, plantStageScale: number): SceneLayout {
-  const bgA = anchors.bg.window
-  const potA = anchors.pot
-  const plA = anchors.plant.default
+export function sceneLayout(W: number, H: number, plantStageScale: number, art: SceneArt = DEFAULT_ART): SceneLayout {
+  const { bg: bgA, pot: potA, plant: plA } = art
 
-  const s = Math.max(W / bgA.w, H / bgA.h)
-  const bg: Box = { w: bgA.w * s, h: bgA.h * s, x: (W - bgA.w * s) / 2, y: H - bgA.h * s, scale: s }
-  const surface = bg.y + bgA.surfaceY * s
+  const { bg, surface } = coverBg(W, H, bgA)
   const unit = Math.min(surface / MOCK_SURFACE, W * MAX_UNIT_PER_WIDTH)
 
-  const ps = POT_SCALE * unit
+  const ps = potScale(potA, unit)
   const cx = W / 2
   const pot = {
     x: cx - potA.cx * ps,
@@ -70,7 +83,7 @@ export function sceneLayout(W: number, H: number, plantStageScale: number): Scen
   }
   const soilLine = pot.y + potA.soilY * ps
 
-  const pl = PLANT_SCALE * unit * plantStageScale
+  const pl = plantScale(plA, unit, plantStageScale)
   const plant = {
     x: cx - plA.stemX * pl,
     y: soilLine + STEM_DEPTH * unit - plA.stemY * pl,
@@ -87,8 +100,6 @@ export function sceneLayout(W: number, H: number, plantStageScale: number): Scen
 const YARD_PLACES: readonly Place[] = ['yardSunny', 'yardPartial', 'yardShade']
 export const isYardPlace = (p: Place) => YARD_PLACES.includes(p)
 
-/** Soil line of the yard picture, as a share of the scene height. */
-const YARD_SURFACE = 0.78
 /** The planted tree is drawn bigger than the potted plant. */
 const YARD_PLANT_BOOST = 1.4
 /** Stem base sits this far (mockup px) below the soil line, under the mound. */
@@ -102,13 +113,13 @@ export type YardLayout = SceneLayout & {
   drop: { left: number; top: number; width: number; height: number }
 }
 
-/** The yard: no pot, the stem base stands on a soil line at 78% of the height. */
-export function yardLayout(W: number, H: number, plantStageScale: number): YardLayout {
-  const plA = anchors.plant.default
-  const surface = H * YARD_SURFACE
+/** The yard: no pot, the stem base stands on the soil line of the yard picture. */
+export function yardLayout(W: number, H: number, plantStageScale: number, art: Pick<SceneArt, 'bg' | 'plant'> = DEFAULT_ART): YardLayout {
+  const plA = art.plant
+  const { bg, surface } = coverBg(W, H, art.bg)
   const unit = Math.min(surface / MOCK_SURFACE, W * MAX_UNIT_PER_WIDTH)
   const cx = W * YARD_TREE_X
-  const pl = PLANT_SCALE * unit * YARD_PLANT_BOOST * plantStageScale
+  const pl = plantScale(plA, unit, YARD_PLANT_BOOST * plantStageScale)
   const plant = {
     x: cx - plA.stemX * pl,
     y: surface + YARD_STEM_DEPTH * unit - plA.stemY * pl,
@@ -124,7 +135,7 @@ export function yardLayout(W: number, H: number, plantStageScale: number): YardL
   const mound = { cx, cy: surface - unit, rx: 62 * unit, ry: 14 * unit }
   return {
     unit,
-    bg: { x: 0, y: 0, w: W, h: H, scale: 1 },
+    bg,
     surface,
     // a zero-height "pot" at the stem base keeps the watering can and shadow math working
     pot: { x: cx - 100 * unit, y: surface, w: 200 * unit, h: 0, scale: unit, frontClipTop: 0 },
@@ -152,15 +163,6 @@ export function plantLook(health: number, lightLow: boolean): { filter: string; 
   return { filter: filters.join(' ') || 'none', transform }
 }
 
-const BG_FILTER: Record<Place, string> = {
-  window: 'none',
-  yardSunny: 'none',
-  desk: 'brightness(.92) saturate(.9)',
-  yardPartial: 'brightness(.92) saturate(.9)',
-  shade: 'brightness(.7) saturate(.75)',
-  yardShade: 'brightness(.7) saturate(.75)',
-}
-
 const PLACE_NAME: Record<Place, string> = {
   window: '창가',
   desk: '책상',
@@ -170,8 +172,8 @@ const PLACE_NAME: Record<Place, string> = {
   yardShade: '그늘진 땅',
 }
 
-/** Stand-in picture for every species and stage until Task 12. Every screen resolves plant pictures through this. */
-export const plantSrc = (_id: SpeciesId, _stage: StageId) => '/plants/balsam/flower.png'
+/** Every screen resolves plant pictures through this (a species' own picture, else the shared stand-in). */
+export { plantSrc }
 
 const DEFAULT_SIZE = { w: MOCK_W, h: 586 }
 
@@ -206,8 +208,8 @@ type Props = {
   potProps?: HTMLAttributes<HTMLDivElement> & Record<`data-${string}`, string | undefined>
   /** Pot glows as a drop target. */
   potHighlight?: boolean
-  /** Rendered in plant picture coordinates (moves with tilt and scale); gets px per source px. */
-  plantOverlay?: (scale: number) => ReactNode
+  /** Rendered in plant picture coordinates (moves with tilt and scale); gets px per source px and the picture's leaf spots. */
+  plantOverlay?: (scale: number, spots: [number, number][] | undefined) => ReactNode
   /** Rendered in scene coordinates above everything. */
   sceneOverlay?: (layout: SceneLayout) => ReactNode
 }
@@ -217,9 +219,13 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
   const { w, h } = useSize(ref)
   const scale = stageScale(stage)
   const yard = isYardPlace(place)
-  const L = yard ? yardLayout(w, h, scale) : sceneLayout(w, h, scale)
   const face = faceFor(health)
-  const potSrc = `/pots/${face}.png`
+  const bgPic = bgArt(place)
+  const potPic = potArt(face)
+  const plantPic = plantArt(speciesId, stage)
+  const art: SceneArt = { bg: bgPic.a, pot: potPic.a, plant: plantPic.a }
+  const L = yard ? yardLayout(w, h, scale, art) : sceneLayout(w, h, scale, art)
+  const potSrc = potPic.src
   const potFilter = face === 'sick' ? 'saturate(.6)' : undefined
   const look = plantLook(health, lightLow)
   const name = SPECIES[speciesId].name
@@ -235,11 +241,12 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
     transformOrigin: `${L.plant.originX}px ${L.plant.originY}px`,
     transform: look.transform,
   }
-  // Touch area: the visible pot (pot picture bbox 143..1115 × 140..1139), or the soil around the tree.
+  // Touch area: the visible pot (its picture's opaque bounding box), or the soil around the tree.
   const ps = L.pot.scale
+  const pb = potPic.a.bbox
   const hitBox = yard
     ? (L as YardLayout).drop
-    : { left: L.pot.x + 143 * ps, top: L.pot.y + 140 * ps, width: 972 * ps, height: 999 * ps }
+    : { left: L.pot.x + pb[0] * ps, top: L.pot.y + pb[1] * ps, width: (pb[2] - pb[0]) * ps, height: (pb[3] - pb[1]) * ps }
   const hitProps = (
     <div
       {...potProps}
@@ -251,7 +258,7 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
     <img
       data-layer="plant"
       className="pv-layer pv-plant"
-      src={plantSrc(speciesId, stage)}
+      src={plantPic.src}
       alt={`${name} (${STAGE_LABEL[stage]})`}
       draggable={false}
       style={{ ...plantBox, filter: plantFilter || 'none', opacity: winter ? 0.85 : undefined }}
@@ -259,7 +266,7 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
   )
   const bugs = hasPlant && plantOverlay && (
     <div className="pv-layer pv-plant-overlay" style={plantBox}>
-      {plantOverlay(L.plant.scale)}
+      {plantOverlay(L.plant.scale, plantPic.real ? plantPic.a.spots : undefined)}
     </div>
   )
   const shadow = (
@@ -280,7 +287,14 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
     const Y = L as YardLayout
     return (
       <div ref={ref} className="pv" role="group" aria-label={`${PLACE_NAME[place]}에 심은 ${name}`}>
-        <YardBackdrop place={place} surface={Y.surface} unit={Y.unit} />
+        <img
+          data-layer="yard-bg"
+          className="pv-layer"
+          src={bgPic.src}
+          alt=""
+          draggable={false}
+          style={{ left: Y.bg.x, top: Y.bg.y, width: Y.bg.w, height: Y.bg.h }}
+        />
         {winter && <WinterVeil />}
         {shadow}
         {plantImg}
@@ -304,10 +318,10 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
       <img
         data-layer="bg"
         className="pv-layer"
-        src="/bg/window.png"
+        src={bgPic.src}
         alt=""
         draggable={false}
-        style={{ left: L.bg.x, top: L.bg.y, width: L.bg.w, height: L.bg.h, filter: BG_FILTER[place] }}
+        style={{ left: L.bg.x, top: L.bg.y, width: L.bg.w, height: L.bg.h }}
       />
       {winter && <WinterVeil />}
       {shadow}
