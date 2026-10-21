@@ -118,22 +118,24 @@ export const SPECIES: Record<SpeciesId, Species> = {
     nutrient: { idealHi: 50 },
   }),
   morningGlory: make('morningGlory', '나팔꽃', 'annual', '햇빛을 아주 좋아해요', false, {
-    light: { idealLo: 70 },
-    temp: { idealLo: 22 },
+    light: { idealLo: 70, idealHi: 95, hi: 100 },
+    temp: { idealLo: 22, idealHi: 28, hi: 32 },
   }),
   rice: make('rice', '벼', 'annual', '물을 아주 좋아해요', false, {
     water: { idealLo: 75, idealHi: 110, hi: 125 },
   }),
   corn: make('corn', '옥수수', 'annual', '따뜻하고 밝은 곳을 좋아해요', false, {
-    light: { idealLo: 70 },
-    temp: { idealLo: 22 },
+    light: { idealLo: 70, idealHi: 95, hi: 100 },
+    temp: { idealLo: 22, idealHi: 28, hi: 32 },
   }),
   apple: make('apple', '사과나무', 'perennial', '여러 해 동안 열매를 맺어요', true, {
-    light: { idealLo: 70 },
+    light: { idealLo: 70, idealHi: 95, hi: 100 },
+    temp: { idealHi: 27 },
   }),
   dandelion: make('dandelion', '민들레', 'perennial', '어디서나 잘 자라요', false, {}, 1.5),
   forsythia: make('forsythia', '개나리', 'perennial', '봄에 노란 꽃이 피어요', true),
   persimmon: make('persimmon', '감나무', 'perennial', '가을에 주황색 열매가 열려요', true, {
-    light: { idealLo: 70 },
+    light: { idealLo: 70, idealHi: 95, hi: 100 },
+    temp: { idealHi: 27 },
   }),
 }

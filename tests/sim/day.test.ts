@@ -12,18 +12,25 @@ function at(id: SpeciesId, stage: StageId, over: Partial<PlantState> = {}): Plan
   return { ...newPlant(id), stageIndex: SPECIES[id].stages.indexOf(stage), ...over }
 }
 
-/** Sets water/nutrient to the current phase band's ideal midpoint and removes all bugs. */
-function idealCare(s: PlantState, place: Place = 'desk'): DayActions {
+/** Light-loving species (light idealLo above the desk) go to the window, others stay on the desk. */
+const carePlace = (id: SpeciesId): Place =>
+  SPECIES[id].bands.grow.light.idealLo > PLACE_ENV.desk.light ? 'window' : 'desk'
+
+/**
+ * Realistic ideal care: only what the UI can do. Tops water/nutrient up toward the current phase
+ * band's ideal midpoint (never removes any, whole pellets only) and removes all bugs.
+ */
+function idealCare(s: PlantState, place: Place = carePlace(s.speciesId)): DayActions {
   const b = SPECIES[s.speciesId].bands[phaseOf(stageOf(s))]
   return {
-    waterAdded: mid(b.water) - s.water,
-    pellets: (mid(b.nutrient) - s.nutrient) / 15,
+    waterAdded: Math.max(0, mid(b.water) - s.water),
+    pellets: Math.max(0, Math.round((mid(b.nutrient) - s.nutrient) / 15)),
     bugsRemoved: s.bugs,
     place,
   }
 }
 
-function run(s: PlantState, days: number, place: Place = 'desk') {
+function run(s: PlantState, days: number, place?: Place) {
   let state = s
   let report!: DayReport
   for (let i = 0; i < days; i++) {
@@ -33,6 +40,9 @@ function run(s: PlantState, days: number, place: Place = 'desk') {
   }
   return { state, report }
 }
+
+const ANNUALS = (Object.keys(SPECIES) as SpeciesId[]).filter((id) => SPECIES[id].life === 'annual')
+const PERENNIALS = (Object.keys(SPECIES) as SpeciesId[]).filter((id) => SPECIES[id].life === 'perennial')
 
 describe('endDay', () => {
   it('ideal care finishes annual in 10 days', () => {
@@ -44,10 +54,15 @@ describe('endDay', () => {
     expect(state.day).toBe(11)
   })
 
-  it('ideal care finishes perennial in 14 days', () => {
-    const thirteen = run(newPlant('dandelion'), 13).state
-    expect(stageOf(thirteen)).toBe('winter')
-    const { state } = run(newPlant('dandelion'), 14)
+  it.each(ANNUALS)('ideal care finishes annual %s in exactly 10 days', (id) => {
+    expect(stageOf(run(newPlant(id), 9).state)).toBe('fruit')
+    const { state } = run(newPlant(id), 10)
+    expect(stageOf(state)).toBe('seedDone')
+    expect(state.dead).toBe(false)
+  })
+
+  it.each(PERENNIALS)('ideal care finishes perennial %s within 15 days', (id) => {
+    const { state } = run(newPlant(id), 15)
     expect(stageOf(state)).toBe('newShoot')
     expect(state.dead).toBe(false)
   })
@@ -154,8 +169,35 @@ describe('endDay', () => {
     const s = at('dandelion', 'winter', { water: 30, nutrient: 10 })
     const { state } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs)
     expect(state.water).toBe(30 - PLACE_ENV.desk.evap * 0.5)
-    expect(state.nutrient).toBe(10)
+    expect(state.nutrient).toBe(0) // winter uses 10 per day
     expect(currentStatuses(s).temp).toEqual({ level: 4, dir: null }) // desk 22 − 15 = 7, winter band 0..10
+  })
+
+  it('seed phase uses no nutrient', () => {
+    const s = at('balsam', 'seed', { nutrient: 40 })
+    const { state } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs)
+    expect(state.nutrient).toBe(40)
+  })
+
+  it('bugs never exceed 12', () => {
+    let s = at('balsam', 'leafStem', { bugs: 12, health: 100 })
+    for (let i = 0; i < 6 && !s.dead; i++) {
+      s = endDay(s, { ...idealCare(s), bugsRemoved: 0 }, () => 0).state
+      expect(s.bugs).toBeLessThanOrEqual(12)
+    }
+    const one = endDay(at('balsam', 'leafStem', { bugs: 7 }), { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, () => 0)
+    expect(one.state.bugs).toBe(12)
+  })
+
+  it('non-finite action numbers count as 0', () => {
+    const s = at('balsam', 'leafStem', { bugs: 2, water: 60, nutrient: 50 })
+    const zero = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs).state
+    const bad = { waterAdded: NaN, pellets: undefined as unknown as number, bugsRemoved: Infinity, place: 'desk' as const }
+    const { state } = endDay(s, bad, noBugs)
+    expect(Number.isFinite(state.water)).toBe(true)
+    expect(Number.isFinite(state.nutrient)).toBe(true)
+    expect(Number.isFinite(state.bugs)).toBe(true)
+    expect(state).toEqual(zero)
   })
 
   it('height and leaves grow with growth and never shrink', () => {

@@ -48,6 +48,14 @@ describe('species data', () => {
     expect(SPECIES.bean.bands.grow.nutrient.idealHi).toBe(50)
     expect(SPECIES.apple.bands.grow.light.idealLo).toBe(70)
     expect(SPECIES.persimmon.bands.grow.light.idealLo).toBe(70)
+    // light lovers: window (90) is ideal; tuned in Task 4 fix round 1
+    for (const id of ['morningGlory', 'corn', 'apple', 'persimmon'] as const) {
+      expect(SPECIES[id].bands.grow.light).toMatchObject({ idealLo: 70, idealHi: 95, hi: 100 })
+    }
+    expect(SPECIES.corn.bands.grow.temp).toMatchObject({ idealLo: 22, idealHi: 28, hi: 32 })
+    expect(SPECIES.morningGlory.bands.grow.temp).toMatchObject({ idealLo: 22, idealHi: 28, hi: 32 })
+    expect(SPECIES.apple.bands.grow.temp.idealHi).toBe(27)
+    expect(SPECIES.persimmon.bands.grow.temp.idealHi).toBe(27)
     expect(SPECIES.dandelion.bands.grow.water.span).toBe(22.5)
     expect(SPECIES.dandelion.bands.winter.temp.span).toBe(7.5)
     expect(SPECIES.balsam.bands.seed.temp).toEqual({ lo: 15, idealLo: 20, idealHi: 27, hi: 31, span: 4 })

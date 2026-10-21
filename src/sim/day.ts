@@ -18,6 +18,8 @@ const WINTER_EVAP_SCALE = 0.5
 const MAX_STORE = 150
 const PELLET_NUTRIENT = 15
 const GROW_NUTRIENT_USE = 5
+const WINTER_NUTRIENT_USE = 10
+const MAX_BUGS = 12
 const HISTORY_DAYS = 3
 
 const PENALTY: Record<Level, number> = { 0: -25, 1: -12, 2: -4, 3: 0, 4: 0 }
@@ -31,6 +33,8 @@ const POINTS_PER_LEAF = 2
 const NOT_NEEDED: Status = { level: null, notNeeded: true }
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 const round1 = (v: number) => Math.round(v * 10) / 10
+/** Non-finite action numbers (NaN, undefined, Infinity) count as 0. */
+const num = (v: number) => (Number.isFinite(v) ? v : 0)
 
 function phaseOfState(s: PlantState): Phase {
   return phaseOf(SPECIES[s.speciesId].stages[s.stageIndex])
@@ -106,9 +110,9 @@ export function endDay(
   const lastStage = species.stages.length - 1
 
   // 1. apply actions
-  let water = clamp(s.water + a.waterAdded, 0, MAX_STORE)
-  let nutrient = clamp(s.nutrient + a.pellets * PELLET_NUTRIENT, 0, MAX_STORE)
-  const bugsLeft = Math.max(0, s.bugs - a.bugsRemoved)
+  let water = clamp(s.water + num(a.waterAdded), 0, MAX_STORE)
+  let nutrient = clamp(s.nutrient + num(a.pellets) * PELLET_NUTRIENT, 0, MAX_STORE)
+  const bugsLeft = Math.max(0, s.bugs - num(a.bugsRemoved))
   const place = a.place
 
   // 2. light exposure moving average ("too long in the sun" accumulates here)
@@ -159,9 +163,10 @@ export function endDay(
 
   // 6. prepare the next morning
   water = Math.max(0, water - placeEnv(place, phase).evap)
-  if (phase === 'grow') nutrient = Math.max(0, nutrient - GROW_NUTRIENT_USE)
+  const nutrientUse = phase === 'grow' ? GROW_NUTRIENT_USE : phase === 'winter' ? WINTER_NUTRIENT_USE : 0
+  nutrient = Math.max(0, nutrient - nutrientUse)
   const newBugs = rollPests(statuses, rng)
-  const bugs = bugsLeft + bugsLeft + newBugs // unremoved bugs multiply overnight
+  const bugs = Math.min(MAX_BUGS, bugsLeft + bugsLeft + newBugs) // unremoved bugs multiply overnight
 
   state = {
     ...state, water, nutrient, bugs, health, history, stageIndex, growth, heightCm, leaves, day: s.day + 1,
