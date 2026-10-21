@@ -429,6 +429,60 @@ describe('useApp', () => {
     }
   })
 
+  describe('two tabs on one device', () => {
+    const storageEvent = (ls: Storage) =>
+      act(() => void window.dispatchEvent(new StorageEvent('storage', { key: SAVE_KEY, newValue: ls.getItem(SAVE_KEY) })))
+
+    it('an old tab picks up the newer progress of another tab and never writes its stale state back', () => {
+      const ls = fakeStorage()
+      vi.stubGlobal('localStorage', ls)
+      const old = renderHook(() => useApp())
+      act(() => old.result.current[1]({ type: 'pick', id: 'bean' }))
+      // the second tab opens the same save and finishes the day
+      const fresh = renderHook(() => useApp())
+      act(() => fresh.result.current[1]({ type: 'water', amount: 10 }))
+      act(() => fresh.result.current[1]({ type: 'endDay' }))
+      expect(JSON.parse(ls.getItem(SAVE_KEY)!).plant.day).toBe(2)
+      // the browser tells the old tab that the save changed
+      storageEvent(ls)
+      expect(old.result.current[0].plant!.day).toBe(2)
+      expect(old.result.current[0].dayDone).toBe(true)
+      expect(old.result.current[0].journal).toHaveLength(1)
+      // the old tab can no longer act on the day the other tab finished
+      act(() => old.result.current[1]({ type: 'water', amount: 30 }))
+      const saved = JSON.parse(ls.getItem(SAVE_KEY)!)
+      expect(saved.plant.day).toBe(2)
+      expect(saved.journal).toHaveLength(1)
+      expect(saved.dayDone).toBe(true)
+    })
+
+    it('without a storage event, focus re-reads the save before anything else happens', () => {
+      const ls = fakeStorage()
+      vi.stubGlobal('localStorage', ls)
+      const old = renderHook(() => useApp())
+      act(() => old.result.current[1]({ type: 'pick', id: 'bean' }))
+      const fresh = renderHook(() => useApp())
+      act(() => fresh.result.current[1]({ type: 'endDay' }))
+      act(() => void window.dispatchEvent(new Event('focus')))
+      expect(old.result.current[0].plant!.day).toBe(2)
+      act(() => old.result.current[1]({ type: 'endDay' }))
+      // still the other tab's day 2, not a second day finished from the stale day 1
+      expect(JSON.parse(ls.getItem(SAVE_KEY)!).plant.day).toBe(2)
+      expect(JSON.parse(ls.getItem(SAVE_KEY)!).journal).toHaveLength(1)
+    })
+
+    it('its own writes do not reset the screen on focus', () => {
+      const ls = fakeStorage()
+      vi.stubGlobal('localStorage', ls)
+      const { result } = renderHook(() => useApp())
+      act(() => result.current[1]({ type: 'pick', id: 'bean' }))
+      act(() => result.current[1]({ type: 'open', screen: 'journal' }))
+      act(() => void window.dispatchEvent(new Event('focus')))
+      storageEvent(ls)
+      expect(result.current[0].screen).toBe('journal')
+    })
+  })
+
   it('saves after each dispatch', () => {
     const ls = fakeStorage()
     vi.stubGlobal('localStorage', ls)

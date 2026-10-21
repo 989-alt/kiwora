@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { isNewDay, todayKey } from './sim/clock'
 import { applyActions, endDay, newPlant } from './sim/day'
 import { mulberry32, seedFor } from './sim/rng'
@@ -231,30 +231,58 @@ function initState(): AppState {
   return warning ? { ...s, warning, screen: 'backup' } : s
 }
 
+function storedText(): string | null {
+  try {
+    return globalThis.localStorage?.getItem(SAVE_KEY) ?? null
+  } catch {
+    return null
+  }
+}
+
 export function useApp(): [AppState, (a: Action) => void] {
   const [state, setState] = useState(initState)
+  // The save text this tab wrote last: a different text in storage was written by another tab.
+  const written = useRef<string | null>(null)
   useEffect(() => {
-    writeSave(toSave(state))
+    const data = toSave(state)
+    written.current = JSON.stringify(data)
+    writeSave(data)
   }, [state])
   const dispatch = useCallback((a: Action) => {
     // Read the date once, outside the updater (StrictMode may call the updater twice).
     const today = todayKey()
     setState((s) => reducer(s, a, today))
   }, [])
+  /** Another tab (or window) of the app saved newer progress: take it over instead of writing ours back. */
+  const resync = useCallback(() => {
+    const text = storedText()
+    if (text === null || text === written.current) return
+    const { data, warning } = loadSave()
+    if (warning) return
+    written.current = text
+    setState(boot(data, todayKey()))
+  }, [])
   useEffect(() => {
     // Tools are disabled once the day is done, so check for a new date without user input.
     const visible = () => typeof document === 'undefined' || document.visibilityState !== 'hidden'
     const tick = () => {
-      if (visible()) dispatch({ type: 'tick' })
+      if (!visible()) return
+      resync()
+      dispatch({ type: 'tick' })
+    }
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === SAVE_KEY) resync()
     }
     document.addEventListener('visibilitychange', tick)
     window.addEventListener('focus', tick)
+    window.addEventListener('storage', onStorage)
     const id = setInterval(tick, TICK_MS)
     return () => {
       document.removeEventListener('visibilitychange', tick)
       window.removeEventListener('focus', tick)
+      window.removeEventListener('storage', onStorage)
       clearInterval(id)
     }
-  }, [dispatch])
+  }, [dispatch, resync])
   return [state, dispatch]
 }
