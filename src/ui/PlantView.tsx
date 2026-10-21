@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
 import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
 import type { Place } from '../sim/types'
-import { DEFAULTS, bgArt, bugSpots, plantArt, plantSrc, potArt, type BgAnchor, type PlantAnchor, type PotAnchor } from './art'
+import { DEFAULTS, bgArt, bugSpots, plantArt, plantSrc, potArt, type BgAnchor, type BugSpots, type PlantAnchor, type PotAnchor } from './art'
 import { Mound, Signpost, Snow, WinterVeil } from './Scenery'
 import './PlantView.css'
 
@@ -210,7 +210,7 @@ type Props = {
   /** Pot glows as a drop target. */
   potHighlight?: boolean
   /** Rendered in plant picture coordinates (moves with tilt and scale); gets px per source px and the picture's leaf spots. */
-  plantOverlay?: (scale: number, spots: [number, number][] | undefined) => ReactNode
+  plantOverlay?: (scale: number, spots: BugSpots | undefined) => ReactNode
   /** Rendered in scene coordinates above everything. */
   sceneOverlay?: (layout: SceneLayout) => ReactNode
 }

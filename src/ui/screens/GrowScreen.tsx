@@ -132,7 +132,8 @@ export function GrowScreen({ state, dispatch }: Props) {
                   count={plant.bugs}
                   seed={seedFor(plant.day, plant.speciesId)}
                   scale={scale}
-                  spots={spots}
+                  spots={spots?.points}
+                  measured={spots?.measured}
                   disabled={locked}
                   sound={sound}
                   onCatch={() => dispatch({ type: 'removeBug' })}

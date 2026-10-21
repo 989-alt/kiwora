@@ -94,3 +94,39 @@ test('bug buttons stay at least 48 px under the low-light scaleX(0.85)', () => {
     expect(parseFloat(b.style.height)).toBeGreaterThanOrEqual(48)
   }
 })
+
+test('more bugs than measured spots: every counted bug is shown and can be tapped', () => {
+  const spots: [number, number][] = [
+    [100, 200],
+    [300, 400],
+  ]
+  const onCatch = vi.fn()
+  render(<Bugs count={12} seed={3} scale={0.5} spots={spots} disabled={false} sound={false} onCatch={onCatch} />)
+  const buttons = screen.getAllByRole('button', { name: '벌레 잡기' })
+  expect(buttons).toHaveLength(12)
+  for (const b of buttons) fireEvent.click(b)
+  expect(onCatch).toHaveBeenCalledTimes(12)
+  expect(screen.queryAllByRole('button', { name: '벌레 잡기' })).toHaveLength(0)
+})
+
+test('the first bugs of the day sit on measured spots before any padded place', () => {
+  const spots: [number, number][] = [
+    [100, 200],
+    [300, 400],
+    [500, 600],
+    [700, 800],
+    [900, 1000],
+    [1100, 1200],
+    [1300, 1400],
+    [1500, 1600],
+    [1700, 1800],
+    [1900, 2000],
+    [2100, 2200],
+    [2300, 2400],
+  ]
+  render(<Bugs count={2} seed={11} scale={1} spots={spots} measured={2} disabled={false} sound={false} onCatch={() => {}} />)
+  const placed = screen
+    .getAllByRole('button', { name: '벌레 잡기' })
+    .map((b) => [parseFloat(b.style.left) + parseFloat(b.style.width) / 2, parseFloat(b.style.top) + parseFloat(b.style.height) / 2])
+  expect(placed.sort()).toEqual(spots.slice(0, 2))
+})

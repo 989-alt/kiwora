@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { mulberry32 } from '../../sim/rng'
+import { fillSpots } from '../art'
 import { pop } from '../sound'
 import './tools.css'
 
@@ -28,20 +29,28 @@ type Props = {
   seed: number
   /** Plant picture px per source px. */
   scale: number
-  /** Places on the leaves of the current plant picture (source px); the stand-in's spots when absent. */
+  /** Places on the leaves of the current plant picture (source px); the stand-in's spots when absent. Padded to 12. */
   spots?: [number, number][]
+  /** How many of `spots` (the first ones) are measured leaf spots; bugs take these first. Default: all of them. */
+  measured?: number
   disabled: boolean
   sound: boolean
   onCatch: () => void
 }
 
-function placements(seed: number, spots: [number, number][]) {
+/** Shuffles the measured places and the padded places separately, measured first. */
+function placements(seed: number, spots: [number, number][], measured: number) {
   const rng = mulberry32(seed)
-  const order = spots.map((_, i) => i)
-  for (let i = order.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1))
-    ;[order[i], order[j]] = [order[j], order[i]]
+  const shuffle = (from: number, to: number) => {
+    const part = Array.from({ length: to - from }, (_, k) => from + k)
+    for (let i = part.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1))
+      ;[part[i], part[j]] = [part[j], part[i]]
+    }
+    return part
   }
+  const cut = Math.min(Math.max(0, measured), spots.length)
+  const order = [...shuffle(0, cut), ...shuffle(cut, spots.length)]
   return order.map((i) => ({
     spot: spots[i],
     tilt: Math.round(rng() * 50 - 25),
@@ -50,10 +59,12 @@ function placements(seed: number, spots: [number, number][]) {
 }
 
 /** `count` bugs on the leaves; each is a ≥48 px button. Give it `key={seed}` so a new day resets it. */
-export function Bugs({ count, seed, scale, spots, disabled, sound, onCatch }: Props) {
+export function Bugs({ count, seed, scale, spots, measured, disabled, sound, onCatch }: Props) {
   // Indices tapped today: the tapped bug disappears (not just the last one).
   const [gone, setGone] = useState<number[]>([])
-  const all = placements(seed, spots && spots.length > 0 ? spots : LEAF_SPOTS)
+  const base = spots && spots.length > 0 ? spots : LEAF_SPOTS
+  // A place for every bug the sim can count, so no counted bug is ever left untappable.
+  const all = placements(seed, fillSpots(base), measured ?? base.length)
   const shown = Math.min(all.length, count + gone.length)
   return (
     <>
