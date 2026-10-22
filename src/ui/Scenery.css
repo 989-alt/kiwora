@@ -59,8 +59,8 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 90% at 18% 10%, rgba(219, 234, 254, 0.55), rgba(219, 234, 254, 0) 60%),
-    linear-gradient(rgba(191, 219, 254, 0.32), rgba(224, 242, 254, 0.18));
+    radial-gradient(120% 90% at 18% 10%, rgba(224, 238, 255, 0.7), rgba(224, 238, 255, 0) 62%),
+    linear-gradient(rgba(186, 214, 250, 0.42), rgba(214, 234, 252, 0.26));
 }
 
 /* Winter in the yard: white veil between background and plant, snow above everything. */
