@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { pendingCare } from '../../sim/care'
+import { isOutdoor, pendingCare } from '../../sim/care'
 import { currentStatuses } from '../../sim/day'
 import { seedFor } from '../../sim/rng'
 import { phaseOf, SPECIES } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
 import { weatherOn } from '../../sim/weather'
-import { growing, morningShown, type Action, type AppState } from '../../store'
+import { growing, morningShown, weatherToday, type Action, type AppState } from '../../store'
 import { PlantView, faceFor, isYardPlace } from '../PlantView'
 import { potArt, propArt } from '../art'
 import { NightScene } from '../NightScene'
@@ -86,7 +86,18 @@ export function GrowScreen({ state, dispatch }: Props) {
 
   const species = SPECIES[plant.speciesId]
   const stage = species.stages[plant.stageIndex]
-  const statuses = currentStatuses(plant)
+  // Today's weather and how it is judged so far (a done daily day has none: the plant is already on the next
+  // day, whose weather is only a forecast). Unprepared heat or cold shows on the board at once.
+  const wt = state.dayDone ? null : weatherToday(state)
+  const statuses = currentStatuses(plant, wt?.hit)
+  const outdoor = isOutdoor(plant)
+  /** The board's weather row: today's, or (at night) the one the finished day had. null = calm. */
+  const boardWeather = state.dayDone
+    ? (state.lastReport?.weather ?? null)
+    : wt
+      ? { kind: wt.kind, prepared: wt.prepared }
+      : null
+  const tie = wt?.kind === 'typhoon' ? { tied: wt.prepared, onTie: () => dispatch({ type: 'tie' }) } : null
   const light = statuses.light
   const lightLow = light.level !== null && light.level <= 2 && light.dir === 'low'
   const title = `${species.name} · ${plant.day}일째 · ${stageName(plant.speciesId, stage, 'long')}`
@@ -192,6 +203,7 @@ export function GrowScreen({ state, dispatch }: Props) {
                     sound={sound}
                     onDone={(task) => dispatch({ type: 'care', task })}
                     morningCard={morningUp}
+                    tie={tie}
                   />
                   {pouring && <WaterStream layout={L} />}
                   {obs.ui.open && obs.ui.tool === 'ruler' && obs.ruler && (
@@ -219,12 +231,15 @@ export function GrowScreen({ state, dispatch }: Props) {
                 dayDone={false}
                 stage={stage}
                 health={plant.health}
+                weatherToday={wt?.kind ?? null}
+                outdoor={outdoor}
                 onClose={() => dispatch({ type: 'morningSeen' })}
               />
             )}
             {locked && (
               <NightScene
                 forecast={growing(plant) ? weatherOn(plant, plant.day) : null}
+                outdoor={outdoor}
                 summary={state.morning ? morningSummary(state.morning, stage) : ''}
               />
             )}
@@ -271,7 +286,13 @@ export function GrowScreen({ state, dispatch }: Props) {
           {!portrait && obs.ui.open ? (
             <ObservePanel obs={obs} disabled={busy} />
           ) : (
-            <StatusBoard statuses={statuses} health={plant.health} bugs={plant.bugs} layout={portrait ? 'bottom' : 'side'} />
+            <StatusBoard
+              statuses={statuses}
+              health={plant.health}
+              bugs={plant.bugs}
+              layout={portrait ? 'bottom' : 'side'}
+              weather={boardWeather}
+            />
           )}
           {!portrait && endButton}
         </aside>

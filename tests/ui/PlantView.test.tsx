@@ -341,7 +341,7 @@ describe('the plant is drawn at its height (a fixed cm per scene)', () => {
   // the '오늘 할 일' band, measured by tests/e2e/observe.spec.ts
   const SCENES: [number, number][] = [
     [746, 584], [832, 550], [936, 416], [918, 518], [764, 632], [712, 565],
-    [746, 516], [832, 484], [936, 358], [918, 452],
+    [746, 516], [832, 482], [936, 358], [918, 450],
   ]
   const IDS = Object.keys(SPECIES) as SpeciesId[]
   const ROOM = ['window', 'desk', 'shade'] as const

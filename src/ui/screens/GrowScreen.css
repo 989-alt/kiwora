@@ -223,20 +223,9 @@
   }
 }
 
-/* Short landscape screens (e.g. a Chromebook window): tighter status board so 하루 마치기 stays on screen. */
-@media (max-height: 760px) and (min-width: 900px) {
-  .gs {
-    padding: 12px 20px;
-    gap: 10px;
-  }
-  .gs-header {
-    min-height: 56px;
-  }
-  .gs-body,
-  .gs-left,
-  .gs-aside {
-    gap: 10px;
-  }
+/* Landscape screens up to about 880 px tall (an iPad window, a Chromebook): a tighter status board, so it
+   (with today's weather row and the '오늘 할 일' band above) stays whole beside 하루 마치기. The scene is untouched. */
+@media (max-height: 880px) and (min-width: 900px) {
   .gs-aside .sb {
     padding: 10px 14px;
     gap: 6px;
@@ -263,6 +252,34 @@
   }
   .gs-aside .sb-cell {
     height: 12px;
+  }
+}
+
+/* Short landscape screens (e.g. a Chromebook window): tighter page, so 하루 마치기 stays on screen. */
+@media (max-height: 760px) and (min-width: 900px) {
+  .gs {
+    padding: 12px 20px;
+    gap: 10px;
+  }
+  .gs-header {
+    min-height: 56px;
+  }
+  .gs-body,
+  .gs-left,
+  .gs-aside {
+    gap: 10px;
+  }
+  /* the heading stays for screen readers (the section is labelled too); the weather row is one line shorter */
+  .gs-aside .sb-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .gs-aside .sb-weather {
+    padding: 2px 8px;
   }
   .gs-end {
     min-height: 68px;
@@ -300,6 +317,12 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+/* Today's weather: the card's first line. */
+.morning-weather {
+  font-family: var(--font-title);
+  font-size: 22px;
+  color: #1e40af;
 }
 /* Health under 30: the card says so clearly (red line, red edge). */
 .morning--danger {
@@ -413,6 +436,20 @@
   font-size: 26px;
   line-height: 1.3;
   color: #e0e7ff;
+}
+.gs-night-forecast {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+  max-width: 560px;
+}
+.gs-night-forecast .forecast-icon {
+  width: 72px;
+  height: 72px;
+}
+.gs-night-forecast .forecast-text {
+  font-size: 28px;
 }
 .gs--portrait .gs-night-title {
   font-size: 40px;

@@ -192,9 +192,9 @@ test('print: the 8 journal columns fit the A4 page width', async ({ page }) => {
 // without and with the '오늘 할 일' band (a care due), at the 6 viewports.
 const SCENE_SIZES: { vw: number; vh: number; plain: [number, number]; band: [number, number] }[] = [
   { vw: 1194, vh: 834, plain: [746, 584], band: [746, 516] },
-  { vw: 1280, vh: 800, plain: [832, 550], band: [832, 484] },
+  { vw: 1280, vh: 800, plain: [832, 550], band: [832, 482] },
   { vw: 1366, vh: 640, plain: [936, 416], band: [936, 358] },
-  { vw: 1366, vh: 768, plain: [918, 518], band: [918, 452] },
+  { vw: 1366, vh: 768, plain: [918, 518], band: [918, 450] },
   { vw: 820, vh: 1180, plain: [764, 632], band: [764, 632] },
   { vw: 768, vh: 1024, plain: [712, 565], band: [712, 565] },
 ]

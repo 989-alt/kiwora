@@ -15,8 +15,9 @@ import { Harvest, SeedPile } from './Harvest'
 import { PollenOnFlower, Pollinate } from './Pollinate'
 import { Prune } from './Prune'
 import { Shake } from './Shake'
+import { Tie } from './Tie'
 import { StrawWrap, Wrap } from './Wrap'
-import { carePoints, careTargets } from './targets'
+import { carePoints, careTargets, type Rect } from './targets'
 import './care.css'
 
 type Props = {
@@ -27,6 +28,8 @@ type Props = {
   onDone: (t: CareTaskId) => void
   /** The morning card is up at the top left: targets keep out from under it (default). */
   morningCard?: boolean
+  /** A typhoon day in the yard: the tie to do (or done); null/left out = no typhoon. */
+  tie?: { tied: boolean; onTie: () => void } | null
 }
 
 /** What a finished care leaves in the scene for the rest of its stage (`fresh` = finished just now). */
@@ -74,7 +77,7 @@ function Done({ task, L, fresh, plant }: { task: CareTaskId; L: SceneLayout; fre
  * manipulation, and what the stage's finished care left behind (a stake, heaps of soil ...).
  * Every care can be finished by dragging or by taps alone.
  */
-export function CareLayer({ plant, layout: L, disabled, sound, onDone, morningCard = true }: Props) {
+export function CareLayer({ plant, layout: L, disabled, sound, onDone, morningCard = true, tie = null }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [fresh, setFresh] = useState<CareTaskId | null>(null)
   const stage = SPECIES[plant.speciesId].stages[plant.stageIndex]
@@ -147,6 +150,19 @@ export function CareLayer({ plant, layout: L, disabled, sound, onDone, morningCa
         <Done key={t} task={t} L={L} fresh={fresh === t} plant={plant} />
       ))}
       {active}
+      {tie && (
+        <Tie
+          key={`tie-${plant.day}`}
+          L={L}
+          // the trunk and the stake on the ground: the same two places as the straw wrap
+          rects={careTargets('winterWrap', L, pic, plant.speciesId, morningCard) as [Rect, Rect]}
+          tied={tie.tied}
+          disabled={disabled}
+          sound={sound}
+          toScene={toScene}
+          onTie={tie.onTie}
+        />
+      )}
     </div>
   )
 }

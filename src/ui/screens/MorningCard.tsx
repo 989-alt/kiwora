@@ -1,15 +1,22 @@
 import { useState } from 'react'
 import type { StageId } from '../../sim/species'
-import type { DayReport } from '../../sim/types'
+import type { DayReport, WeatherId } from '../../sim/types'
+import { handledText, todayText } from '../weatherText'
+
+/** Growth reached the next stage but its care is not done: the day's first words. */
+const WAITING = '돌보기를 마치면 다음 단계로 자라요'
 
 /**
- * One short line about yesterday (most important first, at most two parts). `stage` is the plant's stage now:
- * a seed still under the soil gets its own line, and a plant that spent the day as a seed never droops.
+ * One short line about yesterday (most important first, at most two parts): the wait for the stage care, then
+ * how the weather went, then the rest. `stage` is the plant's stage now: a seed still under the soil gets its
+ * own line, and a plant that spent the day as a seed never droops.
  */
 export function morningSummary(r: DayReport, stage?: StageId): string {
   if (stage === 'seed') return r.healthDelta < 0 ? '흙 속에서 씨가 힘들어하고 있어요' : '흙 속에서 씨가 싹이 틀 준비를 하고 있어요'
   const wasSeed = stage === 'sprout' && r.stageChanged
   const parts: string[] = []
+  if (r.waiting) parts.push(WAITING)
+  if (r.weather) parts.push(handledText(r.weather))
   if (r.stageChanged) parts.push('단계가 바뀌었어요')
   if (r.heightDelta > 0) {
     // whole cm only (a 3rd grader reads "2cm", not "2.3cm"); less than half a cm is "조금"
@@ -33,12 +40,16 @@ type Props = {
   stage?: StageId
   /** The plant's health now: under 30 the card adds a danger line. */
   health?: number
+  /** Today's weather, if any: the card's first line says it (and what to do). */
+  weatherToday?: WeatherId | null
+  /** The plant lives in the yard (the words differ for heat). */
+  outdoor?: boolean
   /** Called once when the student closes the card (so it stays closed after a reload). */
   onClose?: () => void
 }
 
 /** Non-blocking card over the scene; a tap closes it. Remount with a new key for each report. */
-export function MorningCard({ report, day, dayDone, stage, health, onClose }: Props) {
+export function MorningCard({ report, day, dayDone, stage, health, weatherToday, outdoor = false, onClose }: Props) {
   const [open, setOpen] = useState(true)
   if (!open) return null
   const head = dayDone ? '오늘 자란 모습이에요' : `${day}일째 아침이에요!`
@@ -57,6 +68,7 @@ export function MorningCard({ report, day, dayDone, stage, health, onClose }: Pr
         <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
       </svg>
       <span className="morning-text">
+        {weatherToday && <span className="morning-weather">{todayText(weatherToday, outdoor)}</span>}
         <span>
           {head} {morningSummary(report, stage)}
         </span>

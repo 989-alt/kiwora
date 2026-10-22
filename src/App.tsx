@@ -1,4 +1,5 @@
 import { useRef, type ReactNode } from 'react'
+import { isOutdoor } from './sim/care'
 import { needsTransplant, screenFor, useApp, type Action, type AppState, type Screen } from './store'
 import { DayTransition } from './ui/DayTransition'
 import { BackupPanel } from './ui/screens/BackupPanel'
@@ -116,7 +117,14 @@ export default function App() {
     <>
       <Screens s={s} dispatch={dispatch} />
       {/* Over everything while it runs: nothing underneath can be pressed, a tap only skips the scene. */}
-      {s.nightFx && <DayTransition key={s.nightFx.n} fx={s.nightFx} onDone={() => dispatch({ type: 'nightFxDone' })} />}
+      {s.nightFx && (
+        <DayTransition
+          key={s.nightFx.n}
+          fx={s.nightFx}
+          outdoor={s.plant !== null && isOutdoor(s.plant)}
+          onDone={() => dispatch({ type: 'nightFxDone' })}
+        />
+      )}
     </>
   )
 }

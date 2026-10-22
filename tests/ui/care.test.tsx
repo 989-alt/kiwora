@@ -51,9 +51,9 @@ const CASES: [CareTaskId, SpeciesId[], StageId][] = [
 // in landscape), measured at 1194×834, 1280×800, 1366×640, 1366×768, 820×1180 and 768×1024
 const SCENES: [number, number][] = [
   [746, 516],
-  [832, 484],
+  [832, 482],
   [936, 358],
-  [918, 452],
+  [918, 450],
   [764, 632],
   [712, 565],
 ]

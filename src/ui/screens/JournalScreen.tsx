@@ -131,7 +131,7 @@ export function JournalScreen({ state, dispatch, record }: Props) {
                     <td>{Math.round(entry.leaves)}장</td>
                     <td>{did}</td>
                     <td>{entry.observed ?? '-'}</td>
-                    <td>{feelingText(entry.statuses)}</td>
+                    <td>{feelingText(entry.statuses, entry.weather)}</td>
                   </tr>
                 ))}
               </tbody>

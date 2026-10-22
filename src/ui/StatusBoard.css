@@ -136,3 +136,63 @@
 .sb-hfill--danger {
   background: var(--lv-0);
 }
+
+/* 오늘의 날씨: picture, (label over name) and whether the plant is ready, in one line. */
+.sb-weather {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 18px;
+  padding: 4px 10px;
+  background: #eff6ff;
+  border: 2px solid #bfdbfe;
+}
+.sb-weather--need {
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+.sb-weather--ready {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+.sb-wicon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+.sb-wtext {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+.sb-wlabel {
+  font-size: 18px;
+  color: #4b5563;
+  white-space: nowrap;
+}
+.sb-wname {
+  font-family: var(--font-title);
+  font-size: 22px;
+  color: var(--c-fg);
+  white-space: nowrap;
+}
+.sb-wbadge {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  border-radius: 999px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+.sb-wbadge--ready {
+  background: #dcfce7;
+  color: #166534;
+}
+.sb-wbadge--need {
+  background: #ffedd5;
+  color: #9a3412;
+}

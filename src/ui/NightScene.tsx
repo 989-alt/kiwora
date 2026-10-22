@@ -1,5 +1,6 @@
 import type { WeatherId } from '../sim/types'
-import { propArt } from './art'
+import { propArt, weatherArt } from './art'
+import { forecastText } from './weatherText'
 import './DayTransition.css'
 
 /** Where the stars sit (percent of the sky) and how long each waits before it twinkles. Fixed, so a reload looks the same. */
@@ -24,9 +25,22 @@ export function Stars() {
   )
 }
 
+/** Tomorrow's weather: its picture and the sentence (the same on the day-transition cover and the night scene). */
+export function Forecast({ kind, outdoor, className }: { kind: WeatherId; outdoor: boolean; className: string }) {
+  const art = weatherArt(kind)
+  return (
+    <div className={className} data-forecast={kind}>
+      {art.real && <img className="forecast-icon" src={art.src} alt="" width={96} height={96} draggable={false} />}
+      <p className="forecast-text">{forecastText(kind, outdoor)}</p>
+    </div>
+  )
+}
+
 type Props = {
-  /** Tomorrow's weather, if any: only marks the slot here (the words and picture come with the weather forecast). */
+  /** Tomorrow's weather, if any. */
   forecast: WeatherId | null
+  /** The plant lives in the yard (the words differ for heat). */
+  outdoor?: boolean
   /** One line about today's growth ('' = none). */
   summary: string
 }
@@ -36,7 +50,7 @@ type Props = {
  * 내일 다시 만나요. It covers the scene only (the menu and the tools stay where they are) and has no motion,
  * so it looks the same after a reload.
  */
-export function NightScene({ forecast, summary }: Props) {
+export function NightScene({ forecast, outdoor = false, summary }: Props) {
   const moon = propArt('moon')
   return (
     <div className="gs-night" data-forecast={forecast ?? undefined}>
@@ -45,7 +59,7 @@ export function NightScene({ forecast, summary }: Props) {
       <div className="gs-night-text">
         <p className="gs-night-title">내일 다시 만나요</p>
         {summary && <p className="gs-night-summary">{summary}</p>}
-        {forecast && <div className="gs-night-forecast" data-forecast={forecast} />}
+        {forecast && <Forecast kind={forecast} outdoor={outdoor} className="gs-night-forecast" />}
       </div>
     </div>
   )

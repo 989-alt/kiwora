@@ -3,6 +3,7 @@ import { newPlant } from '../sim/day'
 import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
 import type { ConditionKey, Place, Status } from '../sim/types'
 import { CARE_TEXT } from './care/careText'
+import { weatherNote } from './weatherText'
 
 /** Short stage names for strips and sentences ("꽃 단계까지 자랐어요"). Use stageName() to show one. */
 export const STAGE_SHORT: Record<StageId, string> = {
@@ -96,8 +97,16 @@ const PHRASE: Record<ConditionKey, Record<'low' | 'high', [string, string]>> = {
   pest: { low: ['벌레가 생겼어요', '벌레가 많이 생겼어요'], high: ['벌레가 생겼어요', '벌레가 많이 생겼어요'] },
 }
 
-/** One short phrase for the worst condition of the day; "건강했어요" when nothing is below 적정. */
-export function feelingText(statuses: Record<ConditionKey, Status> | undefined): string {
+/**
+ * One short phrase for the worst condition of the day; "건강했어요" when nothing is below 적정. A day with
+ * weather says how it went first ("폭염에 잘 대비했어요, 건강했어요").
+ */
+export function feelingText(statuses: Record<ConditionKey, Status> | undefined, weather?: JournalEntry['weather']): string {
+  const feeling = conditionText(statuses)
+  return weather ? `${weatherNote(weather)}, ${feeling}` : feeling
+}
+
+function conditionText(statuses: Record<ConditionKey, Status> | undefined): string {
   let worst: { key: ConditionKey; level: number; dir: 'low' | 'high' } | null = null
   for (const key of ORDER) {
     const s = statuses?.[key]

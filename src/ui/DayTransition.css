@@ -78,13 +78,47 @@
   opacity: 0;
   pointer-events: none;
 }
-/* Room for a forecast line and picture (Task 12 fills it). */
+/* Tomorrow's weather: a picture and a sentence, there while it is night (and while the cover thins away). */
+.forecast-icon {
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+}
+.forecast-text {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 32px;
+  line-height: 1.3;
+  color: #fff;
+  word-break: keep-all;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
+}
 .dt-forecast {
   position: absolute;
   left: 50%;
-  bottom: 14%;
+  bottom: 12%;
   transform: translateX(-50%);
-  min-height: 0;
+  width: max-content;
+  max-width: min(88vw, 720px);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 26px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  pointer-events: none;
+}
+.dt[data-phase='night'] .dt-forecast,
+.dt[data-phase='out'] .dt-forecast {
+  opacity: 1;
+}
+.dt[data-motion='reduced'] .dt-forecast {
+  transition: none;
 }
 
 /* dusk: the cover thickens as the sun goes down */

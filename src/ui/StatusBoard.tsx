@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { LEVEL_LABEL, dirLabel } from '../sim/levels'
-import type { ConditionKey, Level, Status } from '../sim/types'
+import type { ConditionKey, Level, Status, WeatherId } from '../sim/types'
+import { weatherArt } from './art'
+import { WEATHER_NAME } from './weatherText'
 import { BugIcon, DropletIcon, HeartIcon, SproutIcon, SunIcon, ThermometerIcon } from './icons'
 import './StatusBoard.css'
 
@@ -9,6 +11,11 @@ type Props = {
   health: number
   bugs: number
   layout: 'side' | 'bottom'
+  /**
+   * Today's weather and whether the plant is ready for it; null = a calm day (맑아요). Left out = no weather
+   * row (old callers).
+   */
+  weather?: { kind: WeatherId; prepared: boolean } | null
 }
 
 const ROWS: { key: ConditionKey; name: string; icon: ReactNode }[] = [
@@ -60,7 +67,36 @@ function Row({ condKey, name, icon, status, bugs }: { condKey: ConditionKey; nam
   )
 }
 
-export function StatusBoard({ statuses, health, bugs, layout }: Props) {
+/** '오늘의 날씨': the weather picture, its name and whether the plant is ready (one line, to save height). */
+function WeatherRow({ weather }: { weather: { kind: WeatherId; prepared: boolean } | null }) {
+  if (weather === null) {
+    return (
+      <div role="group" aria-label="오늘의 날씨 맑아요" className="sb-weather">
+        <SunIcon size={36} />
+        <span className="sb-wtext">
+          <span className="sb-wlabel">오늘의 날씨</span>
+          <span className="sb-wname">맑아요</span>
+        </span>
+      </div>
+    )
+  }
+  const art = weatherArt(weather.kind)
+  const name = WEATHER_NAME[weather.kind]
+  const state = weather.prepared ? '대비했어요' : '대비가 필요해요'
+  const tone = weather.prepared ? 'ready' : 'need'
+  return (
+    <div role="group" aria-label={`오늘의 날씨 ${name} ${state}`} className={`sb-weather sb-weather--${tone}`} data-weather={weather.kind}>
+      {art.real ? <img className="sb-wicon" src={art.src} alt="" width={44} height={44} draggable={false} /> : <SunIcon size={36} />}
+      <span className="sb-wtext">
+        <span className="sb-wlabel">오늘의 날씨</span>
+        <span className="sb-wname">{name}</span>
+      </span>
+      <span className={`sb-wbadge sb-wbadge--${tone}`}>{state}</span>
+    </div>
+  )
+}
+
+export function StatusBoard({ statuses, health, bugs, layout, weather }: Props) {
   // A broken (non-finite) health reads as full, as the plant picture does (plantLook).
   const h = Math.max(0, Math.min(100, Math.round(Number.isFinite(health) ? health : 100)))
   const danger = h < 30
@@ -78,6 +114,7 @@ export function StatusBoard({ statuses, health, bugs, layout }: Props) {
           <div className={`sb-hfill${danger ? ' sb-hfill--danger' : ''}`} style={{ width: `${h}%` }} />
         </div>
       </div>
+      {weather !== undefined && <WeatherRow weather={weather} />}
       <div className="sb-rows">
         {ROWS.map((r) => (
           <Row key={r.key} condKey={r.key} name={r.name} icon={r.icon} status={statuses[r.key]} bugs={bugs} />

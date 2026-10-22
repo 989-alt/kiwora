@@ -214,6 +214,11 @@
   pointer-events: none;
 }
 
+.care-hint--tie {
+  left: auto;
+  right: 16px;
+}
+
 /* prune */
 .care-twig {
   position: absolute;

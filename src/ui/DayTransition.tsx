@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { NightFx } from '../store'
 import { propArt } from './art'
-import { Stars } from './NightScene'
+import { Forecast, Stars } from './NightScene'
 import './DayTransition.css'
 
 /**
@@ -55,14 +55,19 @@ function timeline(fx: NightFx, reduced: boolean): Step[] {
   ]
 }
 
-type Props = { fx: NightFx; onDone: () => void }
+type Props = {
+  fx: NightFx
+  onDone: () => void
+  /** The plant lives in the yard (the forecast words differ for heat). */
+  outdoor?: boolean
+}
 
 /**
  * The cover between two days (full screen, over everything). Quick plant: sunset, night, sunrise, then the next
  * morning. Daily plant: sunset and night, and the night scene of the grow screen stays. A tap anywhere ends it.
  * Mount it once per signal (the store clears the signal with nightFxDone).
  */
-export function DayTransition({ fx, onDone }: Props) {
+export function DayTransition({ fx, onDone, outdoor = false }: Props) {
   const [reduced] = useState(prefersReducedMotion)
   const short = reduced || fx.ending === 'fade'
   const [phase, setPhase] = useState<DayPhase>(short ? 'night' : 'dusk')
@@ -101,7 +106,7 @@ export function DayTransition({ fx, onDone }: Props) {
       <Stars />
       <div className="dt-sun" />
       <img className="dt-moon" src={moon.src} alt="" width={160} height={160} draggable={false} />
-      {fx.forecast && <div className="dt-forecast" data-forecast={fx.forecast} />}
+      {fx.forecast && <Forecast kind={fx.forecast} outdoor={outdoor} className="dt-forecast" />}
     </div>
   )
 }

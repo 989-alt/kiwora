@@ -18,7 +18,7 @@ const D1 = '2026-10-22'
 // scene sizes of the 6 viewports, with and without the '오늘 할 일' band (landscape only)
 const SCENES: [number, number][] = [
   [746, 584], [832, 550], [936, 416], [918, 518], [764, 632], [712, 565],
-  [746, 516], [832, 484], [936, 358], [918, 452],
+  [746, 516], [832, 482], [936, 358], [918, 450],
 ]
 
 describe('Ruler', () => {
