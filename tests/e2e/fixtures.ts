@@ -11,6 +11,11 @@ type PlantOver = Partial<{
   place: string
   bugs: number
   day: number
+  /** v2 fields: leave them out to get a v1 plant (daily, current stage care counted as done). */
+  mode: 'daily' | 'quick'
+  careDone: number
+  weatherSeed: number
+  weatherFrom: number
 }>
 
 export function saveWith(

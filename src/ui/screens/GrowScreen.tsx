@@ -3,9 +3,11 @@ import { currentStatuses } from '../../sim/day'
 import { seedFor } from '../../sim/rng'
 import { phaseOf, SPECIES } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
-import { morningShown, type Action, type AppState } from '../../store'
+import { weatherOn } from '../../sim/weather'
+import { growing, morningShown, type Action, type AppState } from '../../store'
 import { PlantView, faceFor, isYardPlace } from '../PlantView'
 import { potArt, propArt } from '../art'
+import { NightScene } from '../NightScene'
 import { StatusBoard } from '../StatusBoard'
 import { Tutorial, type TipTarget } from '../Tutorial'
 import { installAudioUnlock } from '../sound'
@@ -14,7 +16,7 @@ import { Fertilizer } from '../tools/Fertilizer'
 import { PlaceSlots, usePotDrag } from '../tools/PlaceSlots'
 import { WaterStream, WateringCan } from '../tools/WateringCan'
 import { stageName } from '../journalText'
-import { MorningCard } from './MorningCard'
+import { MorningCard, morningSummary } from './MorningCard'
 import './GrowScreen.css'
 
 const PORTRAIT = '(max-width: 899px)'
@@ -57,9 +59,11 @@ export function GrowScreen({ state, dispatch }: Props) {
   const portrait = useMedia(PORTRAIT)
   const [pouring, setPouring] = useState(false)
   const [pelletDrag, setPelletDrag] = useState(false)
+  // The day is done (daily: waits for the next date). busy also holds the tools while the day-transition cover is up.
   const locked = state.dayDone
+  const busy = locked || state.nightFx !== undefined
   const sound = state.settings.sound
-  const drag = usePotDrag(locked, (place) => dispatch({ type: 'move', place }), state.plant?.place)
+  const drag = usePotDrag(busy, (place) => dispatch({ type: 'move', place }), state.plant?.place)
   const soundRef = useRef(sound)
   soundRef.current = sound
   useEffect(() => installAudioUnlock(() => soundRef.current), [])
@@ -78,7 +82,7 @@ export function GrowScreen({ state, dispatch }: Props) {
 
   const moon = propArt('moon')
   const endButton = (
-    <button type="button" className="gs-end" disabled={locked} onClick={() => dispatch({ type: 'endDay' })}>
+    <button type="button" className="gs-end" disabled={busy} onClick={() => dispatch({ type: 'endDay' })}>
       <img className="gs-end-moon" src={moon.src} alt="" width={36} height={36} draggable={false} />
       {locked ? '내일 다시 만나요' : '하루 마치기'}
     </button>
@@ -148,22 +152,28 @@ export function GrowScreen({ state, dispatch }: Props) {
                   scale={scale}
                   spots={spots?.points}
                   measured={spots?.measured}
-                  disabled={locked}
+                  disabled={busy}
                   sound={sound}
                   onCatch={() => dispatch({ type: 'removeBug' })}
                 />
               )}
               sceneOverlay={(L) => (pouring ? <WaterStream layout={L} /> : null)}
             />
-            {state.morning && !morningShown(state) && (
+            {state.morning && !locked && !morningShown(state) && (
               <MorningCard
                 key={`${plant.day}-${locked}`}
                 report={state.morning}
                 day={plant.day}
-                dayDone={locked}
+                dayDone={false}
                 stage={stage}
                 health={plant.health}
                 onClose={() => dispatch({ type: 'morningSeen' })}
+              />
+            )}
+            {locked && (
+              <NightScene
+                forecast={growing(plant) ? weatherOn(plant, plant.day) : null}
+                summary={state.morning ? morningSummary(state.morning, stage) : ''}
               />
             )}
           </div>
@@ -172,20 +182,20 @@ export function GrowScreen({ state, dispatch }: Props) {
             {inRoom && (
               <PlaceSlots
                 place={plant.place}
-                disabled={locked}
+                disabled={busy}
                 dragging={drag.ghost !== null}
                 hover={drag.hover}
                 onPick={(place) => dispatch({ type: 'move', place })}
               />
             )}
             <WateringCan
-              disabled={locked}
+              disabled={busy}
               sound={sound}
               onWater={(amount) => dispatch({ type: 'water', amount })}
               onPourChange={setPouring}
             />
             <Fertilizer
-              disabled={locked}
+              disabled={busy}
               sound={sound}
               onPellet={() => dispatch({ type: 'pellet' })}
               onDragChange={setPelletDrag}

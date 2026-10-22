@@ -1,5 +1,6 @@
 import { useRef, type ReactNode } from 'react'
-import { needsTransplant, screenFor, useApp, type Screen } from './store'
+import { needsTransplant, screenFor, useApp, type Action, type AppState, type Screen } from './store'
+import { DayTransition } from './ui/DayTransition'
 import { BackupPanel } from './ui/screens/BackupPanel'
 import { DeathScreen } from './ui/screens/DeathScreen'
 import { DexScreen } from './ui/screens/DexScreen'
@@ -31,8 +32,9 @@ function SaveNotice({ onClose }: { onClose: () => void }) {
   )
 }
 
-export default function App() {
-  const [s, dispatch] = useApp()
+type AppProps = { s: AppState; dispatch: (a: Action) => void }
+
+function Screens({ s, dispatch }: AppProps) {
   const previous = usePreviousScreen(s.screen)
   const p = s.plant
   const notice = s.notice === 'saveFailed' ? <SaveNotice onClose={() => dispatch({ type: 'clearNotice' })} /> : null
@@ -105,5 +107,16 @@ export default function App() {
       {body}
       {notice}
     </main>
+  )
+}
+
+export default function App() {
+  const [s, dispatch] = useApp()
+  return (
+    <>
+      <Screens s={s} dispatch={dispatch} />
+      {/* Over everything while it runs: nothing underneath can be pressed, a tap only skips the scene. */}
+      {s.nightFx && <DayTransition key={s.nightFx.n} fx={s.nightFx} onDone={() => dispatch({ type: 'nightFxDone' })} />}
+    </>
   )
 }

@@ -69,7 +69,7 @@ test('end day locks tools', async ({ page }) => {
   await useSave(page, saveWith({ bugs: 1, place: 'desk' }))
   await page.goto('/')
   await page.getByRole('button', { name: '하루 마치기' }).click()
-  await expect(page.getByText('내일 다시 만나요')).toBeVisible()
+  await expect(page.locator('.gs-night').getByText('내일 다시 만나요')).toBeVisible()
   await expect(page.getByRole('button', { name: /물 주기/ })).toBeDisabled()
   await expect(page.getByRole('button', { name: /영양분/ })).toBeDisabled()
   await expect(page.getByRole('button', { name: '창가' })).toBeDisabled()
@@ -81,11 +81,9 @@ test('end day locks tools', async ({ page }) => {
   await drag(page, await centerOf(page, pot(page)), await centerOf(page, windowSlot))
   await expect(page.locator('.pot-ghost')).toHaveCount(0)
   await expect(windowSlot).toHaveAttribute('aria-pressed', 'false')
-  // the day's result card appears and closes on tap
-  const card = page.getByRole('button', { name: /오늘 자란 모습이에요/ })
-  await expect(card).toBeVisible()
-  await card.tap()
-  await expect(card).toHaveCount(0)
+  // the day's result is a line in the night scene (daily): no card to close any more
+  await expect(page.getByRole('button', { name: /오늘 자란 모습이에요/ })).toHaveCount(0)
+  await expect(page.locator('.gs-night-summary')).toBeVisible()
 })
 
 test('first visit shows three tip bubbles in order', async ({ page }) => {

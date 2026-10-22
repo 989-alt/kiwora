@@ -4,6 +4,7 @@ import { newPlant } from '../../src/sim/day'
 import { SPECIES } from '../../src/sim/species'
 import { emptySave, exportCode, shortCode, type JournalEntry } from '../../src/sim/save'
 import { boot, toSave, type AppState } from '../../src/store'
+import { weatherOn } from '../../src/sim/weather'
 import { BackupPanel } from '../../src/ui/screens/BackupPanel'
 import { DeathScreen } from '../../src/ui/screens/DeathScreen'
 import { DexScreen } from '../../src/ui/screens/DexScreen'
@@ -223,6 +224,70 @@ describe('GrowScreen end button', () => {
     expect(img!.getAttribute('src')).toMatch(/props\/moon\.webp$/)
     expect(img!.getAttribute('alt')).toBe('')
     expect(img!.getAttribute('width')).toBe('36')
+  })
+})
+
+describe('GrowScreen night scene', () => {
+  const report = {
+    statuses: {
+      water: { level: 3, dir: null },
+      light: { level: 3, dir: null },
+      temp: { level: 3, dir: null },
+      nutrient: { level: 3, dir: null },
+      pest: { level: 4, dir: null },
+    },
+    healthDelta: 10,
+    grew: true,
+    stageChanged: false,
+    died: false,
+    newBugs: 0,
+    heightDelta: 2,
+  } as unknown as AppState['morning']
+  const done = (over: Partial<AppState> = {}): AppState => ({
+    ...base(),
+    plant: { ...newPlant('corn'), stageIndex: 3, day: 5 },
+    settings: { sound: false, tutorialSeen: true },
+    screen: 'grow',
+    dayDone: true,
+    morning: report,
+    ...over,
+  })
+
+  test('daily day done shows the night scene with the moon and 내일 다시 만나요', () => {
+    const { container } = render(<GrowScreen state={done()} dispatch={() => {}} />)
+    const night = container.querySelector('.gs-scene .gs-night') as HTMLElement
+    expect(night).not.toBeNull()
+    expect(within(night).getByText('내일 다시 만나요')).toBeTruthy()
+    expect(within(night).getByText('키가 2cm 자랐어요')).toBeTruthy()
+    expect(night.querySelector('img')!.getAttribute('src')).toMatch(/props\/moon\.webp$/)
+    // the old "오늘 자란 모습이에요" card is not shown any more
+    expect(screen.queryByText(/오늘 자란 모습이에요/)).toBeNull()
+    // the menu stays reachable
+    expect(within(screen.getByRole('navigation', { name: '메뉴' })).getAllByRole('button').length).toBeGreaterThan(2)
+  })
+
+  test('no night scene while the day is open, and the morning card shows instead', () => {
+    const { container } = render(<GrowScreen state={done({ dayDone: false })} dispatch={() => {}} />)
+    expect(container.querySelector('.gs-night')).toBeNull()
+    expect(screen.getByRole('button', { name: /일째 아침이에요/ })).toBeTruthy()
+  })
+
+  test('the night scene marks tomorrow\'s weather in its forecast slot (the words come later)', () => {
+    const plant = { ...newPlant('corn'), stageIndex: 3, weatherFrom: 2, weatherSeed: 0 }
+    let day = 2
+    while (day < 60 && weatherOn({ ...plant, day }, day) === null) day++
+    const kind = weatherOn({ ...plant, day }, day)
+    expect(kind).not.toBeNull()
+    const { container } = render(<GrowScreen state={done({ plant: { ...plant, day } })} dispatch={() => {}} />)
+    expect(container.querySelector('.gs-night-forecast')?.getAttribute('data-forecast')).toBe(kind)
+    expect(container.querySelector('.gs-night')?.getAttribute('data-forecast')).toBe(kind)
+  })
+
+  test('a calm tomorrow has no forecast slot', () => {
+    const plant = { ...newPlant('corn'), stageIndex: 3, weatherFrom: 999 }
+    const { container } = render(<GrowScreen state={done({ plant: { ...plant, day: 5 } })} dispatch={() => {}} />)
+    expect(container.querySelector('.gs-night')).not.toBeNull()
+    expect(container.querySelector('.gs-night-forecast')).toBeNull()
   })
 })
 
