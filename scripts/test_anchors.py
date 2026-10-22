@@ -96,3 +96,44 @@ def test_kind_follows_the_folder():
     assert anchors.kind_of("plants/balsam/flower.webp") == "plant"
     assert anchors.kind_of("bg/window.webp") == "bg"
     assert anchors.kind_of("bugs/aphid.webp") == "bug"
+
+
+def test_bg_stand_overrides_merge(tmp_path):
+    public = tmp_path / "public"
+    (public / "bg").mkdir(parents=True)
+    make_bg().save(public / "bg" / "shade.webp")
+    make_bg().save(public / "bg" / "yardSunny.webp")
+    stand = tmp_path / "bg_stand.json"
+    stand.write_text(json.dumps({"bg/shade.webp": {"standTop": 310, "standBottom": 380, "x0": 12, "x1": 388}}))
+    out = public / "anchors.json"
+
+    anchors.update(["public/bg/shade.webp", "public/bg/yardSunny.webp"], public=public, out=out, stand=stand)
+    files = json.loads(out.read_text())["files"]
+    shade = files["bg/shade.webp"]
+    assert (shade["standTop"], shade["standBottom"], shade["x0"], shade["x1"]) == (310, 380, 12, 388)
+    assert shade["surfaceY"] > 0 and shade["kind"] == "bg"  # measured numbers stay
+    assert "standTop" not in files["bg/yardSunny.webp"]  # pictures without an entry are untouched
+
+
+def test_real_stand_file_covers_the_three_rooms():
+    stand = json.loads(anchors.STAND.read_text(encoding="utf-8"))
+    for rel in ("bg/window.webp", "bg/desk.webp", "bg/shade.webp"):
+        s = stand[rel]
+        assert 0 < s["standTop"] < s["standBottom"] < 768 and 0 <= s["x0"] < s["x1"] <= 1024
+
+
+def test_draw_stand_marks_the_two_lines_and_the_x_range(tmp_path):
+    public = tmp_path / "public"
+    (public / "bg").mkdir(parents=True)
+    make_bg().save(public / "bg" / "shade.webp")
+    stand = tmp_path / "bg_stand.json"
+    stand.write_text(json.dumps({"bg/shade.webp": {"standTop": 310, "standBottom": 380, "x0": 12, "x1": 388}}))
+
+    im = anchors.draw_stand("bg/shade.webp", public=public, stand=stand)
+    assert im.size == (400, 400)
+    base = make_bg().convert("RGB")
+    out = im.convert("RGB")
+    assert out.getpixel((200, 310)) != base.getpixel((200, 310))
+    assert out.getpixel((200, 380)) != base.getpixel((200, 380))
+    assert out.getpixel((12, 340)) != base.getpixel((12, 340))
+    assert out.getpixel((388, 340)) != base.getpixel((388, 340))

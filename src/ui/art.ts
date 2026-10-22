@@ -14,13 +14,24 @@ export type PlantAnchor = {
   right?: number
   spots?: [number, number][]
 }
-export type BgAnchor = { w: number; h: number; surfaceY: number }
+/**
+ * surfaceY is scripts/anchors.py's rough estimate. The three room backgrounds also carry hand-measured numbers
+ * (assets/bg_stand.json): the back (standTop) and front (standBottom) edge of the top face the pot stands on,
+ * and the x range (x0..x1) that face runs over.
+ */
+export type BgAnchor = { w: number; h: number; surfaceY: number; edgeY?: number; standTop?: number; standBottom?: number; x0?: number; x1?: number }
 
 type Files = Record<string, { kind: string } & Partial<PotAnchor & PlantAnchor & BgAnchor>>
 const files = data.files as unknown as Files
 
 /** Numbers of the stand-in pictures (and what a picture without measured anchors falls back to). */
 export const DEFAULTS = data.defaults as { pot: PotAnchor; plant: PlantAnchor; bg: BgAnchor }
+
+/** Where on the picture (px) the bottom of a pot stands: a little in front of the middle of the top face. */
+export function standY(a: BgAnchor): number {
+  if (a.standTop === undefined || a.standBottom === undefined) return a.surfaceY
+  return a.standTop + 0.6 * (a.standBottom - a.standTop)
+}
 
 export type PotArt = { src: string; a: PotAnchor }
 export type PlantArt = { src: string; a: PlantAnchor; /** false = the shared stand-in picture */ real: boolean }

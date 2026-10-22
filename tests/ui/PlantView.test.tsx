@@ -66,6 +66,28 @@ describe('sceneLayout', () => {
   })
 })
 
+describe('pot stands on the surface', () => {
+  // scene px sizes of the 6 viewports, as tests/e2e/placement.spec.ts logs them
+  const SCENES: [number, number][] = [
+    [746, 584], // 1194×834
+    [832, 550], // 1280×800
+    [936, 416], // 1366×640
+    [918, 518], // 1366×768
+    [764, 632], // 820×1180
+    [712, 565], // 768×1024
+  ]
+  for (const [W, H] of SCENES)
+    for (const place of ['window', 'desk', 'shade'] as const)
+      test(`${place} ${W}x${H}`, () => {
+        const a = bgArt(place).a
+        const L = sceneLayout(W, H, 0.65, { ...DEFAULTS, bg: a, pot: potArt('happy').a })
+        const bottom = L.pot.y + potArt('happy').a.bottom * L.pot.scale
+        expect(bottom).toBeGreaterThanOrEqual(L.bg.y + a.standTop! * L.bg.scale)
+        expect(bottom).toBeLessThanOrEqual(L.bg.y + a.standBottom! * L.bg.scale)
+        expect(bottom).toBeLessThanOrEqual(H)
+      })
+})
+
 describe('PlantView', () => {
   test('stacks bg, shadow, pot back, plant, pot front in that order', () => {
     const { container } = render(
@@ -274,7 +296,10 @@ describe('pictures and their anchors', () => {
           const art = { bg: bgArt(place).a, pot: potArt(face).a, plant: plantArt('balsam', st).a }
           const L = sceneLayout(W, H, stageScale(st), art)
           const label = `${place}/${face}/${st}`
-          expect(L.pot.y + art.pot.bottom * L.pot.scale, label).toBeCloseTo(L.surface, 6)
+          const bottom = L.pot.y + art.pot.bottom * L.pot.scale
+          expect(bottom, label).toBeCloseTo(L.surface, 6)
+          expect(bottom, label).toBeGreaterThanOrEqual(L.bg.y + art.bg.standTop! * L.bg.scale)
+          expect(bottom, label).toBeLessThanOrEqual(L.bg.y + art.bg.standBottom! * L.bg.scale)
           expect(L.pot.y + art.pot.soilY * L.pot.scale, label).toBeCloseTo(L.soilLine, 6)
           const stemBaseY = L.plant.y + art.plant.stemY * L.plant.scale
           expect(stemBaseY - L.soilLine, label).toBeCloseTo(9 * L.unit, 6)

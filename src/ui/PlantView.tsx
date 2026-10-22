@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode 
 import { SPECIES, type SpeciesId, type StageId } from '../sim/species'
 import { stageName } from './journalText'
 import type { Place } from '../sim/types'
-import { DEFAULTS, bgArt, bugSpots, plantArt, plantSrc, potArt, type BgAnchor, type BugSpots, type PlantAnchor, type PotAnchor } from './art'
+import { DEFAULTS, bgArt, bugSpots, plantArt, plantSrc, potArt, standY, type BgAnchor, type BugSpots, type PlantAnchor, type PotAnchor } from './art'
 import { Mound, Signpost, Snow, WinterLight, WinterVeil } from './Scenery'
 import './PlantView.css'
 
@@ -64,16 +64,24 @@ function coverBg(W: number, H: number, bgA: BgAnchor) {
 
 /**
  * Port of compose.py: background covers the scene (bottom aligned so the sill stays in view),
- * pot bottom stands on the surface line, plant stem base 9 mockup-px under the soil line.
+ * pot bottom stands on the measured top face of the sill / desk / shelf (standY), plant stem base 9 mockup-px
+ * under the soil line. Sizes follow that line too, so a lifted pot still has room for the full-grown plant.
  */
 export function sceneLayout(W: number, H: number, plantStageScale: number, art: SceneArt = DEFAULT_ART): SceneLayout {
   const { bg: bgA, pot: potA, plant: plA } = art
 
-  const { bg, surface } = coverBg(W, H, bgA)
+  const { bg } = coverBg(W, H, bgA)
+  const surface = bg.y + standY(bgA) * bg.scale
   const unit = Math.min(surface / MOCK_SURFACE, W * MAX_UNIT_PER_WIDTH)
 
   const ps = potScale(potA, unit)
-  const cx = W / 2
+  // the visible pot stays inside the x range of the standing surface (when the picture has one)
+  let cx = W / 2
+  if (bgA.x0 !== undefined && bgA.x1 !== undefined) {
+    const lo = bg.x + bgA.x0 * bg.scale + (potA.cx - potA.bbox[0]) * ps
+    const hi = bg.x + bgA.x1 * bg.scale - (potA.bbox[2] - potA.cx) * ps
+    cx = lo > hi ? (lo + hi) / 2 : Math.min(hi, Math.max(lo, cx))
+  }
   const pot = {
     x: cx - potA.cx * ps,
     y: surface - potA.bottom * ps,

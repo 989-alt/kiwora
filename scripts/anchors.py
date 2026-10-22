@@ -2,6 +2,7 @@
 
     python scripts/anchors.py                      measure every picture under public/{pots,plants,bg,bugs}
     python scripts/anchors.py public/pots/happy.webp ...
+    python scripts/anchors.py --overlay            draw assets/review/stand_<place>.png (the hand-measured placing surface)
 
 anchors.json: { "defaults": {...stand-in numbers...}, "files": { "pots/happy.webp": {...}, ... } }
 
@@ -13,6 +14,10 @@ Per kind (all numbers are px of the picture file itself):
          top/left/right  opaque bounding box;  spots  up to 12 points well inside green leaf pixels (bug places)
   bg     surfaceY  estimated: the topmost strong horizontal colour edge in the lower half is the far edge of the
                    placing surface; things stand halfway between that edge and the bottom of the picture.
+                   That estimate is wrong for the room pictures (the pot floated off the sill / shelf), so the three
+                   room backgrounds also get hand-measured numbers from assets/bg_stand.json, merged in by update():
+         standTop / standBottom  the back and front edge of the placing surface's top face
+         x0 / x1                 the x range that surface runs over
   bug    bbox only
 """
 from __future__ import annotations
@@ -22,11 +27,13 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parent.parent
 PUBLIC = ROOT / "public"
 OUT = PUBLIC / "anchors.json"
+STAND = ROOT / "assets" / "bg_stand.json"
+REVIEW = ROOT / "assets" / "review"
 ALPHA_MIN = 128
 KINDS = {"pots": "pot", "plants": "plant", "bg": "bg", "bugs": "bug"}
 
@@ -144,9 +151,29 @@ def measure_bug(im: Image.Image) -> dict:
 MEASURE = {"pot": measure_pot, "plant": measure_plant, "bg": measure_bg, "bug": measure_bug}
 
 
-def update(paths: list[str], public: Path = PUBLIC, out: Path = OUT) -> dict:
-    """Measure the given pictures (repo-relative 'public/...' paths) and merge them into anchors.json."""
+def _stand_overrides(stand: Path) -> dict:
+    return json.loads(stand.read_text(encoding="utf-8")) if stand.exists() else {}
+
+
+def draw_stand(rel: str, public: Path = PUBLIC, stand: Path = STAND) -> Image.Image:
+    """The background with its hand-measured placing surface drawn on: two horizontal lines (back and front
+    edge) and two vertical lines (x range), for checking the numbers in assets/bg_stand.json by eye."""
+    s = _stand_overrides(stand)[rel]
+    with Image.open(public / rel) as src:
+        im = src.convert("RGB")
+    d = ImageDraw.Draw(im)
+    for y, colour in ((s["standTop"], (255, 0, 80)), (s["standBottom"], (0, 90, 255))):
+        d.line((0, y, im.width, y), fill=colour, width=2)
+    for x in (s["x0"], s["x1"]):
+        d.line((x, s["standTop"] - 20, x, s["standBottom"] + 20), fill=(255, 255, 0), width=2)
+    return im
+
+
+def update(paths: list[str], public: Path = PUBLIC, out: Path = OUT, stand: Path = STAND) -> dict:
+    """Measure the given pictures (repo-relative 'public/...' paths) and merge them into anchors.json.
+    Pictures with an entry in the stand file get its numbers on top of the measured ones."""
     data = json.loads(out.read_text(encoding="utf-8")) if out.exists() else {}
+    overrides = _stand_overrides(stand)
     data.setdefault("defaults", {})
     files = data.setdefault("files", {})
     for p in paths:
@@ -154,7 +181,7 @@ def update(paths: list[str], public: Path = PUBLIC, out: Path = OUT) -> dict:
         rel = rel[len("public/") :] if rel.startswith("public/") else rel
         kind = kind_of(rel)
         with Image.open(public / rel) as im:
-            files[rel] = {"kind": kind, **MEASURE[kind](im)}
+            files[rel] = {"kind": kind, **MEASURE[kind](im), **(overrides.get(rel, {}) if kind == "bg" else {})}
     data["files"] = dict(sorted(files.items()))
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     return data
@@ -162,6 +189,13 @@ def update(paths: list[str], public: Path = PUBLIC, out: Path = OUT) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
+    if "--overlay" in args:
+        REVIEW.mkdir(parents=True, exist_ok=True)
+        for rel in _stand_overrides(STAND):
+            out = REVIEW / f"stand_{Path(rel).stem}.png"
+            draw_stand(rel).save(out)
+            print(f"stand overlay -> {out}")
+        return 0
     if not args:
         args = [
             f"public/{p.relative_to(PUBLIC).as_posix()}"

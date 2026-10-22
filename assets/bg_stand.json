@@ -1,0 +1,5 @@
+{
+  "bg/window.webp": { "standTop": 552, "standBottom": 656, "x0": 60, "x1": 964 },
+  "bg/desk.webp": { "standTop": 500, "standBottom": 686, "x0": 20, "x1": 1004 },
+  "bg/shade.webp": { "standTop": 532, "standBottom": 608, "x0": 20, "x1": 1004 }
+}
