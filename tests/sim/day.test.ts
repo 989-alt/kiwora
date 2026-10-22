@@ -85,13 +85,47 @@ describe('endDay', () => {
   })
 
   it('seed stage ignores light and nutrient', () => {
+    // on the desk (the shade is too cold for a seed, see below)
     const s = at('balsam', 'seed', { nutrient: 0, lightExp: 30 })
-    const { report } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'shade' }, noBugs)
+    const { report } = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, noBugs)
     expect(report.statuses.light).toEqual({ level: null, notNeeded: true })
     expect(report.statuses.nutrient).toEqual({ level: null, notNeeded: true })
     expect(report.statuses.pest).toEqual({ level: null, notNeeded: true })
     expect(report.healthDelta).toBeGreaterThanOrEqual(0)
     expect(report.newBugs).toBe(0)
+  })
+
+  it('the shade is cool: a seed or plant left there shows 온도 주의 (추워요)', () => {
+    expect(PLACE_ENV.shade.temp).toBe(13)
+    expect(PLACE_ENV.yardShade.temp).toBe(14)
+    for (const id of [...ANNUALS, ...PERENNIALS]) {
+      const seed = currentStatuses(at(id, 'seed', { place: 'shade' })).temp
+      expect(seed, id).toMatchObject({ dir: 'low' })
+      expect(seed.level, id).toBeLessThanOrEqual(2)
+      const grown = currentStatuses(at(id, 'leafStem', { place: 'shade' })).temp
+      expect(grown, id).toMatchObject({ dir: 'low' })
+      expect(grown.level, id).toBeLessThanOrEqual(2)
+      // the desk and the window stay warm enough
+      expect(currentStatuses(at(id, 'seed', { place: 'desk' })).temp.level, id).toBeGreaterThanOrEqual(3)
+    }
+    // a seed sown in the shade struggles there
+    const { report } = endDay(at('bean', 'seed', { place: 'shade' }), { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'shade' }, noBugs)
+    expect(report.statuses.temp.level).toBeLessThanOrEqual(2)
+    expect(report.healthDelta).toBeLessThan(0)
+  })
+
+  it.each(PERENNIALS)('%s gets no new leaves during the winter phase', (id) => {
+    const place = carePlace(id)
+    let s = at(id, 'fruit', { growth: 3.9, water: 62.5, nutrient: 50, lightExp: PLACE_ENV[place].light, place, leaves: 7 })
+    s = endDay(s, idealCare(s), noBugs).state
+    expect(stageOf(s)).toBe('winter')
+    expect(s.leaves).toBe(7)
+    while (stageOf(s) === 'winter') {
+      const r = endDay(s, idealCare(s), noBugs)
+      if (stageOf(r.state) === 'winter') expect(r.state.leaves, `${id} day ${s.day}`).toBe(7)
+      s = r.state
+    }
+    expect(stageOf(s)).toBe('newShoot')
   })
 
   it('shade after sprout weakens plant', () => {

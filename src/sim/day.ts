@@ -7,10 +7,11 @@ import type { ConditionKey, DayActions, DayReport, Level, Place, PlantState, Sta
 export const PLACE_ENV: Record<Place, { light: number; temp: number; evap: number }> = {
   window: { light: 90, temp: 27, evap: 25 },
   desk: { light: 65, temp: 22, evap: 18 },
-  shade: { light: 30, temp: 18, evap: 12 },
+  // The shade is cool (textbook: 싹 틀 때 알맞은 온도): a seed or plant left there shows 온도 주의.
+  shade: { light: 30, temp: 13, evap: 12 },
   yardSunny: { light: 90, temp: 24, evap: 22 },
   yardPartial: { light: 65, temp: 21, evap: 16 },
-  yardShade: { light: 35, temp: 18, evap: 12 },
+  yardShade: { light: 35, temp: 14, evap: 12 },
 }
 
 const WINTER_TEMP_DROP = 15
@@ -175,7 +176,9 @@ export function endDay(
   const heightDelta = round1(Math.max(0, gained - seedPart) * CM_PER_POINT)
   const heightCm = round1(s.heightCm + heightDelta)
   const pastSeed = Math.max(0, (stageIndex - 1) * STAGE_POINTS + growth)
-  const leaves = stageIndex === 0 ? s.leaves : Math.max(s.leaves, Math.floor(pastSeed / POINTS_PER_LEAF))
+  // No leaves yet under the soil, and no new leaves while the plant winters.
+  const noNewLeaves = stageIndex === 0 || phaseOf(species.stages[stageIndex]) === 'winter'
+  const leaves = noNewLeaves ? s.leaves : Math.max(s.leaves, Math.floor(pastSeed / POINTS_PER_LEAF))
 
   // 6. prepare the next morning
   water = Math.max(0, water - placeEnv(place, phase).evap)
