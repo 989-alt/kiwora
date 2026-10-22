@@ -15,6 +15,8 @@ export type AppState = SaveData & {
   warning?: string
   /** The species whose kept finished journal the 'record' screen shows (not saved). */
   record?: SpeciesId
+  /** A one-time note over the screen (not saved): 'saveFailed' = this device could not save. */
+  notice?: 'saveFailed'
 }
 
 export type Action =
@@ -29,7 +31,13 @@ export type Action =
   | { type: 'open'; screen: Screen }
   /** Show the kept finished journal of a completed species. */
   | { type: 'openRecord'; id: SpeciesId }
-  | { type: 'restore'; data: SaveData }
+  /** keep: a short code (plant only): keep this device's finished journals, past tries and dex. */
+  | { type: 'restore'; data: SaveData; keep?: boolean }
+  /** The morning card was closed: don't show it again today. */
+  | { type: 'morningSeen' }
+  /** This tab could not write the save (storage full or blocked). */
+  | { type: 'saveFailed' }
+  | { type: 'clearNotice' }
   | { type: 'toggleSound' }
   /** The backup panel was shown for the load warning; stop showing it. */
   | { type: 'clearWarning' }
@@ -71,8 +79,36 @@ export function screenFor(p: PlantState | null): Screen {
 }
 
 export function toSave(s: AppState): SaveData {
-  const { screen: _screen, morning: _morning, warning: _warning, record: _record, ...data } = s
+  const { screen: _screen, morning: _morning, warning: _warning, record: _record, notice: _notice, ...data } = s
   return data
+}
+
+/** True when the morning card of the current report was already closed today (so it stays closed). */
+export function morningShown(s: AppState): boolean {
+  return s.morningShownFor != null && s.morningShownFor === s.lastDayKey
+}
+
+/**
+ * A short code holds only the plant, the dex, the day and the settings: restoring one keeps what this
+ * device already has beyond that (finished journals, past tries, dex). Only the growing plant is replaced.
+ */
+export function keepRecords(current: SaveData, restored: SaveData): SaveData {
+  return {
+    ...restored,
+    finished: { ...(current.finished ?? {}), ...(restored.finished ?? {}) },
+    pastTries: [...current.pastTries, ...restored.pastTries],
+    dex: [...new Set([...restored.dex, ...current.dex])],
+  }
+}
+
+/** Screens a student only looks at; they stay open when another tab saves, while they still make sense. */
+const VIEW_SCREENS: readonly Screen[] = ['dex', 'journal', 'record', 'backup']
+
+/** Keeps the viewer on `prev`'s look-only screen when `next` (newer progress from another tab) still allows it. */
+export function keepView(prev: AppState, next: AppState): AppState {
+  if (!VIEW_SCREENS.includes(prev.screen)) return next
+  if (prev.screen === 'record' && !(prev.record && next.finished?.[prev.record])) return next
+  return { ...next, screen: prev.screen, ...(prev.screen === 'record' ? { record: prev.record } : {}) }
 }
 
 /** Finalize the open day of a growing plant: simulate, write the journal, route to the next screen. */
@@ -97,6 +133,8 @@ function finalizeDay(s: AppState, dateKey: string): AppState {
     journal: [...s.journal, entry],
     lastReport: report,
     morning: report,
+    // a new report: its card shows (again) until it is closed
+    morningShownFor: null,
     screen: s.screen === 'transplant' ? 'grow' : s.screen,
   }
   if (state.dead) {
@@ -178,15 +216,17 @@ function startPlant(s: AppState, id: SpeciesId, today: string, dayDone: boolean)
 }
 
 export function reducer(prev: AppState, a: Action, today: string): AppState {
-  if (a.type === 'restore') return boot(a.data, today)
+  if (a.type === 'restore') return boot(a.keep ? keepRecords(toSave(prev), a.data) : a.data, today)
   const s = rollover(prev, today)
   switch (a.type) {
     case 'tick':
       return s
     case 'pick': {
-      if (!(a.id in SPECIES) || growing(s.plant)) return s
-      // First plant ever: day 1 is today. After a death/completion, keep today's dayDone.
-      return startPlant(s, a.id, today, s.plant === null ? false : s.dayDone)
+      const prior = s.plant
+      if (!(a.id in SPECIES) || growing(prior)) return s
+      // First plant ever: day 1 is today. After a death, planting is the day's action (as replant).
+      // After a completion, keep today's dayDone.
+      return startPlant(s, a.id, today, prior === null ? false : (prior as PlantState).dead || s.dayDone)
     }
     case 'replant': {
       if (!(a.id in SPECIES) || growing(s.plant)) return s
@@ -237,6 +277,14 @@ export function reducer(prev: AppState, a: Action, today: string): AppState {
       const { warning: _warning, ...rest } = s
       return rest
     }
+    case 'morningSeen':
+      return s.morning && !morningShown(s) ? { ...s, morningShownFor: s.lastDayKey } : s
+    case 'saveFailed':
+      return s.notice === 'saveFailed' ? s : { ...s, notice: 'saveFailed' }
+    case 'clearNotice': {
+      const { notice: _notice, ...rest } = s
+      return rest
+    }
     case 'toggleSound':
       return { ...s, settings: { ...s.settings, sound: !s.settings.sound } }
     case 'tutorialDone':
@@ -273,17 +321,27 @@ function storedText(): string | null {
 export function useApp(): [AppState, (a: Action) => void] {
   const [state, setState] = useState(initState)
   // The save text this tab wrote last: a different text in storage was written by another tab.
+  // Only a write that went through counts (a failed one leaves our older text in storage).
   const written = useRef<string | null>(null)
-  useEffect(() => {
-    const data = toSave(state)
-    written.current = JSON.stringify(data)
-    writeSave(data)
-  }, [state])
+  // The student is told once per visit that this device cannot save.
+  const failTold = useRef(false)
   const dispatch = useCallback((a: Action) => {
     // Read the date once, outside the updater (StrictMode may call the updater twice).
     const today = todayKey()
     setState((s) => reducer(s, a, today))
   }, [])
+  useEffect(() => {
+    const data = toSave(state)
+    const text = JSON.stringify(data)
+    if (text === written.current) return
+    if (writeSave(data)) {
+      written.current = text
+    } else if (!failTold.current) {
+      failTold.current = true
+      // A save that could not be loaded at all already says so on the backup panel.
+      if (state.warning !== 'unavailable') dispatch({ type: 'saveFailed' })
+    }
+  }, [state, dispatch])
   /** Another tab (or window) of the app saved newer progress: take it over instead of writing ours back. */
   const resync = useCallback(() => {
     const text = storedText()
@@ -291,8 +349,10 @@ export function useApp(): [AppState, (a: Action) => void] {
     const { data, warning } = loadSave()
     if (warning) return
     written.current = text
-    setState(boot(data, todayKey()))
+    const today = todayKey()
+    setState((prev) => keepView(prev, boot(data, today)))
   }, [])
+
   useEffect(() => {
     // Tools are disabled once the day is done, so check for a new date without user input.
     const visible = () => typeof document === 'undefined' || document.visibilityState !== 'hidden'

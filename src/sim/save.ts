@@ -32,6 +32,8 @@ export type SaveData = {
    * older saves have none, normalize fills {}).
    */
   finished?: FinishedJournals
+  /** The lastDayKey on which the student closed the morning card of lastReport (added within v1). */
+  morningShownFor?: string | null
 }
 
 export type FinishedJournals = Partial<Record<SpeciesId, { journal: JournalEntry[] }>>
@@ -61,6 +63,7 @@ const isObj = (x: unknown): x is Record<string, unknown> => typeof x === 'object
 
 const PLACES: readonly Place[] = ['window', 'desk', 'shade', 'yardSunny', 'yardPartial', 'yardShade']
 const isNum = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x)
+const isDateKey = (x: unknown): x is string => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x)
 const isPlace = (x: unknown): x is Place => PLACES.includes(x as Place)
 const isSpecies = (x: unknown): x is SpeciesId => typeof x === 'string' && Object.prototype.hasOwnProperty.call(SPECIES, x)
 const isStage = (x: unknown): x is StageId => typeof x === 'string' && Object.prototype.hasOwnProperty.call(STAGE_LABEL, x)
@@ -139,7 +142,7 @@ function normalize(raw: unknown): SaveData | null {
     v: 1,
     plant,
     pendingActions: cleanActions(raw.pendingActions),
-    lastDayKey: typeof raw.lastDayKey === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.lastDayKey) ? raw.lastDayKey : null,
+    lastDayKey: isDateKey(raw.lastDayKey) ? raw.lastDayKey : null,
     dayDone: raw.dayDone === true,
     journal: cleanJournal(raw.journal),
     pastTries: cleanPastTries(raw.pastTries),
@@ -150,6 +153,7 @@ function normalize(raw: unknown): SaveData | null {
     },
     lastReport: cleanReport(raw.lastReport),
     finished: cleanFinished(raw.finished),
+    ...(isDateKey(raw.morningShownFor) ? { morningShownFor: raw.morningShownFor } : {}),
   }
 }
 
@@ -212,7 +216,13 @@ export function shortCode(data: SaveData): string {
   return encodeShort(data)
 }
 
+/** True for text that is (meant to be) a short code rather than the long PL1- one. */
+export function isShortCode(code: string): boolean {
+  return !String(code).trim().startsWith(CODE_PREFIX)
+}
+
 /** Accepts the long PL1- code and the short code. */
+
 export function importCode(code: string): { ok: true; data: SaveData } | { ok: false; message: string } {
   try {
     const text = String(code).trim()

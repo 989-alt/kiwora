@@ -4,7 +4,7 @@ import { newPlant } from '../../src/sim/day'
 import { emptySave, SAVE_KEY, type JournalEntry, type SaveData } from '../../src/sim/save'
 import { SPECIES } from '../../src/sim/species'
 import type { PlantState } from '../../src/sim/types'
-import { boot, reducer, toSave, useApp, type Action, type AppState } from '../../src/store'
+import { boot, morningShown, reducer, toSave, useApp, type Action, type AppState } from '../../src/store'
 
 const D1 = '2026-10-21'
 const D2 = '2026-10-22'
@@ -322,6 +322,59 @@ describe('replant and pick after an ending', () => {
     expect(t.journal).toEqual([])
     expect(t.pastTries).toHaveLength(1)
   })
+
+  it('다른 식물 고르기 on the morning after a death consumes the day like replant does', () => {
+    const r = boot(persist(dead()), D2)
+    expect(r.dayDone).toBe(false)
+    const picked = reducer(r, { type: 'pick', id: 'rice' }, D2)
+    const replanted = reducer(r, { type: 'replant', id: 'rice' }, D2)
+    expect(picked.dayDone).toBe(true)
+    expect(picked.lastDayKey).toBe(D2)
+    expect({ ...picked, screen: null }).toEqual({ ...replanted, screen: null })
+    // and the new plant's day 1 is the next date
+    expect(boot(persist(picked), '2026-10-23').dayDone).toBe(false)
+  })
+})
+
+describe('restoring a short code over an existing save', () => {
+  const kept = { balsam: { journal: [oneEntry(10)] } }
+  const tries = [{ speciesId: 'corn' as const, days: 3, stage: 'sprout' as const, cause: '물이 부족해서 말라 버렸어요.' }]
+
+  it('keeps the finished journals, past tries and dex; only the plant comes from the code', () => {
+    const here: AppState = { ...started('bean'), finished: kept, pastTries: tries, dex: ['balsam'] }
+    const code: SaveData = { ...emptySave(), plant: { ...newPlant('rice'), day: 4 }, lastDayKey: D1, dex: ['rice'] }
+    const t = reducer(here, { type: 'restore', data: code, keep: true }, D1)
+    expect(t.plant!.speciesId).toBe('rice')
+    expect(t.finished).toEqual(kept)
+    expect(t.pastTries).toEqual(tries)
+    expect(t.dex).toEqual(['rice', 'balsam'])
+    expect(t.journal).toEqual([])
+  })
+
+  it('a full code still replaces everything', () => {
+    const here: AppState = { ...started('bean'), finished: kept, pastTries: tries }
+    const t = reducer(here, { type: 'restore', data: { ...emptySave(), plant: newPlant('rice'), lastDayKey: D1 } }, D1)
+    expect(t.finished).toEqual({})
+    expect(t.pastTries).toEqual([])
+  })
+})
+
+describe('the morning card shows once per day', () => {
+  it('a dismissed card stays closed after a reload the same day, and the next report shows again', () => {
+    const s = play(started(), [{ type: 'water', amount: 10 }], D1)
+    const morning = boot(persist(s), D2)
+    expect(morning.morning).not.toBeNull()
+    expect(morningShown(morning)).toBe(false)
+    const seen = reducer(morning, { type: 'morningSeen' }, D2)
+    expect(seen.morningShownFor).toBe(D2)
+    expect(morningShown(boot(persist(seen), D2))).toBe(true)
+    // the day's own result after 하루 마치기 is a new card
+    const done = reducer(seen, { type: 'endDay' }, D2)
+    expect(morningShown(done)).toBe(false)
+    expect(morningShown(reducer(done, { type: 'morningSeen' }, D2))).toBe(true)
+    // the next date brings the card back
+    expect(morningShown(boot(persist(reducer(done, { type: 'morningSeen' }, D2)), '2026-10-23'))).toBe(false)
+  })
 })
 
 describe('misc actions', () => {
@@ -521,6 +574,32 @@ describe('useApp', () => {
       expect(JSON.parse(ls.getItem(SAVE_KEY)!).journal).toHaveLength(1)
     })
 
+    it("another tab's write keeps a viewer on the dex, journal, kept record or backup screen", () => {
+      for (const screen of ['dex', 'journal', 'backup', 'record'] as const) {
+        const ls = fakeStorage()
+        vi.stubGlobal('localStorage', ls)
+        const old = renderHook(() => useApp())
+        act(() => old.result.current[1]({ type: 'pick', id: 'bean' }))
+        if (screen === 'record') {
+          // a kept finished journal to look at (as if written earlier)
+          ls.setItem(SAVE_KEY, JSON.stringify({ ...JSON.parse(ls.getItem(SAVE_KEY)!), finished: { balsam: { journal: [oneEntry(10)] } } }))
+          storageEvent(ls)
+          act(() => old.result.current[1]({ type: 'openRecord', id: 'balsam' }))
+        } else {
+          act(() => old.result.current[1]({ type: 'open', screen }))
+        }
+        expect(old.result.current[0].screen).toBe(screen)
+        const fresh = renderHook(() => useApp())
+        act(() => fresh.result.current[1]({ type: 'endDay' }))
+        storageEvent(ls)
+        expect(old.result.current[0].plant!.day, screen).toBe(2)
+        expect(old.result.current[0].screen, screen).toBe(screen)
+        if (screen === 'record') expect(old.result.current[0].record).toBe('balsam')
+        old.unmount()
+        fresh.unmount()
+      }
+    })
+
     it('its own writes do not reset the screen on focus', () => {
       const ls = fakeStorage()
       vi.stubGlobal('localStorage', ls)
@@ -531,6 +610,28 @@ describe('useApp', () => {
       storageEvent(ls)
       expect(result.current[0].screen).toBe('journal')
     })
+  })
+
+  it('a failed write (storage full) never re-boots from the older save, and says so once', () => {
+    const ls = fakeStorage()
+    vi.stubGlobal('localStorage', ls)
+    const { result } = renderHook(() => useApp())
+    act(() => result.current[1]({ type: 'pick', id: 'bean' }))
+    expect(JSON.parse(ls.getItem(SAVE_KEY)!).plant.speciesId).toBe('bean')
+    // the storage fills up: every write from now on throws
+    const setItem = vi.spyOn(ls, 'setItem').mockImplementation(() => {
+      throw new DOMException('full', 'QuotaExceededError')
+    })
+    act(() => result.current[1]({ type: 'water', amount: 10 }))
+    expect(result.current[0].notice).toBe('saveFailed')
+    act(() => result.current[1]({ type: 'clearNotice' }))
+    act(() => result.current[1]({ type: 'water', amount: 10 }))
+    // focus re-reads storage: the save there is older, but it is our own last good write
+    act(() => void window.dispatchEvent(new Event('focus')))
+    expect(result.current[0].pendingActions?.waterAdded).toBe(20)
+    expect(result.current[0].notice).toBeUndefined()
+    expect('notice' in toSave(result.current[0])).toBe(false)
+    setItem.mockRestore()
   })
 
   it('saves after each dispatch', () => {

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { exportCode, importCode, shortCode, type SaveData } from '../../sim/save'
+import { exportCode, importCode, isShortCode, shortCode, type SaveData } from '../../sim/save'
 import { toSave, type Action, type AppState, type Screen } from '../../store'
 import './Screens.css'
 
@@ -31,7 +31,8 @@ export function BackupPanel({ state, dispatch, back }: Props) {
   const [copy, setCopy] = useState<CopyState>('idle')
   const [input, setInput] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [pending, setPending] = useState<SaveData | null>(null)
+  // The code to restore; `keep` = a short code, which replaces only the plant (journals and past tries stay).
+  const [pending, setPending] = useState<{ data: SaveData; keep: boolean } | null>(null)
 
   const selectCode = (): boolean => {
     const el = codeRef.current
@@ -70,7 +71,7 @@ export function BackupPanel({ state, dispatch, back }: Props) {
       return
     }
     setError(null)
-    setPending(r.data)
+    setPending({ data: r.data, keep: isShortCode(input) })
   }
 
   const goBack = () => {
@@ -168,10 +169,15 @@ export function BackupPanel({ state, dispatch, back }: Props) {
             onKeyDown={(e) => e.key === 'Escape' && setPending(null)}
           >
             <p id="bk-dialog-title" className="bk-dialog-title">
-              지금 기록이 바뀌어요. 계속할까요?
+              {pending.keep ? '지금 키우는 식물이 코드의 식물로 바뀌어요. 계속할까요?' : '지금 기록이 바뀌어요. 계속할까요?'}
             </p>
+            {pending.keep && <p className="bk-help">끝낸 일지와 지난 시도는 그대로 남아요.</p>}
             <div className="bk-dialog-actions">
-              <button type="button" className="sc-big sc-big--primary" onClick={() => dispatch({ type: 'restore', data: pending })}>
+              <button
+                type="button"
+                className="sc-big sc-big--primary"
+                onClick={() => dispatch(pending.keep ? { type: 'restore', data: pending.data, keep: true } : { type: 'restore', data: pending.data })}
+              >
                 바꾸기
               </button>
               <button type="button" className="sc-big" autoFocus onClick={() => setPending(null)}>

@@ -19,15 +19,29 @@ function usePreviousScreen(current: Screen): Screen | null {
   return prev.current
 }
 
+/** Told once when this device could not save (storage full or blocked); a tap closes it. */
+function SaveNotice({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="save-notice" role="alert">
+      <span>이 기기에는 기록을 저장할 수 없어요. ‘기록 지키기’에서 코드를 적어 두세요.</span>
+      <button type="button" className="sc-btn" onClick={onClose}>
+        알겠어요
+      </button>
+    </div>
+  )
+}
+
 export default function App() {
   const [s, dispatch] = useApp()
   const previous = usePreviousScreen(s.screen)
   const p = s.plant
+  const notice = s.notice === 'saveFailed' ? <SaveNotice onClose={() => dispatch({ type: 'clearNotice' })} /> : null
 
   if (s.screen === 'grow' && p) {
     return (
       <main>
         <GrowScreen state={s} dispatch={dispatch} />
+        {notice}
       </main>
     )
   }
@@ -36,6 +50,7 @@ export default function App() {
     return (
       <main>
         <TransplantScreen plant={p} dispatch={dispatch} />
+        {notice}
       </main>
     )
   }
@@ -75,5 +90,10 @@ export default function App() {
     default:
       body = <PickScreen state={s} dispatch={dispatch} />
   }
-  return <main>{body}</main>
+  return (
+    <main>
+      {body}
+      {notice}
+    </main>
+  )
 }
