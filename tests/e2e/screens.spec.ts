@@ -62,6 +62,7 @@ test('pick: nine species in two groups; choosing one starts the grow screen', as
   await expect(page.getByRole('region', { name: '여러해살이식물' }).getByRole('button')).toHaveCount(4)
   await expect(page.getByRole('button', { name: '씨 도감 0/9' })).toBeVisible()
   await page.getByRole('button', { name: /강낭콩/ }).tap()
+  await page.getByRole('button', { name: /^매일 키우기/ }).tap()
   await expect(page.getByRole('heading', { name: /강낭콩 · 1일째/ })).toBeVisible()
 })
 
@@ -121,6 +122,7 @@ test('journal: the finished journal is still there after the next plant starts',
   await page.getByRole('button', { name: '씨 도감에 넣기' }).tap()
   await page.getByRole('button', { name: '다른 식물 고르기' }).tap()
   await page.getByRole('button', { name: /강낭콩/ }).tap()
+  await page.getByRole('button', { name: /^매일 키우기/ }).tap()
   await expect(page.getByRole('heading', { name: /강낭콩 · 1일째/ })).toBeVisible()
   const kept = await page.evaluate(() => JSON.parse(localStorage.getItem('plantlife.v1') ?? '{}').finished?.balsam?.journal?.length)
   expect(kept).toBe(10)
@@ -216,6 +218,33 @@ test('an unreadable save opens the backup panel first', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '어떤 식물을 키워 볼까요?' })).toBeVisible()
   await page.getByRole('button', { name: '기록 지키기' }).tap()
   await expect(page.getByText('기록을 불러오지 못했어요.')).toBeHidden()
+})
+
+test('pick: the mode choice can be dropped with 그만두기, and quick mode starts a quick plant', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: /강낭콩/ }).tap()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.getByRole('button', { name: '그만두기' }).tap()
+  await expect(page.getByRole('heading', { name: '어떤 식물을 키워 볼까요?' })).toBeVisible()
+  await page.getByRole('button', { name: /강낭콩/ }).tap()
+  await page.getByRole('button', { name: /^한 번에 키우기/ }).tap()
+  await expect(page.getByRole('heading', { name: /강낭콩 · 1일째/ })).toBeVisible()
+  const mode = await page.evaluate(() => JSON.parse(localStorage.getItem('plantlife.v1') ?? '{}').plant?.mode)
+  expect(mode).toBe('quick')
+})
+
+test.describe('mode choice screenshots', () => {
+  test.skip(({ browserName }) => browserName !== 'chromium', 'screenshots once, on Chromium')
+  for (const [name, width, height] of [['1194', 1194, 834], ['820', 820, 1180]] as const) {
+    test(`mode choice ${name}`, async ({ page }) => {
+      await page.setViewportSize({ width, height })
+      await page.goto('/')
+      await ready(page)
+      await page.getByRole('button', { name: /강낭콩/ }).tap()
+      await expect(page.getByRole('dialog')).toBeVisible()
+      await page.screenshot({ path: `.superpowers/sdd/2026-10-22-kiwora-v2/shots/t8-mode-${name}.png` })
+    })
+  }
 })
 
 test.describe('screenshots', () => {

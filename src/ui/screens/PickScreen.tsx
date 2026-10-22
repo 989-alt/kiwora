@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { isApproved } from '../../sim/approved'
 import { SPECIES, type SpeciesId } from '../../sim/species'
+import type { Mode } from '../../sim/types'
 import { journalWouldBeLost, type Action, type AppState } from '../../store'
 import { plantSrc } from '../PlantView'
 import './Screens.css'
@@ -18,7 +19,13 @@ export function PickScreen({ state, dispatch }: Props) {
   const done = new Set(state.dex)
   // A finished journal is kept per species, so this only asks for one that somehow was not kept.
   const [asking, setAsking] = useState<SpeciesId | null>(null)
-  const pick = (id: SpeciesId) => (journalWouldBeLost(state) ? setAsking(id) : dispatch({ type: 'pick', id }))
+  // After that (if asked at all) the student chooses how to grow it: every new plant starts here.
+  const [choosing, setChoosing] = useState<SpeciesId | null>(null)
+  const pick = (id: SpeciesId) => (journalWouldBeLost(state) ? setAsking(id) : setChoosing(id))
+  const start = (id: SpeciesId, mode: Mode) => {
+    setChoosing(null)
+    dispatch({ type: 'pick', id, mode })
+  }
   return (
     <div className="sc pk">
       <header className="sc-head">
@@ -80,10 +87,39 @@ export function PickScreen({ state, dispatch }: Props) {
               새로 키우면 지금 관찰 일지가 사라져요. 계속할까요?
             </p>
             <div className="bk-dialog-actions">
-              <button type="button" className="sc-big sc-big--primary" onClick={() => dispatch({ type: 'pick', id: asking })}>
+              <button type="button" className="sc-big sc-big--primary" onClick={() => { setChoosing(asking); setAsking(null) }}>
                 새로 키우기
               </button>
               <button type="button" className="sc-big" autoFocus onClick={() => setAsking(null)}>
+                그만두기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {choosing && (
+        <div className="bk-overlay">
+          <div
+            className="bk-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pk-mode-title"
+            onKeyDown={(e) => e.key === 'Escape' && setChoosing(null)}
+          >
+            <p id="pk-mode-title" className="bk-dialog-title">
+              {SPECIES[choosing].name}, 어떻게 키울까요?
+            </p>
+            <div className="pk-mode">
+              <button type="button" className="sc-big sc-big--primary" onClick={() => start(choosing, 'daily')}>
+                <span>매일 키우기</span>
+                <span className="pk-mode-note">하루에 한 번, 진짜 날짜처럼</span>
+              </button>
+              <button type="button" className="sc-big" onClick={() => start(choosing, 'quick')}>
+                <span>한 번에 키우기</span>
+                <span className="pk-mode-note">하루 마치기를 누르면 바로 다음 날</span>
+              </button>
+              <button type="button" className="sc-big" autoFocus onClick={() => setChoosing(null)}>
                 그만두기
               </button>
             </div>

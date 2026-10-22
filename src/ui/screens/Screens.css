@@ -738,3 +738,43 @@
 .cr-raw {
   margin: 16px 24px;
 }
+
+/* Mode badge (journal title, dex slot, past tries) */
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  background: #dcfce7;
+  color: #166534;
+}
+.mode-badge--quick {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Mode choice dialog on the pick screen */
+.pk-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pk-mode .sc-big {
+  display: flex;
+  padding: 10px 24px;
+  min-height: 72px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  gap: 2px;
+}
+.pk-mode-note {
+  font-size: 18px;
+  font-weight: 500;
+}

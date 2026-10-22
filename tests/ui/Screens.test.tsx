@@ -36,7 +36,8 @@ describe('PickScreen', () => {
     const dispatch = vi.fn()
     render(<PickScreen state={{ ...base(), dex: ['rice'] }} dispatch={dispatch} />)
     fireEvent.click(screen.getByRole('button', { name: /강낭콩/ }))
-    expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'bean' })
+    fireEvent.click(screen.getByRole('button', { name: /^매일 키우기/ }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'bean', mode: 'daily' })
     expect(within(screen.getByRole('button', { name: /벼/ })).getByText('완성')).toBeTruthy()
     expect(within(screen.getByRole('button', { name: /강낭콩/ })).queryByText('완성')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '씨 도감 1/9' }))
@@ -85,6 +86,30 @@ describe('PickScreen', () => {
   })
 })
 
+describe('PickScreen mode choice', () => {
+  test('pick asks for a mode and starts the plant in it', () => {
+    const dispatch = vi.fn()
+    render(<PickScreen state={base()} dispatch={dispatch} />)
+    fireEvent.click(screen.getByRole('button', { name: /강낭콩/ }))
+    expect(dispatch).not.toHaveBeenCalled()
+    const dlg = screen.getByRole('dialog')
+    expect(within(dlg).getByText(/하루에 한 번, 진짜 날짜처럼/)).toBeTruthy()
+    expect(within(dlg).getByText(/하루 마치기를 누르면 바로 다음 날/)).toBeTruthy()
+    fireEvent.click(within(dlg).getByRole('button', { name: /^한 번에 키우기/ }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'bean', mode: 'quick' })
+  })
+
+  test('그만두기 keeps the pick screen', () => {
+    const dispatch = vi.fn()
+    render(<PickScreen state={base()} dispatch={dispatch} />)
+    fireEvent.click(screen.getByRole('button', { name: /강낭콩/ }))
+    fireEvent.click(screen.getByRole('button', { name: '그만두기' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(dispatch).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: '어떤 식물을 키워 볼까요?' })).toBeTruthy()
+  })
+})
+
 describe('DeathScreen', () => {
   const dead = (): AppState => ({
     ...base(),
@@ -118,6 +143,33 @@ describe('DeathScreen', () => {
     }
     render(<DeathScreen state={s} dispatch={() => {}} />)
     expect(screen.getByText('민들레 · 6일째 · 큰 포기 단계까지 자랐어요')).toBeTruthy()
+  })
+})
+
+describe('replant and mode badges', () => {
+  test("replant keeps the dead plant's mode (the store decides; the button sends only the species)", () => {
+    const dispatch = vi.fn()
+    const s: AppState = {
+      ...base(),
+      plant: { ...newPlant('bean', { mode: 'quick' }), stageIndex: 3, day: 7, health: 0, dead: true, deathCause: 'x' },
+      pastTries: [{ speciesId: 'bean', days: 6, stage: 'flower', cause: 'x', mode: 'quick' }],
+      screen: 'dead',
+    }
+    render(<DeathScreen state={s} dispatch={dispatch} />)
+    fireEvent.click(screen.getByRole('button', { name: '강낭콩 다시 심기' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'replant', id: 'bean' })
+  })
+
+  test('no badge for a dex entry without a kept record; one follows the kept mode', () => {
+    const j: JournalEntry[] = [{ day: 10, dateKey: '2026-10-11', stage: 'seedDone' as const, heightCm: 20, leaves: 9, actions: { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' as const }, statuses: { water: { level: 4, dir: null }, light: { level: 4, dir: null }, temp: { level: 4, dir: null }, nutrient: { level: 4, dir: null }, pest: { level: 4, dir: null } } }]
+    const st: AppState = { ...base(), dex: ['balsam', 'bean'], finished: { bean: { journal: j, mode: 'quick' } } }
+    render(<DexScreen state={st} dispatch={() => {}} />)
+    const items = screen.getAllByRole('listitem').filter((l) => l.classList.contains('dx-slot--done'))
+    expect(items).toHaveLength(2)
+    const [balsam, bean] = items
+    expect(within(balsam).queryByText('한 번에')).toBeNull()
+    expect(within(balsam).queryByText('매일')).toBeNull()
+    expect(within(bean).getByText('한 번에')).toBeTruthy()
   })
 })
 
@@ -373,13 +425,17 @@ describe('finished journals', () => {
     expect(screen.queryByRole('alertdialog')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: /벼/ }))
     fireEvent.click(screen.getByRole('button', { name: '새로 키우기' }))
-    expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'rice' })
+    expect(dispatch).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: /^한 번에 키우기/ }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'rice', mode: 'quick' })
     unmount()
     dispatch.mockClear()
     render(<PickScreen state={{ ...lost, finished: { bean: { journal: record } } }} dispatch={dispatch} />)
     fireEvent.click(screen.getByRole('button', { name: /벼/ }))
-    expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'rice' })
+    expect(dispatch).not.toHaveBeenCalled()
     expect(screen.queryByRole('alertdialog')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /^매일 키우기/ }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'rice', mode: 'daily' })
   })
 })
 

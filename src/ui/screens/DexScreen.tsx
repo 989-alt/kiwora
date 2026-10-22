@@ -1,6 +1,7 @@
 import { SPECIES, type SpeciesId } from '../../sim/species'
 import { growing, isComplete, type Action, type AppState } from '../../store'
 import { seedSizeText } from '../journalText'
+import { ModeBadge } from '../ModeBadge'
 import { plantSrc } from '../PlantView'
 import './Screens.css'
 
@@ -61,6 +62,7 @@ export function DexScreen({ state, dispatch }: Props) {
               </span>
               <span className="seed-mm">{seedSizeText(id)}</span>
               <span className="dx-name">{sp.name}</span>
+              {state.finished?.[id]?.mode && <ModeBadge mode={state.finished[id]!.mode!} />}
               <ul className="dx-strip" aria-label={`${sp.name} 한살이`}>
                 {sp.stages.map((stage, i) => (
                   <li key={`${stage}-${i}`}>

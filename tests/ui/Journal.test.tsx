@@ -140,6 +140,34 @@ describe('journal text', () => {
     expect(screen.getByText(/큰 포기 단계까지/)).toBeTruthy()
   })
 
+  test("badges follow the kept record's mode", () => {
+    const journal = [entry(1), entry(2)]
+    const head = () => screen.getByRole('heading', { level: 1 }).parentElement as HTMLElement
+    const quickPlant: AppState = stateWith(journal, { plant: { ...newPlant('balsam', { mode: 'quick' }), stageIndex: 1, day: 3 } })
+    const a = render(<JournalScreen state={quickPlant} dispatch={() => {}} />)
+    expect(within(head()).getByText('한 번에')).toBeTruthy()
+    a.unmount()
+    // a kept daily record shows daily even while a quick plant grows; past tries badge only when they carry a mode
+    const kept: AppState = {
+      ...quickPlant,
+      finished: { balsam: { journal, mode: 'daily' } },
+      pastTries: [
+        { speciesId: 'balsam', days: 3, stage: 'sprout', cause: 'a', mode: 'quick' },
+        { speciesId: 'balsam', days: 4, stage: 'sprout', cause: 'b' },
+      ],
+    }
+    const b = render(<JournalScreen state={kept} dispatch={() => {}} record="balsam" />)
+    expect(within(head()).getByText('매일')).toBeTruthy()
+    const lis = within(screen.getByRole('region', { name: '지난 시도' })).getAllByRole('listitem')
+    expect(within(lis[0]).getByText('한 번에')).toBeTruthy()
+    expect(within(lis[1]).queryByText('한 번에')).toBeNull()
+    expect(within(lis[1]).queryByText('매일')).toBeNull()
+    b.unmount()
+    // a kept record without a mode reads as daily
+    render(<JournalScreen state={{ ...kept, finished: { balsam: { journal } } }} dispatch={() => {}} record="balsam" />)
+    expect(within(head()).getByText('매일')).toBeTruthy()
+  })
+
   test('dayReached and 가/이', () => {
     expect(dayReached([entry(1, { stage: 'seed' }), entry(2, { stage: 'sprout' })], 'sprout')).toBe(2)
     expect(dayReached([], 'seed')).toBe(1)

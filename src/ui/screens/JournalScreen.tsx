@@ -1,7 +1,8 @@
 import { SPECIES, type SpeciesId } from '../../sim/species'
-import type { PlantState } from '../../sim/types'
+import type { Mode, PlantState } from '../../sim/types'
 import { growing, isComplete, type Action, type AppState } from '../../store'
 import { dayReached, feelingText, journalRows, seedSizeText, stageName } from '../journalText'
+import { ModeBadge } from '../ModeBadge'
 import { plantSrc } from '../PlantView'
 import '../../styles/print.css'
 import './Screens.css'
@@ -41,6 +42,8 @@ export function JournalScreen({ state, dispatch, record }: Props) {
   const lastDay =
     journal.length > 0 ? journal[journal.length - 1].day : plant?.dead ? plant.day : Math.max(0, (plant?.day ?? 1) - 1)
   const back = backTarget(plant)
+  // A kept record shows its own mode; one without (kept by a short code) reads as daily.
+  const mode: Mode = (kept ? kept.mode : plant?.mode) ?? 'daily'
   const pastTries = kept ? state.pastTries.filter((t) => t.speciesId === speciesId) : state.pastTries
 
   let sub = '아직 키우는 식물이 없어요'
@@ -55,6 +58,7 @@ export function JournalScreen({ state, dispatch, record }: Props) {
       <header className="sc-head">
         <div className="jr-title">
           <h1 className="sc-h1">{species ? `${species.name} 한살이 관찰 일지` : '관찰 일지'}</h1>
+          {species && <ModeBadge mode={mode} />}
           <span className="jr-sub">{sub}</span>
         </div>
         <nav className="sc-nav no-print" aria-label="메뉴">
@@ -135,6 +139,7 @@ export function JournalScreen({ state, dispatch, record }: Props) {
             {pastTries.map((t, i) => (
               <li key={i}>
                 <b>{SPECIES[t.speciesId].name}</b> · {t.days}일째 · {stageName(t.speciesId, t.stage)} 단계까지 · {t.cause}
+                {t.mode && <> <ModeBadge mode={t.mode} /></>}
               </li>
             ))}
           </ul>
