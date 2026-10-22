@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { careTasks } from '../../src/sim/care'
 import { currentStatuses, endDay, newPlant, PLACE_ENV } from '../../src/sim/day'
 import { mulberry32, seedFor } from '../../src/sim/rng'
 import { phaseOf, SPECIES, type SpeciesId, type StageId } from '../../src/sim/species'
@@ -30,10 +31,14 @@ function idealCare(s: PlantState, place: Place = carePlace(s.speciesId)): DayAct
   }
 }
 
+/** The student does all of the current stage's care tasks (the oracle for "care done on time"). */
+const doCare = (s: PlantState): PlantState => ({ ...s, careDone: careTasks(s.speciesId, stageOf(s)).length })
+
 function run(s: PlantState, days: number, place?: Place) {
   let state = s
   let report!: DayReport
   for (let i = 0; i < days; i++) {
+    state = doCare(state)
     const r = endDay(state, idealCare(state, place), noBugs)
     state = r.state
     report = r.report
@@ -116,11 +121,12 @@ describe('endDay', () => {
 
   it.each(PERENNIALS)('%s gets no new leaves during the winter phase', (id) => {
     const place = carePlace(id)
-    let s = at(id, 'fruit', { growth: 3.9, water: 62.5, nutrient: 50, lightExp: PLACE_ENV[place].light, place, leaves: 7 })
+    let s = at(id, 'fruit', { growth: 3.9, water: 62.5, nutrient: 50, lightExp: PLACE_ENV[place].light, place, leaves: 7, careDone: 1 })
     s = endDay(s, idealCare(s), noBugs).state
     expect(stageOf(s)).toBe('winter')
     expect(s.leaves).toBe(7)
     while (stageOf(s) === 'winter') {
+      s = doCare(s)
       const r = endDay(s, idealCare(s), noBugs)
       if (stageOf(r.state) === 'winter') expect(r.state.leaves, `${id} day ${s.day}`).toBe(7)
       s = r.state
@@ -222,7 +228,7 @@ describe('endDay', () => {
     for (const nutrient of [75, 85]) {
       const place = carePlace(id)
       // last fruit day, fully grown: board all 적정 or better, nutrient high in the summer band
-      const s = at(id, 'fruit', { growth: 3.9, water: 62.5, nutrient, lightExp: PLACE_ENV[place].light, place })
+      const s = at(id, 'fruit', { growth: 3.9, water: 62.5, nutrient, lightExp: PLACE_ENV[place].light, place, careDone: 1 })
       const last = endDay(s, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place }, noBugs)
       expect(last.report.healthDelta).toBeGreaterThanOrEqual(0)
       expect(stageOf(last.state)).toBe('winter')
@@ -270,6 +276,7 @@ describe('endDay', () => {
     let prevL = s.leaves
     for (let i = 0; i < 10; i++) {
       const wasSeed = stageOf(s) === 'seed'
+      s = doCare(s)
       const r = endDay(s, idealCare(s), noBugs)
       s = r.state
       if (!wasSeed) {
@@ -286,6 +293,7 @@ describe('endDay', () => {
   it.each([...ANNUALS, ...PERENNIALS])('a seed of %s does not grow taller or get leaves while it is still a seed', (id) => {
     let s = newPlant(id)
     while (stageOf(s) === 'seed') {
+      s = doCare(s)
       const r = endDay(s, idealCare(s), noBugs)
       // the day the seed sprouts, only the growth earned past the seed stage counts
       const expected = r.report.stageChanged ? Math.round(r.state.growth * 1.5 * 10) / 10 : 0
@@ -299,6 +307,81 @@ describe('endDay', () => {
     expect(stageOf(s)).toBe('sprout')
     expect(s.heightCm).toBe(Math.round(s.growth * 1.5 * 10) / 10)
     expect(s.leaves).toBe(Math.floor(s.growth / 2))
+  })
+
+  it('growth stops at the stage threshold while the stage care is not done', () => {
+    let s: PlantState = { ...newPlant('bean'), stageIndex: 3, growth: 3.5, careDone: 0 } // flower, pollinate pending
+    const r = endDay(s, idealCare(s), mulberry32(1))
+    expect(r.state.stageIndex).toBe(3)
+    expect(r.state.growth).toBe(4)
+    expect(r.report.waiting).toBe(true)
+    expect(r.report.stageChanged).toBe(false)
+    expect(r.state.day).toBe(s.day + 1) // the days still pass
+    // another day of waiting keeps it at the threshold, and nothing more is grown
+    const again = endDay(r.state, idealCare(r.state), mulberry32(3))
+    expect(again.state.stageIndex).toBe(3)
+    expect(again.state.growth).toBe(4)
+    expect(again.report.waiting).toBe(true)
+    expect(again.report.grew).toBe(false)
+    s = { ...r.state, careDone: 1 }
+    const r2 = endDay(s, idealCare(s), mulberry32(2))
+    expect(r2.state.stageIndex).toBe(4)
+    expect(r2.state.careDone).toBe(0)
+    expect(r2.report.stageChanged).toBe(true)
+    expect(r2.report.waiting).toBeFalsy()
+  })
+
+  it('a plant below the threshold is not waiting, and care done early keeps the stage on time', () => {
+    const s: PlantState = { ...newPlant('bean'), stageIndex: 3, growth: 1, careDone: 0 }
+    const r = endDay(s, idealCare(s), noBugs)
+    expect(r.report.waiting).toBeFalsy()
+    expect(r.state.growth).toBe(3)
+    const done = endDay({ ...s, growth: 3, careDone: 1 }, idealCare(s), noBugs)
+    expect(done.state.stageIndex).toBe(4)
+    expect(done.state.growth).toBe(1)
+    expect(done.state.careDone).toBe(0)
+  })
+
+  it('a waiting plant still takes damage from bad care as usual', () => {
+    const bad: DayActions = { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }
+    const base = at('balsam', 'flower', { growth: 4, water: 0, nutrient: 50, health: 80 })
+    const waiting = endDay({ ...base, careDone: 0 }, bad, noBugs)
+    const ready = endDay({ ...base, growth: 0, careDone: 1 }, bad, noBugs)
+    expect(waiting.report.waiting).toBe(true)
+    expect(waiting.report.statuses.water.level).toBe(0)
+    expect(waiting.report.healthDelta).toBeLessThan(0)
+    // no extra penalty for the pending care itself
+    expect(waiting.report.healthDelta).toBe(ready.report.healthDelta)
+    expect(waiting.state.health).toBe(ready.state.health)
+    // and good care while waiting heals as usual
+    const good = at('balsam', 'flower', { growth: 4, water: 62.5, nutrient: 50, health: 80, careDone: 0 })
+    const healed = endDay(good, idealCare(good), noBugs)
+    expect(healed.report.waiting).toBe(true)
+    expect(healed.report.healthDelta).toBe(10)
+  })
+
+  it('a waiting plant does not get taller than its kept growth', () => {
+    // a seed waiting on sow: no height and no leaves, however many days pass
+    let s = newPlant('bean')
+    for (let i = 0; i < 4; i++) {
+      const r = endDay(s, idealCare(s), noBugs)
+      expect(stageOf(r.state)).toBe('seed')
+      expect(r.state.heightCm).toBe(0)
+      expect(r.state.leaves).toBe(0)
+      expect(r.report.heightDelta).toBe(0)
+      s = r.state
+    }
+    expect(s.growth).toBe(4)
+    // a grown plant reaching the threshold only grows by the part it kept
+    const grown = at('bean', 'flower', { growth: 3.5, water: 62.5, nutrient: 40, heightCm: 10, leaves: 5, careDone: 0 })
+    const r = endDay(grown, idealCare(grown), noBugs)
+    expect(r.state.growth).toBe(4)
+    expect(r.report.heightDelta).toBe(0.8) // 0.5 points kept × 1.5 cm, rounded to 0.1
+    expect(r.state.heightCm).toBe(10.8)
+    const r2 = endDay(r.state, idealCare(r.state), noBugs)
+    expect(r2.report.heightDelta).toBe(0)
+    expect(r2.state.heightCm).toBe(10.8)
+    expect(r2.state.leaves).toBe(r.state.leaves)
   })
 
   it('day 1 of a new plant under ideal care stays 0 cm with 0 leaves', () => {
@@ -315,7 +398,15 @@ describe('newPlant', () => {
     expect(newPlant('bean')).toMatchObject({
       speciesId: 'bean', stageIndex: 0, growth: 0, health: 100, water: 55, nutrient: 40,
       place: 'desk', lightExp: 65, bugs: 0, day: 1, dead: false, history: [],
+      mode: 'daily', careDone: 0, weatherSeed: 0, weatherFrom: 2,
     })
+  })
+
+  it('takes the mode and the weather seed', () => {
+    expect(newPlant('corn', { mode: 'quick', weatherSeed: 201 })).toMatchObject({
+      speciesId: 'corn', mode: 'quick', weatherSeed: 201, careDone: 0, weatherFrom: 2,
+    })
+    expect(newPlant('corn', { mode: 'quick' })).toMatchObject({ mode: 'quick', weatherSeed: 0 })
   })
 })
 

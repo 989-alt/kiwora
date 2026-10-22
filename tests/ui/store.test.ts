@@ -185,7 +185,7 @@ describe('endings', () => {
   it('annual reaching seedDone goes to the dex and the journal', () => {
     const st = SPECIES.bean.stages
     const p: PlantState = {
-      ...newPlant('bean'), stageIndex: st.indexOf('fruit'), growth: 3.9, water: 60, nutrient: 50,
+      ...newPlant('bean'), stageIndex: st.indexOf('fruit'), growth: 3.9, careDone: 1, water: 60, nutrient: 50,
     }
     const t = reducer(withPlant(p), { type: 'endDay' }, D1)
     expect(st[t.plant!.stageIndex]).toBe('seedDone')
@@ -196,7 +196,7 @@ describe('endings', () => {
   it('dex is deduped', () => {
     const st = SPECIES.bean.stages
     const p: PlantState = {
-      ...newPlant('bean'), stageIndex: st.indexOf('fruit'), growth: 3.9, water: 60, nutrient: 50,
+      ...newPlant('bean'), stageIndex: st.indexOf('fruit'), growth: 3.9, careDone: 1, water: 60, nutrient: 50,
     }
     const t = reducer(withPlant(p, { dex: ['bean'] }), { type: 'endDay' }, D1)
     expect(t.dex).toEqual(['bean'])
@@ -205,7 +205,7 @@ describe('endings', () => {
   it('perennial reaching newShoot completes', () => {
     const st = SPECIES.dandelion.stages
     const p: PlantState = {
-      ...newPlant('dandelion'), stageIndex: st.indexOf('winter'), growth: 3.9, water: 40, nutrient: 30,
+      ...newPlant('dandelion'), stageIndex: st.indexOf('winter'), growth: 3.9, careDone: 1, water: 40, nutrient: 30,
     }
     const t = reducer(withPlant(p), { type: 'endDay' }, D1)
     expect(st[t.plant!.stageIndex]).toBe('newShoot')
@@ -216,7 +216,7 @@ describe('endings', () => {
   it('a finished journal is kept per species after the next plant starts', () => {
     const st = SPECIES.bean.stages
     const p: PlantState = {
-      ...newPlant('bean'), stageIndex: st.indexOf('fruit'), growth: 3.9, water: 60, nutrient: 50, day: 9,
+      ...newPlant('bean'), stageIndex: st.indexOf('fruit'), growth: 3.9, careDone: 1, water: 60, nutrient: 50, day: 9,
     }
     const before = withPlant(p, { journal: [] })
     const done = reducer(before, { type: 'endDay' }, D1)
@@ -250,7 +250,7 @@ describe('endings', () => {
   it('transplant species routes to transplant screen', () => {
     const st = SPECIES.apple.stages
     const p: PlantState = {
-      ...newPlant('apple'), stageIndex: st.indexOf('leafStem'), growth: 3.9,
+      ...newPlant('apple'), stageIndex: st.indexOf('leafStem'), growth: 3.9, careDone: 1,
       water: 60, nutrient: 50, lightExp: 90, place: 'window',
     }
     const t = reducer(withPlant(p), { type: 'endDay' }, D1)
@@ -261,7 +261,7 @@ describe('endings', () => {
   it('dandelion does not transplant', () => {
     const st = SPECIES.dandelion.stages
     const p: PlantState = {
-      ...newPlant('dandelion'), stageIndex: st.indexOf('leafStem'), growth: 3.9, water: 60, nutrient: 50,
+      ...newPlant('dandelion'), stageIndex: st.indexOf('leafStem'), growth: 3.9, careDone: 1, water: 60, nutrient: 50,
     }
     const t = reducer(withPlant(p), { type: 'endDay' }, D1)
     expect(st[t.plant!.stageIndex]).toBe('grownTree')

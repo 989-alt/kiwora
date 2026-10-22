@@ -1,8 +1,9 @@
+import { careReady } from './care'
 import { deathCause } from './death'
 import { levelFor } from './levels'
 import { rollPests } from './pests'
 import { phaseOf, SPECIES, STAGE_POINTS, type Phase, type SpeciesId } from './species'
-import type { ConditionKey, DayActions, DayReport, Level, Place, PlantState, Status } from './types'
+import type { ConditionKey, DayActions, DayReport, Level, Mode, Place, PlantState, Status } from './types'
 
 export const PLACE_ENV: Record<Place, { light: number; temp: number; evap: number }> = {
   window: { light: 90, temp: 27, evap: 25 },
@@ -69,7 +70,7 @@ export function currentStatuses(s: PlantState): Record<ConditionKey, Status> {
   }
 }
 
-export function newPlant(id: SpeciesId): PlantState {
+export function newPlant(id: SpeciesId, opts: { mode?: Mode; weatherSeed?: number } = {}): PlantState {
   return {
     speciesId: id,
     stageIndex: 0,
@@ -85,6 +86,10 @@ export function newPlant(id: SpeciesId): PlantState {
     leaves: 0,
     dead: false,
     history: [],
+    mode: opts.mode ?? 'daily',
+    careDone: 0,
+    weatherSeed: opts.weatherSeed ?? 0,
+    weatherFrom: 2,
   }
 }
 
@@ -156,20 +161,28 @@ export function endDay(
     return { state, report }
   }
 
-  // 5. growth (capped at the final stage)
+  // 5. growth (capped at the final stage). The stage changes only once its care is done; until then
+  // growth waits at the threshold and only the growth kept counts for height and leaves.
   let stageIndex = s.stageIndex
   let growth = s.growth
+  let careDone = s.careDone
   let gained = 0
   let stageChanged = false
+  let waiting = false
   if (stageIndex < lastStage) {
     const avg = active.reduce<number>((sum, l) => sum + l, 0) / active.length
     gained = growthAt(avg)
     growth += gained
-    if (growth >= STAGE_POINTS) {
+    if (growth >= STAGE_POINTS && careReady(s)) {
       stageIndex += 1
       growth -= STAGE_POINTS
+      careDone = 0
       stageChanged = true
       if (stageIndex === lastStage) growth = 0
+    } else if (growth >= STAGE_POINTS) {
+      gained = Math.max(0, gained - (growth - STAGE_POINTS))
+      growth = STAGE_POINTS
+      waiting = true
     }
   }
   // A seed under the soil has no stem or leaves yet: only growth earned past the seed stage shows.
@@ -196,10 +209,11 @@ export function endDay(
   const bugs = Math.min(MAX_BUGS, bugsLeft + bugsLeft + newBugs) // unremoved bugs multiply overnight
 
   state = {
-    ...state, water, nutrient, bugs, health, history, stageIndex, growth, heightCm, leaves, day: s.day + 1,
+    ...state, water, nutrient, bugs, health, history, stageIndex, growth, careDone, heightCm, leaves, day: s.day + 1,
   }
   const report: DayReport = {
     statuses, healthDelta, grew: gained > 0, stageChanged, died: false, newBugs, heightDelta,
+    ...(waiting ? { waiting } : {}),
   }
   return { state, report }
 }

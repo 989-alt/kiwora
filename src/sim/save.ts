@@ -1,7 +1,9 @@
 import LZString from 'lz-string'
+import { careTasks } from './care'
+import { seedFor } from './rng'
 import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from './species'
 import { decodeShort, encodeShort } from './shortCode'
-import type { ConditionKey, DayActions, DayReport, Place, PlantState, Status } from './types'
+import type { ConditionKey, DayActions, DayReport, Mode, Place, PlantState, Status } from './types'
 
 export type JournalEntry = {
   day: number
@@ -67,6 +69,8 @@ const isDateKey = (x: unknown): x is string => typeof x === 'string' && /^\d{4}-
 const isPlace = (x: unknown): x is Place => PLACES.includes(x as Place)
 const isSpecies = (x: unknown): x is SpeciesId => typeof x === 'string' && Object.prototype.hasOwnProperty.call(SPECIES, x)
 const isStage = (x: unknown): x is StageId => typeof x === 'string' && Object.prototype.hasOwnProperty.call(STAGE_LABEL, x)
+const isMode = (x: unknown): x is Mode => x === 'daily' || x === 'quick'
+const isIntIn = (x: unknown, lo: number, hi: number): x is number => Number.isInteger(x) && (x as number) >= lo && (x as number) <= hi
 
 function cleanPlant(raw: unknown): PlantState | null {
   if (!isObj(raw) || !isSpecies(raw.speciesId)) return null
@@ -74,10 +78,19 @@ function cleanPlant(raw: unknown): PlantState | null {
   if (!numKeys.every((k) => isNum(raw[k])) || !isPlace(raw.place) || typeof raw.dead !== 'boolean') return null
   const stageIndex = raw.stageIndex as number
   if (!Number.isInteger(stageIndex) || stageIndex < 0 || stageIndex >= SPECIES[raw.speciesId].stages.length) return null
+  const speciesId = raw.speciesId
+  const tasks = careTasks(speciesId, SPECIES[speciesId].stages[stageIndex]).length
+  // No mode = a v1 plant: 'daily', its current stage's care counts as done (no student is blocked by the
+  // update) and no weather before tomorrow; the seed depends on the species only, so reloads agree.
+  const v1 = raw.mode === undefined
   return {
     ...(raw as unknown as PlantState),
     history: Array.isArray(raw.history) ? (raw.history as PlantState['history']) : [],
     bugs: Math.round(Math.min(MAX_BUGS, Math.max(0, raw.bugs as number))),
+    mode: isMode(raw.mode) ? raw.mode : 'daily',
+    careDone: v1 ? tasks : isIntIn(raw.careDone, 0, tasks) ? raw.careDone : 0,
+    weatherSeed: v1 ? seedFor(0, speciesId) & 255 : isIntIn(raw.weatherSeed, 0, 255) ? raw.weatherSeed : 0,
+    weatherFrom: v1 ? Math.floor(raw.day as number) + 1 : isIntIn(raw.weatherFrom, 2, Infinity) ? raw.weatherFrom : 2,
   }
 }
 

@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { newPlant } from '../../src/sim/day'
+import { careTasks } from '../../src/sim/care'
+import { endDay, newPlant } from '../../src/sim/day'
+import { seedFor } from '../../src/sim/rng'
+import { SPECIES } from '../../src/sim/species'
 import { emptySave, exportCode, importCode, loadSave, requestPersist, shortCode, writeSave, type SaveData } from '../../src/sim/save'
 
 function memStorage(initial: Record<string, string> = {}): Storage {
@@ -147,6 +150,57 @@ describe('shape validation', () => {
     d.plant = { ...d.plant!, dead: true, deathCause: '물이 부족했어요' }
     expect(importCode(exportCode(d))).toEqual({ ok: true, data: d })
   })
+
+  /** A plant as v1 saved it: no mode, care or weather fields. */
+  function v1Plant(over: Record<string, unknown> = {}): Record<string, unknown> {
+    const p: Record<string, unknown> = { ...newPlant('morningGlory'), ...over }
+    for (const k of ['mode', 'careDone', 'weatherSeed', 'weatherFrom']) delete p[k]
+    return p
+  }
+
+  it('v1 plant loads as daily with its stage care done', () => {
+    // morning glory in leafStem, almost at the next stage, watered on day 6
+    const raw = { ...sample(), plant: v1Plant({ stageIndex: 2, growth: 3.5, day: 6, heightCm: 6, leaves: 4 }) }
+    const p = load(raw).data.plant!
+    expect(p).toMatchObject({ speciesId: 'morningGlory', stageIndex: 2, growth: 3.5, mode: 'daily', careDone: 1, weatherFrom: 7 })
+    expect(Number.isInteger(p.weatherSeed)).toBe(true)
+    expect(p.weatherSeed).toBeGreaterThanOrEqual(0)
+    expect(p.weatherSeed).toBeLessThanOrEqual(255)
+    // loading the same save twice gives the same seed (also through the long code)
+    expect(load(raw).data.plant!.weatherSeed).toBe(p.weatherSeed)
+    const code = importCode(exportCode(raw as unknown as SaveData))
+    expect(code.ok && code.data.plant).toEqual(p)
+    // every stage counts its care as done, also a stage without care
+    expect(load({ ...raw, plant: v1Plant({ stageIndex: 0 }) }).data.plant!.careDone).toBe(1)
+    expect(load({ ...raw, plant: v1Plant({ stageIndex: 5 }) }).data.plant!.careDone).toBe(0) // seedDone
+    const dandelion = load({ ...raw, plant: v1Plant({ speciesId: 'dandelion', stageIndex: 3 }) }).data.plant!
+    expect(dandelion.careDone).toBe(0) // grownTree: nothing to do
+    // and the next ideal day moves the stage on as in v1
+    const next = endDay(p, { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'window' }, () => 0.99)
+    expect(next.report.waiting).toBeFalsy()
+    expect(next.report.stageChanged).toBe(true)
+    expect(next.state).toMatchObject({ stageIndex: 3, careDone: 0 })
+  })
+
+  it('a v2 plant keeps its fields; junk becomes defaults', () => {
+    const d = sample()
+    d.plant = { ...newPlant('bean', { mode: 'quick', weatherSeed: 77 }), stageIndex: 3, growth: 4, careDone: 1, weatherFrom: 2, day: 8 }
+    expect(load(d).data.plant).toEqual(d.plant)
+    const junk = load({ ...d, plant: { ...d.plant, careDone: 'x', weatherSeed: 300, weatherFrom: 1.5 } }).data.plant!
+    expect(junk).toMatchObject({ mode: 'quick', careDone: 0, weatherSeed: 0, weatherFrom: 2 })
+    for (const bad of [-1, 2, 0.5, NaN]) {
+      expect(load({ ...d, plant: { ...d.plant, careDone: bad } }).data.plant!.careDone, String(bad)).toBe(0)
+    }
+    for (const bad of [-1, 256, 3.5, '7']) {
+      expect(load({ ...d, plant: { ...d.plant, weatherSeed: bad } }).data.plant!.weatherSeed, String(bad)).toBe(0)
+    }
+    for (const bad of [0, 1, 2.5, null]) {
+      expect(load({ ...d, plant: { ...d.plant, weatherFrom: bad } }).data.plant!.weatherFrom, String(bad)).toBe(2)
+    }
+    // a mode that is there but not one of the two is read as daily (not as a v1 plant)
+    const odd = load({ ...d, plant: { ...d.plant, mode: 'fast' } }).data.plant!
+    expect(odd).toMatchObject({ mode: 'daily', careDone: 1, weatherSeed: 77, weatherFrom: 2 })
+  })
 })
 
 describe('lastReport', () => {
@@ -203,10 +257,20 @@ describe('short code (for writing down)', () => {
   const BAD = '기록 코드가 맞지 않아요. 다시 확인해 주세요.'
   const FORMAT = /^[0-9A-HJKMNP-TV-Z]{5}(-[0-9A-HJKMNP-TV-Z]{5}){4}$/
 
-  /** What a short code brings back: plant (no history), dex, day gating, settings; no journal or past tries. */
+  /**
+   * What a short code brings back: plant (no history), dex, day gating, settings; no journal or past tries.
+   * Formats 1 and 2 carry no mode, care or weather fields, so the plant comes back as a v1 plant does.
+   */
+  const asV1 = (p: NonNullable<SaveData['plant']>) => ({
+    ...p,
+    mode: 'daily' as const,
+    careDone: careTasks(p.speciesId, SPECIES[p.speciesId].stages[p.stageIndex]).length,
+    weatherSeed: seedFor(0, p.speciesId) & 255,
+    weatherFrom: p.day + 1,
+  })
   const expected = (d: SaveData): SaveData => ({
     ...emptySave(),
-    plant: d.plant ? { ...d.plant, history: [] } : null,
+    plant: d.plant ? asV1({ ...d.plant, history: [] }) : null,
     pendingActions: d.pendingActions,
     lastDayKey: d.lastDayKey,
     dayDone: d.dayDone,
