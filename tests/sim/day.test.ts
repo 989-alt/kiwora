@@ -97,7 +97,7 @@ describe('endDay', () => {
 
   it('the shade is cool: a seed or plant left there shows 온도 주의 (추워요)', () => {
     expect(PLACE_ENV.shade.temp).toBe(13)
-    expect(PLACE_ENV.yardShade.temp).toBe(14)
+    expect(PLACE_ENV.yardShade.temp).toBe(18)
     for (const id of [...ANNUALS, ...PERENNIALS]) {
       const seed = currentStatuses(at(id, 'seed', { place: 'shade' })).temp
       expect(seed, id).toMatchObject({ dir: 'low' })

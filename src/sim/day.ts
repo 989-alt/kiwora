@@ -11,7 +11,8 @@ export const PLACE_ENV: Record<Place, { light: number; temp: number; evap: numbe
   shade: { light: 30, temp: 13, evap: 12 },
   yardSunny: { light: 90, temp: 24, evap: 22 },
   yardPartial: { light: 65, temp: 21, evap: 16 },
-  yardShade: { light: 35, temp: 14, evap: 12 },
+  // Mild: a transplanted plant can never leave its yard spot, so cold plus dim must not double up.
+  yardShade: { light: 35, temp: 18, evap: 12 },
 }
 
 const WINTER_TEMP_DROP = 15

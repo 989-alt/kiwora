@@ -62,7 +62,7 @@ export function isComplete(p: PlantState): boolean {
 }
 
 /** Transplant species at (or past) 'grownTree' that has not been put in the yard yet. */
-function needsTransplant(p: PlantState): boolean {
+export function needsTransplant(p: PlantState): boolean {
   const sp = SPECIES[p.speciesId]
   return sp.transplant && p.stageIndex >= sp.stages.indexOf('grownTree') && !isYard(p.place)
 }
@@ -319,10 +319,12 @@ function storedText(): string | null {
 }
 
 export function useApp(): [AppState, (a: Action) => void] {
+  // The raw text stored at boot: it counts as "ours", so a failed first write is not mistaken for another tab's save.
+  const [bootText] = useState(storedText)
   const [state, setState] = useState(initState)
   // The save text this tab wrote last: a different text in storage was written by another tab.
   // Only a write that went through counts (a failed one leaves our older text in storage).
-  const written = useRef<string | null>(null)
+  const written = useRef<string | null>(bootText)
   // The student is told once per visit that this device cannot save.
   const failTold = useRef(false)
   const dispatch = useCallback((a: Action) => {

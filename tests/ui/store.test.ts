@@ -634,6 +634,22 @@ describe('useApp', () => {
     setItem.mockRestore()
   })
 
+  it('a first write that fails right after boot never rewinds to the older stored save', () => {
+    const ls = fakeStorage()
+    vi.stubGlobal('localStorage', ls)
+    const first = renderHook(() => useApp())
+    act(() => first.result.current[1]({ type: 'pick', id: 'bean' }))
+    first.unmount()
+    const setItem = vi.spyOn(ls, 'setItem').mockImplementation(() => {
+      throw new DOMException('full', 'QuotaExceededError')
+    })
+    const { result } = renderHook(() => useApp())
+    act(() => result.current[1]({ type: 'water', amount: 10 }))
+    act(() => void window.dispatchEvent(new Event('focus')))
+    expect(result.current[0].pendingActions?.waterAdded).toBe(10)
+    setItem.mockRestore()
+  })
+
   it('saves after each dispatch', () => {
     const ls = fakeStorage()
     vi.stubGlobal('localStorage', ls)

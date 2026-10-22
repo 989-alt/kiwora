@@ -1,5 +1,5 @@
 import { useRef, type ReactNode } from 'react'
-import { screenFor, useApp, type Screen } from './store'
+import { needsTransplant, screenFor, useApp, type Screen } from './store'
 import { BackupPanel } from './ui/screens/BackupPanel'
 import { DeathScreen } from './ui/screens/DeathScreen'
 import { DexScreen } from './ui/screens/DexScreen'
@@ -36,6 +36,16 @@ export default function App() {
   const previous = usePreviousScreen(s.screen)
   const p = s.plant
   const notice = s.notice === 'saveFailed' ? <SaveNotice onClose={() => dispatch({ type: 'clearNotice' })} /> : null
+
+  // A save from another tab may skip the transplant step: the grow screen must not show before it.
+  if (s.screen === 'grow' && p && !p.dead && needsTransplant(p)) {
+    return (
+      <main>
+        <TransplantScreen plant={p} dispatch={dispatch} />
+        {notice}
+      </main>
+    )
+  }
 
   if (s.screen === 'grow' && p) {
     return (
