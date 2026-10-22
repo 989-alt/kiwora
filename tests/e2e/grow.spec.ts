@@ -3,7 +3,7 @@ import { centerOf, drag, hold, saveWith, useSave } from './fixtures'
 
 const waterRow = (page: import('@playwright/test').Page) => page.getByRole('group', { name: /^물 / })
 const nutrientRow = (page: import('@playwright/test').Page) => page.getByRole('group', { name: /^영양 / })
-const pot = (page: import('@playwright/test').Page) => page.getByRole('img', { name: '화분 끌기' })
+const pot = (page: import('@playwright/test').Page) => page.getByRole('img', { name: '화분 끌어서 자리 옮기기' })
 
 test('hold watering can raises water', async ({ page, browserName }) => {
   await useSave(page, saveWith({ water: 20 }))
@@ -82,7 +82,7 @@ test('end day locks tools', async ({ page }) => {
   await expect(page.locator('.pot-ghost')).toHaveCount(0)
   await expect(windowSlot).toHaveAttribute('aria-pressed', 'false')
   // the day's result card appears and closes on tap
-  const card = page.getByRole('button', { name: /오늘 결과/ })
+  const card = page.getByRole('button', { name: /오늘 자란 모습이에요/ })
   await expect(card).toBeVisible()
   await card.tap()
   await expect(card).toHaveCount(0)
@@ -142,7 +142,7 @@ test('the morning card shows after opening the app the next day', async ({ page 
   }
   await useSave(page, saveWith({ day: 4 }, { lastReport, daysAgo: 1, dayDone: true }))
   await page.goto('/')
-  const card = page.getByRole('button', { name: '4일째 아침! 키가 2cm 자랐어요' })
+  const card = page.getByRole('button', { name: '4일째 아침이에요! 키가 2cm 자랐어요' })
   await expect(card).toBeVisible()
   await expect(page.getByRole('button', { name: '하루 마치기' })).toBeEnabled()
   await card.tap()

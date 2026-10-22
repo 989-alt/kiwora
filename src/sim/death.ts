@@ -6,7 +6,7 @@ const SENTENCE: Record<Exclude<ConditionKey, 'pest'>, Record<'low' | 'high', str
   water: { high: '물을 너무 많이 줘서 뿌리가 썩었어요.', low: '물이 부족해서 말라 버렸어요.' },
   light: { low: '햇빛을 오래 못 받아서 약해졌어요.', high: '강한 햇빛을 너무 오래 받아서 잎이 탔어요.' },
   temp: { low: '너무 추워서 견디지 못했어요.', high: '너무 더워서 견디지 못했어요.' },
-  nutrient: { low: '영양분이 부족해서 힘이 없었어요.', high: '비료를 너무 많이 줘서 뿌리가 상했어요.' },
+  nutrient: { low: '영양분이 부족해서 힘이 없었어요.', high: '영양분을 너무 많이 줘서 뿌리가 상했어요.' },
 }
 const PEST_SENTENCE = '벌레가 너무 많아져서 잎을 다 갉아 먹었어요.'
 

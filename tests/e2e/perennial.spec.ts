@@ -5,8 +5,8 @@ const SHOTS = '.superpowers/sdd/2026-10-21-plant-life/shots'
 
 const slots = (page: Page) => page.getByRole('group', { name: '화분 자리' })
 const sign = (page: Page) => page.getByRole('img', { name: '건강 표지판' })
-const pot = (page: Page) => page.getByRole('img', { name: '화분 끌기' })
-const COPY = '나무가 커서 화분이 좁아요. 마당에 옮겨 심어요!'
+const pot = (page: Page) => page.getByRole('img', { name: '화분 끌어서 자리 옮기기' })
+const COPY = '식물이 자라서 화분이 좁아요. 땅에 옮겨 심어요!'
 
 /** An apple one good day short of 'grownTree': ideal water, light and nutrient. */
 const appleAlmostGrown = () =>
@@ -25,9 +25,9 @@ test('apple transplant flow', async ({ page }) => {
 
   await expect(page.getByText(COPY)).toBeVisible()
   for (const [name, line] of [
-    ['양지', '햇빛이 하루 종일'],
-    ['반그늘', '햇빛이 반나절'],
-    ['그늘', '햇빛이 조금'],
+    ['해가 잘 드는 곳', '햇빛이 하루 종일 비춰요'],
+    ['반그늘', '햇빛이 낮 동안 알맞게 비춰요'],
+    ['그늘', '햇빛이 조금만 비춰요'],
   ] as const) {
     const card = page.getByRole('button', { name: new RegExp(`^${name}`) })
     await expect(card).toBeVisible()
@@ -38,7 +38,7 @@ test('apple transplant flow', async ({ page }) => {
   await page.reload()
   await expect(page.getByText(COPY)).toBeVisible()
 
-  await page.getByRole('button', { name: /^양지/ }).click()
+  await page.getByRole('button', { name: /^해가 잘 드는 곳/ }).click()
   await expect(page.getByText(COPY)).toHaveCount(0)
   await expect(page.getByRole('heading', { level: 1 })).toHaveAccessibleName(/사과나무/)
   await expect(slots(page)).toHaveCount(0)
@@ -59,7 +59,7 @@ test('in the yard a pellet is dropped on the ground at the trunk', async ({ page
   const nutrient = page.getByRole('group', { name: /^영양 / })
   await expect(nutrient).toHaveAttribute('aria-label', /부족/)
   await expect(page.getByRole('button', { name: /영양분/ })).toContainText('땅으로 끌어요')
-  await drag(page, await centerOf(page, page.getByRole('button', { name: /영양분/ })), await centerOf(page, page.getByRole('img', { name: '나무 밑동' })))
+  await drag(page, await centerOf(page, page.getByRole('button', { name: /영양분/ })), await centerOf(page, page.getByRole('img', { name: '식물 밑동' })))
   await expect(nutrient).not.toHaveAttribute('aria-label', /부족/)
 })
 
@@ -141,7 +141,7 @@ test.describe('screenshots', () => {
     await expect(page.getByText(COPY)).toBeVisible()
     await ready(page)
     await page.screenshot({ path: `${SHOTS}/transplant-1194.png`, fullPage: true })
-    await page.getByRole('button', { name: /^양지/ }).click()
+    await page.getByRole('button', { name: /^해가 잘 드는 곳/ }).click()
     await expect(sign(page)).toBeVisible()
     await ready(page)
     await page.screenshot({ path: `${SHOTS}/yard-1194.png`, fullPage: true })

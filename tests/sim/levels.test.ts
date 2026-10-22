@@ -30,8 +30,8 @@ describe('labels', () => {
   it('dirLabel', () => {
     expect(dirLabel('temp', 'high')).toBe('← 더워요')
     expect(dirLabel('temp', 'low')).toBe('← 추워요')
-    expect(dirLabel('water', 'low')).toBe('← 부족')
-    expect(dirLabel('light', 'high')).toBe('← 너무 많음')
+    expect(dirLabel('water', 'low')).toBe('← 부족해요')
+    expect(dirLabel('light', 'high')).toBe('← 너무 많아요')
     expect(dirLabel('nutrient', null)).toBe('')
     expect(dirLabel('pest', 'low')).toBe('')
   })

@@ -43,7 +43,7 @@ describe('deathCause', () => {
     expect(deathCause([day({ temp: { level: 0, dir: 'low' } })])).toBe('너무 추워서 견디지 못했어요.')
     expect(deathCause([day({ temp: { level: 0, dir: 'high' } })])).toBe('너무 더워서 견디지 못했어요.')
     expect(deathCause([day({ nutrient: { level: 0, dir: 'high' } })])).toBe(
-      '비료를 너무 많이 줘서 뿌리가 상했어요.',
+      '영양분을 너무 많이 줘서 뿌리가 상했어요.',
     )
     expect(deathCause([day({ pest: { level: 0, dir: 'high' } })])).toBe(
       '벌레가 너무 많아져서 잎을 다 갉아 먹었어요.',

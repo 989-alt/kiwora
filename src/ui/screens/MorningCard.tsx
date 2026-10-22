@@ -7,7 +7,7 @@ import type { DayReport } from '../../sim/types'
  * a seed still under the soil gets its own line, and a plant that spent the day as a seed never droops.
  */
 export function morningSummary(r: DayReport, stage?: StageId): string {
-  if (stage === 'seed') return r.healthDelta < 0 ? '흙 속에서 씨가 힘들어하고 있어요' : '흙 속에서 씨가 싹 틀 준비를 하고 있어요'
+  if (stage === 'seed') return r.healthDelta < 0 ? '흙 속에서 씨가 힘들어하고 있어요' : '흙 속에서 씨가 싹이 틀 준비를 하고 있어요'
   const wasSeed = stage === 'sprout' && r.stageChanged
   const parts: string[] = []
   if (r.stageChanged) parts.push('단계가 바뀌었어요')
@@ -41,7 +41,7 @@ type Props = {
 export function MorningCard({ report, day, dayDone, stage, health, onClose }: Props) {
   const [open, setOpen] = useState(true)
   if (!open) return null
-  const head = dayDone ? '오늘 결과:' : `${day}일째 아침!`
+  const head = dayDone ? '오늘 자란 모습이에요' : `${day}일째 아침이에요!`
   const danger = health !== undefined && Number.isFinite(health) && health < DANGER_HEALTH
   return (
     <button

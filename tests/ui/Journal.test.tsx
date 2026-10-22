@@ -42,7 +42,7 @@ describe('JournalScreen', () => {
     const table = screen.getByRole('table')
     // header row + 5 day rows
     expect(within(table).getAllByRole('row')).toHaveLength(6)
-    expect(within(table).getByText('5일')).toBeTruthy()
+    expect(within(table).getByText('5일째')).toBeTruthy()
     expect(within(table).getAllByText('물 주기')).toHaveLength(5)
   })
 
@@ -106,15 +106,15 @@ describe('JournalScreen', () => {
 describe('journal text', () => {
   test('actionsText joins what was done, "살펴보기" when nothing', () => {
     const e = entry(2, { actions: { waterAdded: 20, pellets: 1, bugsRemoved: 2, place: 'window' } })
-    expect(actionsText(e, 'desk')).toBe('물 주기, 창가로 옮김, 영양분 1알, 벌레 2마리 잡기')
+    expect(actionsText(e, 'desk')).toBe('물 주기, 창가로 옮기기, 영양분 1알 주기, 벌레 2마리 잡기')
     expect(actionsText(entry(3, { actions: { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' } }), 'desk')).toBe('살펴보기')
   })
 
   test('feelingText names the worst condition', () => {
-    expect(feelingText(fine)).toBe('건강해요')
+    expect(feelingText(fine)).toBe('건강했어요')
     expect(feelingText({ ...fine, water: { level: 2, dir: 'low' } })).toBe('물이 조금 부족했어요')
     expect(feelingText({ ...fine, water: { level: 2, dir: 'low' }, temp: { level: 0, dir: 'high' } })).toBe('많이 더웠어요')
-    expect(feelingText({ ...fine, light: { level: null, notNeeded: true } })).toBe('건강해요')
+    expect(feelingText({ ...fine, light: { level: null, notNeeded: true } })).toBe('건강했어요')
   })
 
   test('stage names depend on the species: a dandelion is a 큰 포기, never a 어린나무', () => {
@@ -123,7 +123,7 @@ describe('journal text', () => {
     expect(stageName('apple', 'grownTree')).toBe('어린나무')
     expect(stageName('apple', 'grownTree', 'long')).toBe('적당한 크기로 자라요')
     expect(stageName('dandelion', 'flower')).toBe('꽃')
-    expect(stageName('balsam', 'seed', 'long')).toBe('씨')
+    expect(stageName('balsam', 'seed', 'long')).toBe('씨를 심었어요')
   })
 
   test('dandelion journal: strip, table and past tries say 큰 포기', () => {

@@ -17,9 +17,9 @@ function filled(el: HTMLElement) {
 
 test('water low shows level, direction and 2 filled cells', () => {
   render(<StatusBoard statuses={{ ...base, water: { level: 1, dir: 'low' } }} health={80} bugs={0} layout="side" />)
-  const row = screen.getByRole('group', { name: '물 위험 부족' })
+  const row = screen.getByRole('group', { name: '물 위험 부족해요' })
   expect(row.textContent).toContain('위험')
-  expect(row.textContent).toContain('← 부족')
+  expect(row.textContent).toContain('← 부족해요')
   expect(filled(row)).toBe(2)
 })
 

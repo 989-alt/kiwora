@@ -24,7 +24,7 @@ export type Species = {
 export const STAGE_POINTS = 4
 
 export const STAGE_LABEL: Record<StageId, string> = {
-  seed: '씨',
+  seed: '씨를 심었어요',
   sprout: '싹이 텄어요',
   leafStem: '잎과 줄기가 자라요',
   grownTree: '적당한 크기로 자라요',
@@ -149,7 +149,7 @@ export const SPECIES: Record<SpeciesId, Species> = {
   }),
   dandelion: make('dandelion', '민들레', 'perennial', '어디서나 잘 자라요', false, {}, 1.5),
   forsythia: make('forsythia', '개나리', 'perennial', '봄에 노란 꽃이 피어요', true),
-  persimmon: make('persimmon', '감나무', 'perennial', '가을에 주황색 열매가 열려요', true, {
+  persimmon: make('persimmon', '감나무', 'perennial', '가을에 주황색 열매를 맺어요', true, {
     light: { idealLo: 70, idealHi: 95, hi: 100 },
     temp: { idealHi: 27 },
   }),

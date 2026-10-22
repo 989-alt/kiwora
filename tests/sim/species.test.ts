@@ -71,7 +71,7 @@ describe('species data', () => {
 
   it('names and blurbs', () => {
     expect(SPECIES.apple.name).toBe('사과나무')
-    expect(SPECIES.persimmon.blurb).toBe('가을에 주황색 열매가 열려요')
+    expect(SPECIES.persimmon.blurb).toBe('가을에 주황색 열매를 맺어요')
   })
 
   it('phaseOf, labels, points', () => {

@@ -77,7 +77,7 @@ export function PickScreen({ state, dispatch }: Props) {
             onKeyDown={(e) => e.key === 'Escape' && setAsking(null)}
           >
             <p id="pk-dialog-title" className="bk-dialog-title">
-              지금 일지가 사라져요. 먼저 인쇄하거나 옮겨 적었나요?
+              새로 키우면 지금 관찰 일지가 사라져요. 계속할까요?
             </p>
             <div className="bk-dialog-actions">
               <button type="button" className="sc-big sc-big--primary" onClick={() => dispatch({ type: 'pick', id: asking })}>

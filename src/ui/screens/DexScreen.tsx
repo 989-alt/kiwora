@@ -29,12 +29,12 @@ export function DexScreen({ state, dispatch }: Props) {
           )}
           {state.plant && !state.plant.dead && isComplete(state.plant) && (
             <button type="button" className="sc-btn" onClick={() => dispatch({ type: 'open', screen: 'journal' })}>
-              일지 다시 보기
+              관찰 일지 다시 보기
             </button>
           )}
           {!busy && (
             <button type="button" className="sc-btn sc-btn--primary" onClick={() => dispatch({ type: 'open', screen: 'pick' })}>
-              다른 식물 키우기
+              다른 식물 고르기
             </button>
           )}
         </nav>
@@ -72,10 +72,10 @@ export function DexScreen({ state, dispatch }: Props) {
                 <button
                   type="button"
                   className="sc-btn dx-record"
-                  aria-label={`${sp.name} 일지 보기`}
+                  aria-label={`${sp.name} 관찰 일지 보기`}
                   onClick={() => dispatch({ type: 'openRecord', id })}
                 >
-                  일지 보기
+                  관찰 일지 보기
                 </button>
               )}
             </li>

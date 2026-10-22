@@ -41,12 +41,12 @@ const hasFinalConsonant = (word: string): boolean => {
 export const withGa = (word: string): string => `${word}${hasFinalConsonant(word) ? '이' : '가'}`
 
 const MOVED_TO: Record<Place, string> = {
-  window: '창가로 옮김',
-  desk: '책상으로 옮김',
-  shade: '그늘로 옮김',
-  yardSunny: '양지바른 땅에 옮겨 심음',
-  yardPartial: '반그늘 땅에 옮겨 심음',
-  yardShade: '그늘진 땅에 옮겨 심음',
+  window: '창가로 옮기기',
+  desk: '책상으로 옮기기',
+  shade: '그늘로 옮기기',
+  yardSunny: '해가 잘 드는 땅에 옮겨 심기',
+  yardPartial: '반그늘 땅에 옮겨 심기',
+  yardShade: '그늘진 땅에 옮겨 심기',
 }
 
 const isYard = (p: Place) => p === 'yardSunny' || p === 'yardPartial' || p === 'yardShade'
@@ -60,7 +60,7 @@ export function actionsText(entry: JournalEntry, prevPlace: Place): string {
   const parts: string[] = []
   if (a.waterAdded > 0) parts.push('물 주기')
   if (a.place !== prevPlace && !(isYard(a.place) && isYard(prevPlace))) parts.push(MOVED_TO[a.place])
-  if (a.pellets > 0) parts.push(`영양분 ${a.pellets}알`)
+  if (a.pellets > 0) parts.push(`영양분 ${a.pellets}알 주기`)
   if (a.bugsRemoved > 0) parts.push(`벌레 ${a.bugsRemoved}마리 잡기`)
   return parts.length > 0 ? parts.join(', ') : '살펴보기'
 }
@@ -86,7 +86,7 @@ const PHRASE: Record<ConditionKey, Record<'low' | 'high', [string, string]>> = {
   pest: { low: ['벌레가 생겼어요', '벌레가 많이 생겼어요'], high: ['벌레가 생겼어요', '벌레가 많이 생겼어요'] },
 }
 
-/** One short phrase for the worst condition of the day; "건강해요" when nothing is below 적정. */
+/** One short phrase for the worst condition of the day; "건강했어요" when nothing is below 적정. */
 export function feelingText(statuses: Record<ConditionKey, Status> | undefined): string {
   let worst: { key: ConditionKey; level: number; dir: 'low' | 'high' } | null = null
   for (const key of ORDER) {
@@ -96,7 +96,7 @@ export function feelingText(statuses: Record<ConditionKey, Status> | undefined):
       worst = { key, level: s.level, dir: s.dir === 'high' ? 'high' : 'low' }
     }
   }
-  if (worst === null) return '건강해요'
+  if (worst === null) return '건강했어요'
   return PHRASE[worst.key][worst.dir][worst.level === 2 ? 0 : 1]
 }
 

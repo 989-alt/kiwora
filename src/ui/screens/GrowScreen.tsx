@@ -136,7 +136,7 @@ export function GrowScreen({ state, dispatch }: Props) {
                 ...(inRoom ? drag.potProps : {}),
                 role: 'img',
                 // In the yard the soil around the trunk is only a place to drop fertilizer.
-                'aria-label': yard ? '나무 밑동' : '화분 끌기',
+                'aria-label': yard ? '식물 밑동' : '화분 끌어서 자리 옮기기',
                 'data-drop': 'pot',
                 ...(yard ? {} : { 'data-tut': 'pot' }),
               }}

@@ -56,7 +56,7 @@ test('scene screenshot while dragging the pot', async ({ page }) => {
   await useSave(page, saveWith({ stageIndex: 3, place: 'desk' }))
   await page.goto('/')
   await ready(page)
-  const pot = await page.getByRole('img', { name: '화분 끌기' }).boundingBox()
+  const pot = await page.getByRole('img', { name: '화분 끌어서 자리 옮기기' }).boundingBox()
   const slot = await page.getByRole('button', { name: '창가' }).boundingBox()
   if (!pot || !slot) throw new Error('no box')
   await page.mouse.move(pot.x + pot.width / 2, pot.y + pot.height / 2)

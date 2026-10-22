@@ -179,7 +179,7 @@ describe('lastReport', () => {
 })
 
 describe('restore code', () => {
-  const BAD = '코드가 맞지 않아요. 다시 확인해 주세요.'
+  const BAD = '기록 코드가 맞지 않아요. 다시 확인해 주세요.'
 
   it('roundtrip', () => {
     const d = sample()
@@ -200,7 +200,7 @@ describe('restore code', () => {
 })
 
 describe('short code (for writing down)', () => {
-  const BAD = '코드가 맞지 않아요. 다시 확인해 주세요.'
+  const BAD = '기록 코드가 맞지 않아요. 다시 확인해 주세요.'
   const FORMAT = /^[0-9A-HJKMNP-TV-Z]{5}(-[0-9A-HJKMNP-TV-Z]{5}){4}$/
 
   /** What a short code brings back: plant (no history), dex, day gating, settings; no journal or past tries. */

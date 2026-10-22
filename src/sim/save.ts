@@ -40,7 +40,7 @@ export type FinishedJournals = Partial<Record<SpeciesId, { journal: JournalEntry
 
 export const SAVE_KEY = 'plantlife.v1'
 const CODE_PREFIX = 'PL1-'
-const BAD_CODE = '코드가 맞지 않아요. 다시 확인해 주세요.'
+const BAD_CODE = '기록 코드가 맞지 않아요. 다시 확인해 주세요.'
 const MAX_BUGS = 12
 
 export function emptySave(): SaveData {

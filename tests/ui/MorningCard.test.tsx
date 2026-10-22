@@ -28,7 +28,7 @@ test('summary lines', () => {
 })
 
 test('a seed gets its own line and never "잎이 처졌어요"', () => {
-  expect(morningSummary({ ...base, grew: true }, 'seed')).toBe('흙 속에서 씨가 싹 틀 준비를 하고 있어요')
+  expect(morningSummary({ ...base, grew: true }, 'seed')).toBe('흙 속에서 씨가 싹이 틀 준비를 하고 있어요')
   const hurt = morningSummary({ ...base, grew: true, healthDelta: -4 }, 'seed')
   expect(hurt).not.toContain('잎')
   expect(hurt).toContain('씨')
@@ -42,13 +42,13 @@ test('a seed gets its own line and never "잎이 처졌어요"', () => {
 
 test('seed card on the grow screen', () => {
   render(<MorningCard report={{ ...base, grew: true }} day={2} dayDone={false} stage="seed" />)
-  expect(screen.getByRole('button', { name: '2일째 아침! 흙 속에서 씨가 싹 틀 준비를 하고 있어요' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '2일째 아침이에요! 흙 속에서 씨가 싹이 틀 준비를 하고 있어요' })).toBeTruthy()
 })
 
 test('card shows the morning line and closes on tap', () => {
   const onClose = vi.fn()
   render(<MorningCard report={{ ...base, heightDelta: 2 }} day={4} dayDone={false} onClose={onClose} />)
-  const card = screen.getByRole('button', { name: '4일째 아침! 키가 2cm 자랐어요' })
+  const card = screen.getByRole('button', { name: '4일째 아침이에요! 키가 2cm 자랐어요' })
   fireEvent.click(card)
   expect(screen.queryByRole('button')).toBeNull()
   expect(onClose).toHaveBeenCalledTimes(1)

@@ -14,5 +14,5 @@ export function levelFor(value: number, band: Band): { level: Level; dir: Dir } 
 export function dirLabel(key: ConditionKey, dir: Dir): string {
   if (dir === null || key === 'pest') return ''
   if (key === 'temp') return dir === 'low' ? '← 추워요' : '← 더워요'
-  return dir === 'low' ? '← 부족' : '← 너무 많음'
+  return dir === 'low' ? '← 부족해요' : '← 너무 많아요'
 }

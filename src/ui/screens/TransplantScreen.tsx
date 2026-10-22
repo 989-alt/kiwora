@@ -6,9 +6,9 @@ import './TransplantScreen.css'
 type YardPlace = Extract<Place, 'yardSunny' | 'yardPartial' | 'yardShade'>
 
 const CARDS: { place: YardPlace; name: string; line: string; sun: number }[] = [
-  { place: 'yardSunny', name: '양지', line: '햇빛이 하루 종일', sun: 1 },
-  { place: 'yardPartial', name: '반그늘', line: '햇빛이 반나절', sun: 0.66 },
-  { place: 'yardShade', name: '그늘', line: '햇빛이 조금', sun: 0.36 },
+  { place: 'yardSunny', name: '해가 잘 드는 곳', line: '햇빛이 하루 종일 비춰요', sun: 1 },
+  { place: 'yardPartial', name: '반그늘', line: '햇빛이 낮 동안 알맞게 비춰요', sun: 0.66 },
+  { place: 'yardShade', name: '그늘', line: '햇빛이 조금만 비춰요', sun: 0.36 },
 ]
 
 type Props = { plant: PlantState; dispatch: (a: Action) => void }
@@ -19,7 +19,7 @@ export function TransplantScreen({ plant, dispatch }: Props) {
     <section className="tp" aria-label="땅에 옮겨 심기">
       <h1 className="tp-title">
         <span className="tp-name">{SPECIES[plant.speciesId].name}</span>
-        <span className="tp-copy">나무가 커서 화분이 좁아요. 마당에 옮겨 심어요!</span>
+        <span className="tp-copy">식물이 자라서 화분이 좁아요. 땅에 옮겨 심어요!</span>
       </h1>
       <div className="tp-cards">
         {CARDS.map((c) => (

@@ -23,7 +23,7 @@ function usePreviousScreen(current: Screen): Screen | null {
 function SaveNotice({ onClose }: { onClose: () => void }) {
   return (
     <div className="save-notice" role="alert">
-      <span>이 기기에는 기록을 저장할 수 없어요. ‘기록 지키기’에서 코드를 적어 두세요.</span>
+      <span>이 기기에는 기록을 저장할 수 없어요. ‘기록 지키기’에서 기록 코드를 적어 두세요.</span>
       <button type="button" className="sc-btn" onClick={onClose}>
         알겠어요
       </button>

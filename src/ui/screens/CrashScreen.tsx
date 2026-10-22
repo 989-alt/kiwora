@@ -99,13 +99,13 @@ export function CrashScreen({ onReload = reloadPage }: { onReload?: () => void }
         <h1 id="cr-title" className="sc-h1">
           앗, 문제가 생겼어요
         </h1>
-        <p className="sc-sub">먼저 기록을 지켜 두고, 그래도 안 되면 처음부터 다시 해요.</p>
+        <p className="sc-sub">먼저 ‘기록 지키기’에서 코드를 적어 두고, 그래도 안 되면 처음부터 다시 해요.</p>
         <div className="cr-actions">
           <button type="button" className="sc-big sc-big--primary" onClick={() => setMode('backup')}>
             기록 지키기
           </button>
           <button type="button" className="sc-big" onClick={() => setAsking(true)}>
-            처음부터 다시
+            처음부터 다시 하기
           </button>
         </div>
       </section>

@@ -31,7 +31,7 @@ test('a render crash shows a friendly screen instead of a blank page', () => {
   )
   expect(screen.getByRole('heading', { name: '앗, 문제가 생겼어요' })).toBeTruthy()
   expect(screen.getByRole('button', { name: '기록 지키기' })).toBeTruthy()
-  expect(screen.getByRole('button', { name: '처음부터 다시' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '처음부터 다시 하기' })).toBeTruthy()
 })
 
 test('기록 지키기 opens the backup panel with the code of the save in storage', () => {
@@ -66,14 +66,14 @@ test('처음부터 다시 asks first; yes keeps a backup copy, clears the save a
       <Boom />
     </AppErrorBoundary>,
   )
-  fireEvent.click(screen.getByRole('button', { name: '처음부터 다시' }))
+  fireEvent.click(screen.getByRole('button', { name: '처음부터 다시 하기' }))
   expect(screen.getByRole('alertdialog')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '그만두기' }))
   expect(screen.queryByRole('alertdialog')).toBeNull()
   expect(localStorage.getItem(SAVE_KEY)).not.toBeNull()
   expect(reload).not.toHaveBeenCalled()
 
-  fireEvent.click(screen.getByRole('button', { name: '처음부터 다시' }))
+  fireEvent.click(screen.getByRole('button', { name: '처음부터 다시 하기' }))
   fireEvent.click(screen.getByRole('button', { name: '지우고 다시 하기' }))
   expect(localStorage.getItem(SAVE_KEY)).toBeNull()
   expect(JSON.parse(localStorage.getItem(BACKUP_KEY)!).plant.day).toBe(4)

@@ -54,7 +54,7 @@ export function JournalScreen({ state, dispatch, record }: Props) {
     <div className="sc jr">
       <header className="sc-head">
         <div className="jr-title">
-          <h1 className="sc-h1">{species ? `${species.name} 한살이 일지` : '관찰 일지'}</h1>
+          <h1 className="sc-h1">{species ? `${species.name} 한살이 관찰 일지` : '관찰 일지'}</h1>
           <span className="jr-sub">{sub}</span>
         </div>
         <nav className="sc-nav no-print" aria-label="메뉴">
@@ -89,7 +89,7 @@ export function JournalScreen({ state, dispatch, record }: Props) {
                   <li key={`${stage}-${i}`} className={`jr-stage${day === null ? ' jr-stage--todo' : ''}`}>
                     <img src={plantSrc(speciesId, stage)} alt="" draggable={false} />
                     <span className="jr-stage-name">{stageName(speciesId, stage)}</span>
-                    <span className="jr-stage-day">{day === null ? '아직' : `${day}일`}</span>
+                    <span className="jr-stage-day">{day === null ? '아직' : `${day}일째`}</span>
                     {stage === 'seed' && <span className="seed-mm jr-seed-mm">{seedSizeText(speciesId)}</span>}
                     {i < species.stages.length - 1 && <Arrow />}
                   </li>
@@ -102,7 +102,7 @@ export function JournalScreen({ state, dispatch, record }: Props) {
             <table className="jr-table">
               <thead>
                 <tr>
-                  <th scope="col">날</th>
+                  <th scope="col">며칠째</th>
                   <th scope="col">단계</th>
                   <th scope="col">키</th>
                   <th scope="col">잎</th>
@@ -113,7 +113,7 @@ export function JournalScreen({ state, dispatch, record }: Props) {
               <tbody>
                 {rows.map(({ entry, did }) => (
                   <tr key={entry.day}>
-                    <td>{entry.day}일</td>
+                    <td>{entry.day}일째</td>
                     <td>{stageName(speciesId, entry.stage)}</td>
                     <td>{Math.round(entry.heightCm)}cm</td>
                     <td>{Math.round(entry.leaves)}장</td>

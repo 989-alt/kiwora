@@ -145,7 +145,7 @@ describe('DexScreen', () => {
     expect(screen.getByRole('list', { name: '씨 도감' }).children).toHaveLength(9)
     expect(screen.getByText('2/9')).toBeTruthy()
     expect(screen.getAllByRole('list', { name: /한살이$/ })).toHaveLength(2)
-    fireEvent.click(screen.getByRole('button', { name: '다른 식물 키우기' }))
+    fireEvent.click(screen.getByRole('button', { name: '다른 식물 고르기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'pick' })
   })
 
@@ -165,8 +165,8 @@ describe('DexScreen', () => {
       screen: 'dex',
     }
     render(<DexScreen state={s} dispatch={dispatch} />)
-    expect(screen.queryByRole('button', { name: '다른 식물 키우기' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: '봉숭아 일지 보기' }))
+    expect(screen.queryByRole('button', { name: '다른 식물 고르기' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '봉숭아 관찰 일지 보기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'openRecord', id: 'balsam' })
     fireEvent.click(screen.getByRole('button', { name: '돌아가기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'grow' })
@@ -218,11 +218,11 @@ describe('DexScreen journal link', () => {
     const dispatch = vi.fn()
     const done = { ...newPlant('balsam'), stageIndex: SPECIES.balsam.stages.indexOf('seedDone') }
     const { unmount } = render(<DexScreen state={{ ...base(), plant: done, dex: ['balsam'] }} dispatch={dispatch} />)
-    fireEvent.click(screen.getByRole('button', { name: '일지 다시 보기' }))
+    fireEvent.click(screen.getByRole('button', { name: '관찰 일지 다시 보기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'journal' })
     unmount()
     render(<DexScreen state={{ ...base(), plant: newPlant('balsam') }} dispatch={dispatch} />)
-    expect(screen.queryByRole('button', { name: '일지 다시 보기' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '관찰 일지 다시 보기' })).toBeNull()
   })
 })
 
@@ -247,10 +247,10 @@ describe('finished journals', () => {
   test('a completed dex card opens its kept journal', () => {
     const dispatch = vi.fn()
     render(<DexScreen state={{ ...base(), plant: newPlant('corn'), dex: ['balsam', 'apple'], finished: { balsam: { journal: record } } }} dispatch={dispatch} />)
-    fireEvent.click(screen.getByRole('button', { name: '봉숭아 일지 보기' }))
+    fireEvent.click(screen.getByRole('button', { name: '봉숭아 관찰 일지 보기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'openRecord', id: 'balsam' })
     // a species completed before journals were kept has no button
-    expect(screen.queryByRole('button', { name: '사과나무 일지 보기' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '사과나무 관찰 일지 보기' })).toBeNull()
   })
 
   test('the kept journal is read-only and printable, even while another plant grows', () => {
@@ -270,7 +270,7 @@ describe('finished journals', () => {
       record: 'balsam',
     }
     render(<JournalScreen state={s} dispatch={dispatch} record="balsam" />)
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('봉숭아 한살이 일지')
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('봉숭아 한살이 관찰 일지')
     expect(screen.getByText('10일 만에 씨를 얻었어요!')).toBeTruthy()
     expect(within(screen.getByRole('table')).getAllByRole('row')).toHaveLength(4)
     expect(screen.getByText(/물이 부족해서 말라 버렸어요/)).toBeTruthy()
@@ -318,8 +318,8 @@ describe('BackupPanel', () => {
     const short = screen.getByLabelText('짧은 기록 코드')
     expect(short.textContent).toBe(shortCode(toSave(s)).replace(/-/g, ''))
     expect(short.querySelectorAll('.bk-group')).toHaveLength(5)
-    expect(screen.getByText(/이 짧은 코드를 실험관찰에 적어 두세요/)).toBeTruthy()
-    expect(screen.getByText('짧은 코드는 식물과 도감만 되살려요.')).toBeTruthy()
+    expect(screen.getByText(/이 짧은 기록 코드를 실험관찰에 적어 두세요/)).toBeTruthy()
+    expect(screen.getByText('짧은 기록 코드는 식물과 도감만 되살려요.')).toBeTruthy()
     expect(screen.getByLabelText('전체 기록 코드').textContent).toBe(exportCode(toSave(s)))
     expect(screen.queryByRole('img')).toBeNull() // no QR
   })
@@ -328,11 +328,11 @@ describe('BackupPanel', () => {
     const dispatch = vi.fn()
     const other = { ...base(), plant: { ...newPlant('rice'), day: 9 }, dex: ['bean' as const] }
     render(<BackupPanel state={withPlant()} dispatch={dispatch} back="grow" />)
-    fireEvent.change(screen.getByLabelText('되살릴 코드'), { target: { value: shortCode(toSave(other)).toLowerCase() } })
+    fireEvent.change(screen.getByLabelText('되살릴 기록 코드'), { target: { value: shortCode(toSave(other)).toLowerCase() } })
     fireEvent.click(screen.getByRole('button', { name: '기록 되살리기' }))
     // a short code only brings the plant back: the question says what changes, and what stays
-    expect(screen.getByText('지금 키우는 식물이 코드의 식물로 바뀌어요. 계속할까요?')).toBeTruthy()
-    expect(screen.getByText('끝낸 일지와 지난 시도는 그대로 남아요.')).toBeTruthy()
+    expect(screen.getByText('지금 키우는 식물이 기록 코드의 식물로 바뀌어요. 계속할까요?')).toBeTruthy()
+    expect(screen.getByText('끝낸 관찰 일지와 지난 시도는 그대로 남아요.')).toBeTruthy()
     expect(screen.queryByText('지금 기록이 바뀌어요. 계속할까요?')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '바꾸기' }))
     const a = dispatch.mock.calls[0][0]
@@ -356,7 +356,7 @@ describe('BackupPanel', () => {
     const dispatch = vi.fn()
     const other = { ...base(), plant: { ...newPlant('rice'), day: 9 } }
     render(<BackupPanel state={withPlant()} dispatch={dispatch} back="grow" />)
-    fireEvent.change(screen.getByLabelText('되살릴 코드'), { target: { value: `  ${exportCode(toSave(other))}\n` } })
+    fireEvent.change(screen.getByLabelText('되살릴 기록 코드'), { target: { value: `  ${exportCode(toSave(other))}\n` } })
     fireEvent.click(screen.getByRole('button', { name: '기록 되살리기' }))
     expect(screen.getByText('지금 기록이 바뀌어요. 계속할까요?')).toBeTruthy()
     expect(dispatch).not.toHaveBeenCalled()
@@ -374,9 +374,9 @@ describe('BackupPanel', () => {
   test('bad code shows message', () => {
     const dispatch = vi.fn()
     render(<BackupPanel state={withPlant()} dispatch={dispatch} back="grow" />)
-    fireEvent.change(screen.getByLabelText('되살릴 코드'), { target: { value: 'PL1-엉터리' } })
+    fireEvent.change(screen.getByLabelText('되살릴 기록 코드'), { target: { value: 'PL1-엉터리' } })
     fireEvent.click(screen.getByRole('button', { name: '기록 되살리기' }))
-    expect(screen.getByRole('alert').textContent).toBe('코드가 맞지 않아요. 다시 확인해 주세요.')
+    expect(screen.getByRole('alert').textContent).toBe('기록 코드가 맞지 않아요. 다시 확인해 주세요.')
     expect(screen.queryByText('지금 기록이 바뀌어요. 계속할까요?')).toBeNull()
     expect(dispatch).not.toHaveBeenCalled()
   })
@@ -384,7 +384,7 @@ describe('BackupPanel', () => {
   test('warning shows a friendly line; back goes where it should', () => {
     const dispatch = vi.fn()
     render(<BackupPanel state={{ ...base(), warning: 'corrupt' }} dispatch={dispatch} back="pick" />)
-    expect(screen.getByText('기록을 불러오지 못했어요. 적어 둔 코드가 있으면 넣어 주세요.')).toBeTruthy()
+    expect(screen.getByText('기록을 불러오지 못했어요. 적어 둔 기록 코드가 있으면 넣어 주세요.')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: '돌아가기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'pick' })
     expect(dispatch).toHaveBeenCalledWith({ type: 'clearWarning' })

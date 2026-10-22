@@ -91,7 +91,7 @@ export function WateringCan({ disabled, sound, onWater, onPourChange }: Props) {
       <img src={asset('tools/watering_can.png')} alt="" draggable={false} />
       <span className="tool-text">
         <span className="tool-name">물 주기</span>
-        <span className="tool-hint">꾹 누르고 있어요</span>
+        <span className="tool-hint">길게 꾹 눌러요</span>
       </span>
     </button>
   )
