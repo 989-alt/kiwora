@@ -3,7 +3,7 @@ import { SPECIES, type SpeciesId, type StageId } from '../sim/species'
 import { stageName } from './journalText'
 import type { Place } from '../sim/types'
 import { DEFAULTS, bgArt, bugSpots, plantArt, plantSrc, potArt, type BgAnchor, type BugSpots, type PlantAnchor, type PotAnchor } from './art'
-import { Mound, Signpost, Snow, WinterVeil } from './Scenery'
+import { Mound, Signpost, Snow, WinterLight, WinterVeil } from './Scenery'
 import './PlantView.css'
 
 export type Face = 'happy' | 'normal' | 'worried' | 'sick'
@@ -204,7 +204,10 @@ type Props = {
   health: number
   lightLow: boolean
   place: Place
-  /** Winter phase: white veil and snow; the plant looks leafless through its own winter picture (a muted filter if it has none). */
+  /**
+   * Winter phase: in the yard a white veil and snow, indoors a cool window light (no snow in the room);
+   * the plant looks leafless through its own winter picture (a muted filter if it has none).
+   */
   winter?: boolean
   /** Handlers and attributes for the touch area over the pot (drag, drop target). */
   potProps?: HTMLAttributes<HTMLDivElement> & Record<`data-${string}`, string | undefined>
@@ -321,13 +324,13 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
     >
       <img
         data-layer="bg"
-        className="pv-layer"
+        className={`pv-layer${place === 'shade' ? ' pv-bg--shade' : ''}`}
         src={bgPic.src}
         alt=""
         draggable={false}
         style={{ left: L.bg.x, top: L.bg.y, width: L.bg.w, height: L.bg.h }}
       />
-      {winter && <WinterVeil />}
+      {winter && <WinterLight />}
       {shadow}
       <img data-layer="pot-back" className="pv-layer" src={potSrc} alt="" draggable={false} style={{ ...potBox, filter: potFilter }} />
       {plantImg}
@@ -342,7 +345,6 @@ export function PlantView({ speciesId, stage, health, lightLow, place, winter = 
       {hitProps}
       {bugs}
       {sceneOverlay?.(L)}
-      {winter && <Snow />}
     </div>
   )
 }

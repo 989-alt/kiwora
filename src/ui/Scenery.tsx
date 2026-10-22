@@ -54,6 +54,11 @@ export function WinterVeil() {
   return <div data-layer="winter" className="pv-layer pv-winter" aria-hidden="true" />
 }
 
+/** Indoors in winter: no snow in the room, only the cool light of a winter window over the scene. */
+export function WinterLight() {
+  return <div data-layer="winter-light" className="pv-layer pv-winter-light" aria-hidden="true" />
+}
+
 export function Snow() {
   return (
     <div data-layer="snow" className="pv-layer pv-snow" aria-hidden="true">

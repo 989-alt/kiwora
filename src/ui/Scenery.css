@@ -54,7 +54,16 @@
   object-position: 50% 62%;
 }
 
-/* Winter: white veil between background and plant, snow above everything. */
+/* Winter indoors: a cool window light (bluish from the window side), no snow in the room. */
+.pv-winter-light {
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 18% 10%, rgba(219, 234, 254, 0.55), rgba(219, 234, 254, 0) 60%),
+    linear-gradient(rgba(191, 219, 254, 0.32), rgba(224, 242, 254, 0.18));
+}
+
+/* Winter in the yard: white veil between background and plant, snow above everything. */
 .pv-winter {
   inset: 0;
   background: linear-gradient(rgba(206, 226, 250, 0.6), rgba(255, 255, 255, 0.58));

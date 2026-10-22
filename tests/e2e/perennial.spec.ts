@@ -92,19 +92,26 @@ test('other stages show no years badge', async ({ page }) => {
   await expect(page.getByText(/년 뒤/)).toHaveCount(0)
 })
 
-test('winter: snow, leafless look and the winter water band', async ({ page }) => {
+test('winter in the room: a cool window light, no snow indoors; leafless look and the winter water band', async ({ page }) => {
   await useSave(page, saveWith({ speciesId: 'dandelion', stageIndex: 6, water: 30, nutrient: 10, place: 'desk' }))
   await page.goto('/')
-  await expect(page.locator('[data-layer="winter"]')).toBeVisible()
-  await expect(page.locator('[data-layer="snow"]')).toBeVisible()
-  expect(await page.locator('.pv-flake').count()).toBeGreaterThan(10)
+  await expect(page.locator('[data-layer="winter-light"]')).toBeVisible()
+  await expect(page.locator('[data-layer="winter-light"]')).toHaveCSS('pointer-events', 'none')
+  await expect(page.locator('[data-layer="snow"]')).toHaveCount(0)
   // water 30 is ideal in winter (20..40) but only just-ok in the growing season
   await expect(page.getByRole('group', { name: /^물 / })).toHaveAttribute('aria-label', /매우 좋음/)
   // dandelion has its own winter picture: shown as drawn, not muted by the leafless filter
   await expect(page.locator('[data-layer="plant"]')).toHaveAttribute('src', '/plants/dandelion/winter.webp')
   await expect(page.locator('[data-layer="plant"]')).toHaveCSS('opacity', '1')
   await expect(page.locator('[data-layer="plant"]')).toHaveCSS('filter', 'none')
-  // snow stays out of the way of the tools
+})
+
+test('winter in the yard: veil and falling snow, out of the way of the tools', async ({ page }) => {
+  await useSave(page, saveWith({ speciesId: 'apple', stageIndex: 6, water: 30, nutrient: 10, place: 'yardSunny' }))
+  await page.goto('/')
+  await expect(page.locator('[data-layer="winter"]')).toBeVisible()
+  await expect(page.locator('[data-layer="snow"]')).toBeVisible()
+  expect(await page.locator('.pv-flake').count()).toBeGreaterThan(10)
   await expect(page.locator('[data-layer="snow"]')).toHaveCSS('pointer-events', 'none')
 })
 
@@ -117,7 +124,7 @@ test('summer has no snow', async ({ page }) => {
 
 test('snow stands still with reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await useSave(page, saveWith({ speciesId: 'dandelion', stageIndex: 6 }))
+  await useSave(page, saveWith({ speciesId: 'apple', stageIndex: 6, place: 'yardSunny' }))
   await page.goto('/')
   await expect(page.locator('.pv-flake').first()).toHaveCSS('animation-name', 'none')
 })
@@ -182,7 +189,8 @@ test.describe('screenshots', () => {
     await useSave(page, saveWith({ speciesId: 'dandelion', stageIndex: 6, place: 'desk', water: 30, nutrient: 10 }))
     await page.goto('/')
     await ready(page)
-    await expect(page.locator('[data-layer="snow"]')).toBeVisible()
+    await expect(page.locator('[data-layer="winter-light"]')).toBeVisible()
+    await expect(page.locator('[data-layer="snow"]')).toHaveCount(0)
     await page.screenshot({ path: `${SHOTS}/winter-room-1194.png` })
   })
 })

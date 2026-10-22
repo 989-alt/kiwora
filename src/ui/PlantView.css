@@ -44,3 +44,8 @@
   border-radius: 50%;
   cursor: default;
 }
+
+/* The shade picture is dark: lighten it (only the background) so the pot and plant read clearly. */
+.pv-bg--shade {
+  filter: brightness(1.35) saturate(1.1);
+}

@@ -164,12 +164,23 @@ describe('PlantView in the yard', () => {
 })
 
 describe('PlantView in winter', () => {
-  test('white veil under the plant, snow above it', () => {
+  test('indoors: a cool window-light tint under the plant, no snow falling in the room', () => {
+    for (const place of ['window', 'desk', 'shade'] as const) {
+      const { container, unmount } = render(
+        <PlantView speciesId="dandelion" stage="winter" health={90} lightLow={false} place={place} winter />,
+      )
+      const layers = [...container.querySelectorAll('[data-layer]')].map((el) => el.getAttribute('data-layer'))
+      expect(layers, place).toEqual(['bg', 'winter-light', 'shadow', 'pot-back', 'plant', 'pot-front'])
+      unmount()
+    }
+  })
+
+  test('in the yard: white veil under the tree, snow above it', () => {
     const { container } = render(
-      <PlantView speciesId="dandelion" stage="winter" health={90} lightLow={false} place="desk" winter />,
+      <PlantView speciesId="apple" stage="winter" health={90} lightLow={false} place="yardSunny" winter />,
     )
     const layers = [...container.querySelectorAll('[data-layer]')].map((el) => el.getAttribute('data-layer'))
-    expect(layers).toEqual(['bg', 'winter', 'shadow', 'pot-back', 'plant', 'pot-front', 'snow'])
+    expect(layers).toEqual(['yard-bg', 'winter', 'shadow', 'plant', 'mound', 'signpost', 'snow'])
   })
 
   test('a species with a real winter picture shows it without the leafless filter', () => {
@@ -181,8 +192,7 @@ describe('PlantView in winter', () => {
       expect(plant.getAttribute('src'), id).toBe(`/plants/${id}/winter.webp`)
       expect(plant.style.filter, id).not.toContain('grayscale')
       expect(plant.style.opacity, id).toBe('')
-      expect(container.querySelector('[data-layer="winter"]'), id).not.toBeNull()
-      expect(container.querySelector('[data-layer="snow"]'), id).not.toBeNull()
+      expect(container.querySelector('[data-layer="winter-light"]'), id).not.toBeNull()
       unmount()
     }
   })
@@ -205,6 +215,17 @@ describe('PlantView in winter', () => {
     expect(plant.getAttribute('src')).toBe('/plants/standin.png')
     expect(plant.style.filter).toContain('grayscale(.7) brightness(.9) contrast(.9)')
     expect(plant.style.opacity).toBe('0.85')
+  })
+
+  test('the shade background is lightened so the pot and plant read clearly (only the shade)', () => {
+    const { container, unmount } = render(<PlantView speciesId="bean" stage="leafStem" health={90} lightLow={false} place="shade" />)
+    expect(container.querySelector('[data-layer="bg"]')!.className).toContain('pv-bg--shade')
+    unmount()
+    for (const place of ['window', 'desk'] as const) {
+      const r = render(<PlantView speciesId="bean" stage="leafStem" health={90} lightLow={false} place={place} />)
+      expect(r.container.querySelector('[data-layer="bg"]')!.className, place).not.toContain('pv-bg--shade')
+      r.unmount()
+    }
   })
 
   test('no snow outside winter', () => {
