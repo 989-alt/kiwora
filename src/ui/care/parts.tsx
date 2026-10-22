@@ -30,6 +30,7 @@ export function Target({
   press,
   mark = true,
   className = '',
+  tut,
   children,
 }: {
   r: Rect
@@ -38,6 +39,8 @@ export function Target({
   press: ReturnType<typeof usePress>
   mark?: boolean
   className?: string
+  /** The first-visit tip bubble points at this (data-tut). */
+  tut?: string
   children?: ReactNode
 }) {
   return (
@@ -45,6 +48,7 @@ export function Target({
       type="button"
       className={`care-target${mark ? ' care-target--mark' : ''} ${className}`}
       aria-label={label}
+      data-tut={tut}
       disabled={disabled}
       style={place(r)}
       {...press}

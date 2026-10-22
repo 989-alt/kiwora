@@ -46,6 +46,16 @@ describe('JournalScreen', () => {
     expect(within(table).getAllByText('물 주기')).toHaveLength(5)
   })
 
+  test('a quick-mode journal writes N일째 in the date column, not the real date', () => {
+    const journal = [1, 2, 3].map((d) => entry(d, { dateKey: '2026-10-22' }))
+    const plant = { ...newPlant('balsam'), stageIndex: 1, day: 4, mode: 'quick' as const }
+    render(<JournalScreen state={stateWith(journal, { plant })} dispatch={() => {}} />)
+    const table = screen.getByRole('table')
+    expect(within(table).getByText('1일째')).toBeTruthy()
+    expect(within(table).getByText('3일째')).toBeTruthy()
+    expect(within(table).queryByText(/2026/)).toBeNull()
+  })
+
   test('strip shows one picture per stage of the species with the day it was reached', () => {
     const journal = [entry(1, { stage: 'seed' }), entry(2, { stage: 'sprout' }), entry(3, { stage: 'sprout' })]
     render(<JournalScreen state={stateWith(journal)} dispatch={() => {}} />)

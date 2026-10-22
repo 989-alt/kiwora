@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { isOutdoor, pendingCare } from '../../sim/care'
 import { currentStatuses } from '../../sim/day'
 import { seedFor } from '../../sim/rng'
@@ -27,7 +27,6 @@ import { Ruler } from '../observe/Ruler'
 import './GrowScreen.css'
 
 const PORTRAIT = '(max-width: 899px)'
-const YARD_TIPS: TipTarget[] = ['water', 'bug']
 const ROOM = ['window', 'desk', 'shade']
 
 function useMedia(query: string): boolean {
@@ -112,6 +111,11 @@ export function GrowScreen({ state, dispatch }: Props) {
   // Winter asks a potted perennial in to the desk: that slot shines (moving there finishes the care).
   const moveIn = pendingCare(plant) === 'moveIn'
   // The morning card (top left of the scene) is up until it is closed: care targets keep out from under it.
+  const hasTodo = todoItems(state).length > 0
+  const tipSteps = useMemo<TipTarget[]>(
+    () => [...(sowFirst ? ['sow' as const] : []), 'water', ...(yard ? [] : ['pot' as const]), 'bug', ...(hasTodo ? ['todo' as const] : [])],
+    [sowFirst, yard, hasTodo],
+  )
   const morningUp = !!state.morning && !locked && !morningShown(state)
 
   const moon = propArt('moon')
@@ -299,8 +303,8 @@ export function GrowScreen({ state, dispatch }: Props) {
       </div>
 
       {/* Portrait: the page scrolls, so 하루 마치기 rides along in a bar stuck to the bottom of the screen. */}
-      {/* (hidden while observing: the choices sit there; 관찰 마치기 brings it back) */}
-      {portrait && !obs.ui.open && <div className="gs-endbar">{endButton}</div>}
+      {/* (also while observing, so the day can always be ended; scroll-padding keeps what is scrolled to above it) */}
+      {portrait && <div className="gs-endbar">{endButton}</div>}
 
       {drag.ghost && (
         <img
@@ -313,7 +317,7 @@ export function GrowScreen({ state, dispatch }: Props) {
       )}
       {!state.settings.tutorialSeen && (
         // In the yard there is no pot to move: only the watering can and bug tips.
-        <Tutorial rootRef={rootRef} steps={yard ? YARD_TIPS : undefined} onDone={() => dispatch({ type: 'tutorialDone' })} />
+        <Tutorial rootRef={rootRef} steps={tipSteps} onDone={() => dispatch({ type: 'tutorialDone' })} />
       )}
     </div>
   )

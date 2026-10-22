@@ -122,6 +122,7 @@ export default function App() {
           key={s.nightFx.n}
           fx={s.nightFx}
           outdoor={s.plant !== null && isOutdoor(s.plant)}
+          day={s.plant?.day}
           onDone={() => dispatch({ type: 'nightFxDone' })}
         />
       )}

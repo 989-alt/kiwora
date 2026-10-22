@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState, type RefObject } from 'react'
 
-export type TipTarget = 'water' | 'pot' | 'bug'
+export type TipTarget = 'sow' | 'water' | 'pot' | 'bug' | 'todo'
 
 const STEPS: { target: TipTarget; text: string }[] = [
+  { target: 'sow', text: '씨 봉투에서 씨를 꺼내 흙에 심어요' },
   { target: 'water', text: '물뿌리개를 꾹 누르면 물이 나와요' },
   { target: 'pot', text: '화분을 끌어서 자리를 옮겨요' },
   { target: 'bug', text: '벌레를 톡 눌러 잡아요' },
+  { target: 'todo', text: '오늘 할 일은 여기에 나와요' },
 ]
 
 const BUBBLE_W = 300
@@ -27,8 +29,8 @@ function place(root: HTMLElement, target: string): Pos | null {
 }
 
 /**
- * First-visit tips: three bubbles (watering can → pot → bug), each closes on tap; `steps` picks some of them
- * (the yard has no pot to move). Only the bubble takes touches, so the student can keep playing.
+ * First-visit tips: bubbles in order (seed packet → watering can → pot → bug → to-do card), each closes on tap; `steps` picks
+ * some of them (a plant past the seed stage has no sowing, the yard has no pot to move, no card without a to-do). Only the bubble takes touches, so the student can keep playing.
  */
 export function Tutorial({ rootRef, onDone, steps }: { rootRef: RefObject<HTMLElement>; onDone: () => void; steps?: TipTarget[] }) {
   const tips = useMemo(() => (steps ? STEPS.filter((s) => steps.includes(s.target)) : STEPS), [steps])

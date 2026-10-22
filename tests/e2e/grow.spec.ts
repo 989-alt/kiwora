@@ -86,16 +86,23 @@ test('end day locks tools', async ({ page }) => {
   await expect(page.locator('.gs-night-summary')).toBeVisible()
 })
 
-test('first visit shows three tip bubbles in order', async ({ page }) => {
-  await useSave(page, saveWith({ bugs: 1 }, { tutorialSeen: false }))
+test('first visit tips follow sow → water → pot → bug → todo', async ({ page }) => {
+  // a fresh seed (v2 plant: sowing is due, so the to-do card is up too)
+  await useSave(page, saveWith({ stageIndex: 0, bugs: 1, mode: 'daily', careDone: 0, weatherFrom: 99, day: 1 }, { tutorialSeen: false }))
   await page.goto('/')
-  const tips = ['물뿌리개를 꾹 누르면 물이 나와요', '화분을 끌어서 자리를 옮겨요', '벌레를 톡 눌러 잡아요']
+  const tips = [
+    '씨 봉투에서 씨를 꺼내 흙에 심어요',
+    '물뿌리개를 꾹 누르면 물이 나와요',
+    '화분을 끌어서 자리를 옮겨요',
+    '벌레를 톡 눌러 잡아요',
+    '오늘 할 일은 여기에 나와요',
+  ]
   for (const t of tips) {
     const bubble = page.getByRole('button', { name: t })
     await expect(bubble).toBeVisible()
     await bubble.tap()
   }
-  await expect(page.getByRole('button', { name: tips[2] })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: tips[4] })).toHaveCount(0)
   await page.reload()
   await expect(page.getByRole('button', { name: tips[0] })).toHaveCount(0)
 })

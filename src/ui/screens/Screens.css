@@ -536,8 +536,9 @@
 }
 /* The code to write down: big letters, one box per dash-separated group. */
 .bk-short {
-  display: flex;
-  flex-wrap: wrap;
+  /* 7 groups: four, then three (never five and two) */
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
   justify-content: center;
   gap: 10px;
   padding: 14px 12px;

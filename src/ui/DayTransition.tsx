@@ -60,6 +60,8 @@ type Props = {
   onDone: () => void
   /** The plant lives in the yard (the forecast words differ for heat). */
   outdoor?: boolean
+  /** The plant's day number once the cover is over (read out for a screen reader). */
+  day?: number
 }
 
 /**
@@ -67,7 +69,8 @@ type Props = {
  * morning. Daily plant: sunset and night, and the night scene of the grow screen stays. A tap anywhere ends it.
  * Mount it once per signal (the store clears the signal with nightFxDone).
  */
-export function DayTransition({ fx, onDone, outdoor = false }: Props) {
+export function DayTransition({ fx, onDone, outdoor = false, day }: Props) {
+  const cover = useRef<HTMLDivElement>(null)
   const [reduced] = useState(prefersReducedMotion)
   const short = reduced || fx.ending === 'fade'
   const [phase, setPhase] = useState<DayPhase>(short ? 'night' : 'dusk')
@@ -90,16 +93,42 @@ export function DayTransition({ fx, onDone, outdoor = false }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // While the cover runs the screen under it cannot be reached by keys or a reader; the cover takes the focus
+  // (Enter, Space or Escape skips it) and hands it back to what had it.
+  useEffect(() => {
+    const before = document.activeElement as HTMLElement | null
+    const mains = Array.from(document.querySelectorAll('main'))
+    mains.forEach((m) => m.setAttribute('inert', ''))
+    cover.current?.focus({ preventScroll: true })
+    return () => {
+      mains.forEach((m) => m.removeAttribute('inert'))
+      if (before && document.contains(before) && typeof before.focus === 'function') before.focus({ preventScroll: true })
+    }
+  }, [])
+
+  const announce =
+    fx.ending === 'sunrise' && day ? `${day}일째 아침이에요` : fx.ending === 'night' ? '밤이 되었어요' : '하루가 끝났어요'
   const moon = propArt('moon')
   return (
     <div
+      ref={cover}
       className="dt"
       role="presentation"
+      tabIndex={-1}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+          e.preventDefault()
+          finish()
+        }
+      }}
       data-phase={phase}
       data-ending={fx.ending}
       data-motion={reduced ? 'reduced' : 'full'}
       onClick={finish}
     >
+      <p className="dt-live" role="status" aria-live="polite">
+        {announce}
+      </p>
       <div className="dt-sky dt-sky--dusk" />
       <div className="dt-sky dt-sky--night" />
       <div className="dt-sky dt-sky--dawn" />

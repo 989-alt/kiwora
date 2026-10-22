@@ -21,6 +21,9 @@ vi.mock('../../src/sim/approved', async (orig) => {
 
 const base = () => boot(emptySave(), '2026-10-25')
 
+/** The mode dialog ignores taps for a moment after it opens (a double tap must not choose). */
+const afterGuard = () => new Promise((r) => setTimeout(r, 450))
+
 describe('PickScreen', () => {
   test('pick shows nine species in two groups', () => {
     render(<PickScreen state={base()} dispatch={() => {}} />)
@@ -32,10 +35,11 @@ describe('PickScreen', () => {
     expect(within(perennial).getByRole('button', { name: /감나무/ })).toBeTruthy()
   })
 
-  test('card dispatches pick; completed species carry a badge; links open dex and backup', () => {
+  test('card dispatches pick; completed species carry a badge; links open dex and backup', async () => {
     const dispatch = vi.fn()
     render(<PickScreen state={{ ...base(), dex: ['rice'] }} dispatch={dispatch} />)
     fireEvent.click(screen.getByRole('button', { name: /강낭콩/ }))
+    await afterGuard()
     fireEvent.click(screen.getByRole('button', { name: /^매일 키우기/ }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'bean', mode: 'daily' })
     expect(within(screen.getByRole('button', { name: /벼/ })).getByText('완성')).toBeTruthy()
@@ -87,7 +91,7 @@ describe('PickScreen', () => {
 })
 
 describe('PickScreen mode choice', () => {
-  test('pick asks for a mode and starts the plant in it', () => {
+  test('pick asks for a mode and starts the plant in it', async () => {
     const dispatch = vi.fn()
     render(<PickScreen state={base()} dispatch={dispatch} />)
     fireEvent.click(screen.getByRole('button', { name: /강낭콩/ }))
@@ -95,14 +99,16 @@ describe('PickScreen mode choice', () => {
     const dlg = screen.getByRole('dialog')
     expect(within(dlg).getByText(/하루에 한 번, 진짜 날짜처럼/)).toBeTruthy()
     expect(within(dlg).getByText(/하루 마치기를 누르면 바로 다음 날/)).toBeTruthy()
+    await afterGuard()
     fireEvent.click(within(dlg).getByRole('button', { name: /^한 번에 키우기/ }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'bean', mode: 'quick' })
   })
 
-  test('그만두기 keeps the pick screen', () => {
+  test('그만두기 keeps the pick screen', async () => {
     const dispatch = vi.fn()
     render(<PickScreen state={base()} dispatch={dispatch} />)
     fireEvent.click(screen.getByRole('button', { name: /강낭콩/ }))
+    await afterGuard()
     fireEvent.click(screen.getByRole('button', { name: '그만두기' }))
     expect(screen.queryByRole('dialog')).toBeNull()
     expect(dispatch).not.toHaveBeenCalled()
@@ -227,29 +233,56 @@ describe('DexScreen', () => {
 })
 
 describe('GrowScreen tutorial', () => {
-  test('a plant that reaches the yard before the tutorial was seen gets the water and bug tips (no pot tip)', () => {
+  const unseen = { sound: false, tutorialSeen: false }
+  const names = () => [/씨 봉투에서 씨를/, /물뿌리개를 꾹/, /화분을 끌어서/, /벌레를 톡/, /오늘 할 일은 여기에/]
+
+  /** Taps every bubble in turn; returns the list of bubble texts seen. */
+  const walk = (n: number) => {
+    const seen: string[] = []
+    for (let i = 0; i < n; i++) {
+      const tip = document.querySelector<HTMLButtonElement>('.tip')
+      if (!tip) break
+      seen.push(tip.textContent ?? '')
+      fireEvent.click(tip)
+    }
+    return seen
+  }
+
+  test('first visit tips follow sow → water → pot → bug → todo', () => {
+    const dispatch = vi.fn()
+    const s: AppState = { ...base(), plant: { ...newPlant('bean'), day: 1 }, settings: unseen, screen: 'grow' }
+    render(<GrowScreen state={s} dispatch={dispatch} />)
+    const seen = walk(5)
+    expect(seen).toHaveLength(5)
+    names().forEach((re, i) => expect(seen[i]).toMatch(re))
+    expect(seen[0]).toContain('1/5')
+    expect(dispatch).toHaveBeenCalledWith({ type: 'tutorialDone' })
+  })
+
+  test('a plant past the seed stage skips the sowing tip', () => {
+    const plant = { ...newPlant('bean'), day: 3, stageIndex: 2, careDone: 1 << 2 }
+    const s: AppState = { ...base(), plant, settings: unseen, screen: 'grow' }
+    render(<GrowScreen state={s} dispatch={() => {}} />)
+    const seen = walk(4)
+    expect(seen.some((t) => /씨 봉투/.test(t))).toBe(false)
+    expect(seen[0]).toMatch(/물뿌리개를 꾹/)
+    expect(seen[1]).toMatch(/화분을 끌어서/)
+  })
+
+  test('a plant that reaches the yard gets water, bug and todo tips (no pot tip)', () => {
     const dispatch = vi.fn()
     const s: AppState = {
       ...base(),
       plant: { ...newPlant('apple'), stageIndex: 3, place: 'yardSunny', day: 9 },
-      settings: { sound: false, tutorialSeen: false },
+      settings: unseen,
       screen: 'grow',
     }
     render(<GrowScreen state={s} dispatch={dispatch} />)
-    const tip1 = screen.getByRole('button', { name: /물뿌리개를 꾹 누르면 물이 나와요/ })
-    expect(tip1.textContent).toContain('1/2')
-    fireEvent.click(tip1)
-    const tip2 = screen.getByRole('button', { name: /벌레를 톡 눌러 잡아요/ })
-    expect(tip2.textContent).toContain('2/2')
-    expect(screen.queryByText(/화분을 끌어서/)).toBeNull()
-    fireEvent.click(tip2)
+    const seen = walk(4)
+    expect(seen.some((t) => /화분을 끌어서/.test(t))).toBe(false)
+    expect(seen[0]).toMatch(/물뿌리개를 꾹/)
+    expect(seen[1]).toMatch(/벌레를 톡/)
     expect(dispatch).toHaveBeenCalledWith({ type: 'tutorialDone' })
-  })
-
-  test('in the room the three tips stay', () => {
-    const s: AppState = { ...base(), plant: { ...newPlant('bean'), day: 1 }, settings: { sound: false, tutorialSeen: false }, screen: 'grow' }
-    render(<GrowScreen state={s} dispatch={() => {}} />)
-    expect(screen.getByRole('button', { name: /물뿌리개를 꾹/ }).textContent).toContain('1/3')
   })
 })
 
@@ -413,7 +446,7 @@ describe('finished journals', () => {
     print.mockRestore()
   })
 
-  test('PickScreen asks first only when a finished journal would be lost', () => {
+  test('PickScreen asks first only when a finished journal would be lost', async () => {
     const dispatch = vi.fn()
     const done = { ...newPlant('bean'), stageIndex: SPECIES.bean.stages.indexOf('seedDone'), day: 11 }
     const lost: AppState = { ...base(), plant: done, journal: record, dex: ['bean'] }
@@ -426,6 +459,7 @@ describe('finished journals', () => {
     fireEvent.click(screen.getByRole('button', { name: /벼/ }))
     fireEvent.click(screen.getByRole('button', { name: '새로 키우기' }))
     expect(dispatch).not.toHaveBeenCalled()
+    await afterGuard()
     fireEvent.click(screen.getByRole('button', { name: /^한 번에 키우기/ }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'rice', mode: 'quick' })
     unmount()
@@ -434,6 +468,7 @@ describe('finished journals', () => {
     fireEvent.click(screen.getByRole('button', { name: /벼/ }))
     expect(dispatch).not.toHaveBeenCalled()
     expect(screen.queryByRole('alertdialog')).toBeNull()
+    await afterGuard()
     fireEvent.click(screen.getByRole('button', { name: /^매일 키우기/ }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'rice', mode: 'daily' })
   })

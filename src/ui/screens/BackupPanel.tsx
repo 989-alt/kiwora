@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { exportCode, importCode, isShortCode, shortCode, type SaveData } from '../../sim/save'
 import { toSave, type Action, type AppState, type Screen } from '../../store'
+import { Modal } from '../Modal'
 import './Screens.css'
 
 type Props = {
@@ -160,32 +161,24 @@ export function BackupPanel({ state, dispatch, back }: Props) {
       </div>
 
       {pending && (
-        <div className="bk-overlay">
-          <div
-            className="bk-dialog"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="bk-dialog-title"
-            onKeyDown={(e) => e.key === 'Escape' && setPending(null)}
-          >
-            <p id="bk-dialog-title" className="bk-dialog-title">
-              {pending.keep ? '지금 키우는 식물이 기록 코드의 식물로 바뀌어요. 계속할까요?' : '지금 기록이 바뀌어요. 계속할까요?'}
-            </p>
-            {pending.keep && <p className="bk-help">끝낸 관찰 일지와 지난 시도는 그대로 남아요.</p>}
-            <div className="bk-dialog-actions">
-              <button
-                type="button"
-                className="sc-big sc-big--primary"
-                onClick={() => dispatch(pending.keep ? { type: 'restore', data: pending.data, keep: true } : { type: 'restore', data: pending.data })}
-              >
-                바꾸기
-              </button>
-              <button type="button" className="sc-big" autoFocus onClick={() => setPending(null)}>
-                그만두기
-              </button>
-            </div>
+        <Modal role="alertdialog" labelledBy="bk-dialog-title" onClose={() => setPending(null)}>
+          <p id="bk-dialog-title" className="bk-dialog-title">
+            {pending.keep ? '지금 키우는 식물이 기록 코드의 식물로 바뀌어요. 계속할까요?' : '지금 기록이 바뀌어요. 계속할까요?'}
+          </p>
+          {pending.keep && <p className="bk-help">끝낸 관찰 일지와 지난 시도는 그대로 남아요.</p>}
+          <div className="bk-dialog-actions">
+            <button
+              type="button"
+              className="sc-big sc-big--primary"
+              onClick={() => dispatch(pending.keep ? { type: 'restore', data: pending.data, keep: true } : { type: 'restore', data: pending.data })}
+            >
+              바꾸기
+            </button>
+            <button type="button" className="sc-big" autoFocus onClick={() => setPending(null)}>
+              그만두기
+            </button>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   )

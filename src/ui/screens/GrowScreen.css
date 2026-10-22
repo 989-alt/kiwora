@@ -191,6 +191,14 @@
   width: auto;
 }
 /* Portrait: 하루 마치기 in a bar stuck to the bottom of the screen (the page scrolls under it). */
+/* Whatever is scrolled into view (a focused button, the status board) stops above the bar, not under it. */
+html:has(.gs--portrait) {
+  scroll-padding-bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+}
+.gs--portrait .gs-aside,
+.gs--portrait .gs-tools {
+  scroll-margin-bottom: 24px;
+}
 .gs-endbar {
   position: sticky;
   bottom: 0;

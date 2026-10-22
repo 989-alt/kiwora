@@ -31,6 +31,25 @@ describe('DayTransition', () => {
     delete window.matchMedia
   })
 
+  test('keys skip the cover, main is inert meanwhile, the day is announced, the focus comes back', () => {
+    const main = document.createElement('main')
+    const btn = document.createElement('button')
+    main.appendChild(btn)
+    document.body.appendChild(main)
+    btn.focus()
+    const onDone = vi.fn()
+    const { container, unmount } = render(<DayTransition fx={fx()} day={5} onDone={onDone} />)
+    expect(main.hasAttribute('inert')).toBe(true)
+    expect(document.activeElement).toBe(container.querySelector('.dt'))
+    expect(screen.getByRole('status').textContent).toBe('5일째 아침이에요')
+    fireEvent.keyDown(container.querySelector('.dt')!, { key: 'Enter' })
+    expect(onDone).toHaveBeenCalledTimes(1)
+    unmount()
+    expect(main.hasAttribute('inert')).toBe(false)
+    expect(document.activeElement).toBe(btn)
+    main.remove()
+  })
+
   test('sunrise ends after 2.5s', () => {
     const onDone = vi.fn()
     const { container } = render(<DayTransition fx={fx()} onDone={onDone} />)

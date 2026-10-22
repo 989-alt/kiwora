@@ -124,7 +124,7 @@ export function Sow({ L, rects, speciesId, disabled, sound, onDone, toScene }: C
         )}
       </Target>
       {!covering && (
-        <Target r={packetR} label="씨 봉투" disabled={disabled} press={packet} mark={false} className="care-source">
+        <Target r={packetR} label="씨 봉투" disabled={disabled} press={packet} mark={false} className="care-source" tut="sow">
           <img src={pk.src} alt="" draggable={false} />
         </Target>
       )}

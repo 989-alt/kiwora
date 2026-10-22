@@ -2,6 +2,7 @@ import { Component, useState, type ErrorInfo, type ReactNode } from 'react'
 import { loadSave, SAVE_KEY, writeSave } from '../../sim/save'
 import { BACKUP_KEY, keepRecords, toSave, type Action, type AppState } from '../../store'
 import { BackupPanel } from './BackupPanel'
+import { Modal } from '../Modal'
 import './Screens.css'
 
 const reloadPage = () => window.location.reload()
@@ -110,27 +111,19 @@ export function CrashScreen({ onReload = reloadPage }: { onReload?: () => void }
         </div>
       </section>
       {asking && (
-        <div className="bk-overlay">
-          <div
-            className="bk-dialog"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="cr-dialog-title"
-            onKeyDown={(e) => e.key === 'Escape' && setAsking(false)}
-          >
-            <p id="cr-dialog-title" className="bk-dialog-title">
-              지금 기록이 모두 지워져요. 처음부터 다시 할까요?
-            </p>
-            <div className="bk-dialog-actions">
-              <button type="button" className="sc-big sc-big--primary" onClick={() => clearAndRestart(onReload)}>
-                지우고 다시 하기
-              </button>
-              <button type="button" className="sc-big" autoFocus onClick={() => setAsking(false)}>
-                그만두기
-              </button>
-            </div>
+        <Modal role="alertdialog" labelledBy="cr-dialog-title" onClose={() => setAsking(false)}>
+          <p id="cr-dialog-title" className="bk-dialog-title">
+            지금 기록이 모두 지워져요. 처음부터 다시 할까요?
+          </p>
+          <div className="bk-dialog-actions">
+            <button type="button" className="sc-big sc-big--primary" onClick={() => clearAndRestart(onReload)}>
+              지우고 다시 하기
+            </button>
+            <button type="button" className="sc-big" autoFocus onClick={() => setAsking(false)}>
+              그만두기
+            </button>
           </div>
-        </div>
+        </Modal>
       )}
     </main>
   )
