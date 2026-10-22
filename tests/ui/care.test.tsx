@@ -129,7 +129,7 @@ const tap = (el: HTMLElement) => {
   fireEvent.pointerDown(el, { pointerId: 1 })
   fireEvent.pointerUp(el, { pointerId: 1 })
 }
-const tapName = (name: string, nth = 0) => tap(screen.getAllByRole('button', { name })[nth])
+const tapName = (name: string, nth = 0) => tap(screen.getAllByRole('button', { name: new RegExp(name) })[nth])
 
 /** Each care's taps, in order; the last one finishes it. */
 const SCRIPTS: [CareTaskId, SpeciesId, (() => void)[]][] = [

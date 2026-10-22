@@ -80,7 +80,7 @@ test('bugs sit on the leaf spots of the current plant picture, as aphids or cate
   ]
   render(<Bugs count={3} seed={7} scale={0.5} spots={spots} disabled={false} sound={false} onCatch={() => {}} />)
   const placed = screen
-    .getAllByRole('button', { name: '벌레 잡기' })
+    .getAllByRole('button', { name: /벌레 잡기/ })
     .map((b) => [parseFloat(b.style.left) + parseFloat(b.style.width) / 2, parseFloat(b.style.top) + parseFloat(b.style.height) / 2])
   expect(placed.map(([x, y]) => [x / 0.5, y / 0.5]).sort()).toEqual(spots)
   for (const img of document.querySelectorAll('.bug img')) {
@@ -92,7 +92,7 @@ test('on a small plant the bugs are pushed apart: no bug button covers the middl
   // a plant drawn small: its leaf spots are a few px apart
   render(<Bugs count={5} seed={3} scale={0.05} disabled={false} sound={false} onCatch={() => {}} />)
   const mids = screen
-    .getAllByRole('button', { name: '벌레 잡기' })
+    .getAllByRole('button', { name: /벌레 잡기/ })
     .map((b) => [parseFloat(b.style.left) + parseFloat(b.style.width) / 2, parseFloat(b.style.top) + parseFloat(b.style.height) / 2])
   expect(mids).toHaveLength(5)
   for (let i = 0; i < mids.length; i++)
@@ -102,7 +102,7 @@ test('on a small plant the bugs are pushed apart: no bug button covers the middl
 
 test('bug buttons stay at least 48 px under the low-light scaleX(0.85)', () => {
   render(<Bugs count={2} seed={1} scale={0.2} disabled={false} sound={false} onCatch={() => {}} />)
-  for (const b of screen.getAllByRole('button', { name: '벌레 잡기' })) {
+  for (const b of screen.getAllByRole('button', { name: /벌레 잡기/ })) {
     expect(parseFloat(b.style.width) * 0.85).toBeGreaterThanOrEqual(48)
     expect(parseFloat(b.style.height)).toBeGreaterThanOrEqual(48)
   }
@@ -115,11 +115,11 @@ test('more bugs than measured spots: every counted bug is shown and can be tappe
   ]
   const onCatch = vi.fn()
   render(<Bugs count={12} seed={3} scale={0.5} spots={spots} disabled={false} sound={false} onCatch={onCatch} />)
-  const buttons = screen.getAllByRole('button', { name: '벌레 잡기' })
+  const buttons = screen.getAllByRole('button', { name: /벌레 잡기/ })
   expect(buttons).toHaveLength(12)
   for (const b of buttons) fireEvent.click(b)
   expect(onCatch).toHaveBeenCalledTimes(12)
-  expect(screen.queryAllByRole('button', { name: '벌레 잡기' })).toHaveLength(0)
+  expect(screen.queryAllByRole('button', { name: /벌레 잡기/ })).toHaveLength(0)
 })
 
 test('the first bugs of the day sit on measured spots before any padded place', () => {
@@ -139,7 +139,7 @@ test('the first bugs of the day sit on measured spots before any padded place', 
   ]
   render(<Bugs count={2} seed={11} scale={1} spots={spots} measured={2} disabled={false} sound={false} onCatch={() => {}} />)
   const placed = screen
-    .getAllByRole('button', { name: '벌레 잡기' })
+    .getAllByRole('button', { name: /벌레 잡기/ })
     .map((b) => [parseFloat(b.style.left) + parseFloat(b.style.width) / 2, parseFloat(b.style.top) + parseFloat(b.style.height) / 2])
   expect(placed.sort()).toEqual(spots.slice(0, 2))
 })

@@ -43,7 +43,7 @@ export function Thin({ L, rects, speciesId, disabled, sound, onDone }: CareProps
         />
       ))}
       {rects.map((r, i) =>
-        pulled[i] ? null : <Target key={i} r={r} label="약한 싹 뽑기" disabled={disabled} press={presses[i]} />,
+        pulled[i] ? null : <Target key={i} r={r} label={`약한 싹 뽑기 ${i + 1}`} disabled={disabled} press={presses[i]} />,
       )}
       <CareHint>약한 싹을 톡 눌러 뽑아요 {pulled.filter(Boolean).length}/2</CareHint>
     </>

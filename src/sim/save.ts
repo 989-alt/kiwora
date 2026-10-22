@@ -83,11 +83,14 @@ const isSpecies = (x: unknown): x is SpeciesId => typeof x === 'string' && Objec
 const isStage = (x: unknown): x is StageId => typeof x === 'string' && Object.prototype.hasOwnProperty.call(STAGE_LABEL, x)
 const isMode = (x: unknown): x is Mode => x === 'daily' || x === 'quick'
 const isIntIn = (x: unknown, lo: number, hi: number): x is number => Number.isInteger(x) && (x as number) >= lo && (x as number) <= hi
-const CARE_IDS: readonly CareTaskId[] = [
-  'sow', 'thin', 'stake', 'stakeTwine', 'hillUp', 'pinch', 'drainCheck', 'prune',
-  'pollinate', 'shakePollen', 'harvestSeed', 'harvest', 'winterWrap', 'moveIn',
-]
-const WEATHER_IDS: readonly WeatherId[] = ['heat', 'rain', 'monsoon', 'typhoon', 'cold', 'frost']
+// Record<…, true> makes the compiler demand every id: adding a CareTaskId / WeatherId without listing it here fails tsc.
+const CARE_ID_SET: Record<CareTaskId, true> = {
+  sow: true, thin: true, stake: true, stakeTwine: true, hillUp: true, pinch: true, drainCheck: true, prune: true,
+  pollinate: true, shakePollen: true, harvestSeed: true, harvest: true, winterWrap: true, moveIn: true,
+}
+const WEATHER_ID_SET: Record<WeatherId, true> = { heat: true, rain: true, monsoon: true, typhoon: true, cold: true, frost: true }
+const CARE_IDS = Object.keys(CARE_ID_SET) as CareTaskId[]
+const WEATHER_IDS = Object.keys(WEATHER_ID_SET) as WeatherId[]
 const isCareList = (x: unknown): x is CareTaskId[] => Array.isArray(x) && x.every((c) => CARE_IDS.includes(c as CareTaskId))
 const isBool = (x: unknown): x is boolean => typeof x === 'boolean'
 const isStr = (x: unknown): x is string => typeof x === 'string'

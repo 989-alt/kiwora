@@ -33,6 +33,8 @@ export function besidePlant(L: SceneLayout): number {
  * cm the same as the drawn plant's cm (the plant is drawn at its height, so the top meets the reading).
  * It can be dragged sideways.
  */
+const TICK_BTN_W = 76
+
 export function Ruler({ L, heightCm, x, hint, disabled, onMove, onPickTick }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const pxPerCm = (L.groundY - L.plantTopY) / heightCm
@@ -44,6 +46,8 @@ export function Ruler({ L, heightCm, x, hint, disabled, onMove, onPickTick }: Pr
   const top = L.groundY - maxCm * pxPerCm - TOP_GAP
   const yAt = (cm: number) => L.groundY - cm * pxPerCm
   const answer = measureAnswer(heightCm)
+  // the pick-this-tick button sits right of the ruler; near the right edge it flips to the left side
+  const flip = left + RULER_W + 6 + TICK_BTN_W > W
 
   const marks: number[] = []
   for (let cm = 0; cm <= maxCm; cm++) if (cm % minor === 0 || cm % label === 0) marks.push(cm)
@@ -90,7 +94,7 @@ export function Ruler({ L, heightCm, x, hint, disabled, onMove, onPickTick }: Pr
           className="obs-tick-btn"
           aria-label={`${answer} cm 눈금`}
           disabled={disabled}
-          style={{ left: left + RULER_W + 6, top: yAt(answer) - 26 }}
+          style={flip ? { right: W - left + 6, top: yAt(answer) - 26 } : { left: left + RULER_W + 6, top: yAt(answer) - 26 }}
           onClick={onPickTick}
         >
           {answer}

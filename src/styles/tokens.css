@@ -36,6 +36,11 @@ body {
 
 html {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {

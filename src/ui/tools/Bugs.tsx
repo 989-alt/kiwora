@@ -104,7 +104,7 @@ export function Bugs({ count, seed, scale, spots, measured, disabled, sound, onC
             key={i}
             type="button"
             className="bug"
-            aria-label="벌레 잡기"
+            aria-label={`벌레 잡기 ${i + 1}`}
             data-tut="bug"
             disabled={disabled}
             style={{ left: at[i][0] - BUTTON / 2, top: at[i][1] - BUTTON / 2, width: BUTTON, height: BUTTON }}

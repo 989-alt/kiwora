@@ -1,7 +1,7 @@
 import { isOutdoor, pendingCare } from '../sim/care'
 import { STAGE_POINTS } from '../sim/species'
 import { growing, weatherToday, type AppState } from '../store'
-import { CARE_TEXT, MOVE_IN_ON_DESK } from './care/careText'
+import { CARE_TEXT, DANDELION_POLLINATE, MOVE_IN_ON_DESK } from './care/careText'
 import { todayText } from './weatherText'
 
 /** One line of the '오늘 할 일' card. */
@@ -37,7 +37,9 @@ export function todoItems(s: AppState): TodoItem[] {
   const text =
     task === 'moveIn' && p.place === 'desk'
       ? MOVE_IN_ON_DESK
-      : p.growth >= STAGE_POINTS
+      : task === 'pollinate' && p.speciesId === 'dandelion' && p.growth < STAGE_POINTS
+        ? DANDELION_POLLINATE
+        : p.growth >= STAGE_POINTS
         ? CARE_TEXT[task].waiting
         : CARE_TEXT[task].todo
   return [...weather, { key: `care-${task}`, kind: 'care', text }]

@@ -5,7 +5,7 @@ import type { CareTaskId } from '../../sim/types'
  * enough and only waits for this care, `did` = the word for the journal's '한 일'.
  */
 export const CARE_TEXT: Record<CareTaskId, { todo: string; waiting: string; did: string }> = {
-  sow: { todo: '씨를 2~3알 심고 흙을 덮어 주세요', waiting: '씨를 심어야 싹이 터요', did: '씨 심기' },
+  sow: { todo: '씨 3알을 심고 흙을 덮어 주세요', waiting: '씨를 심어야 싹이 터요', did: '씨 심기' },
   thin: { todo: '약한 싹을 뽑아 하나만 남겨요', waiting: '솎아 줘야 잎과 줄기가 잘 자라요', did: '솎아내기' },
   stake: { todo: '지지대를 세워 줘요', waiting: '지지대가 있어야 쓰러지지 않아요', did: '지지대 세우기' },
   stakeTwine: {
@@ -45,4 +45,9 @@ export const CARE_TEXT: Record<CareTaskId, { todo: string; waiting: string; did:
  * A potted perennial that already stands on the desk in winter: moving it is not possible, its winter care
  * is counted when the day ends there (store finalizeDay).
  */
+/** A dandelion head is made of many tiny flowers: the pollen goes between them, not to a second flower. */
+export const DANDELION_POLLINATE = '붓으로 작은 꽃들 사이로 꽃가루를 옮겨요'
+export const DANDELION_POLLINATE_HINT = '붓을 끌어 작은 꽃들 사이로 꽃가루를 옮겨요'
+
+export const MOVE_IN_ON_DESK_DID = '책상에서 겨울 준비'
 export const MOVE_IN_ON_DESK = '책상에 둔 채로 하루를 마치면 겨울 준비가 끝나요'

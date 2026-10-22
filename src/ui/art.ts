@@ -1,6 +1,6 @@
 import data from '../../public/anchors.json'
 import type { SpeciesId, StageId } from '../sim/species'
-import type { Place } from '../sim/types'
+import type { Place, WeatherId } from '../sim/types'
 
 /** Anchor numbers of one picture (px of the picture file). Measured by scripts/anchors.py. */
 export type PotAnchor = { w: number; h: number; soilY: number; cx: number; bottom: number; bbox: [number, number, number, number] }
@@ -73,8 +73,8 @@ export type PropName =
   | 'soilScoop'
   | 'magnifier'
   | 'drainDish'
-/** The six weather kinds (same ids as src/sim/types.ts WeatherId). */
-export type WeatherKind = 'heat' | 'rain' | 'monsoon' | 'typhoon' | 'cold' | 'frost'
+/** The weather kinds (the sim's WeatherId, so a new kind cannot be forgotten here). */
+export type WeatherKind = WeatherId
 
 export type PropArt = {
   src: string

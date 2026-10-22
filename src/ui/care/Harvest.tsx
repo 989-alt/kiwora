@@ -91,7 +91,7 @@ export function Harvest({ L, rects, pic, speciesId, disabled, sound, onDone, see
         ) : null,
       )}
       {last && <SeedPile L={L} id={speciesId} from={last} />}
-      {rects.map((rc, i) => (picked[i] ? null : <Target key={i} r={rc} label="열매 따기" disabled={disabled} press={presses[i]} />))}
+      {rects.map((rc, i) => (picked[i] ? null : <Target key={i} r={rc} label={`열매 따기 ${i + 1}`} disabled={disabled} press={presses[i]} />))}
       <CareHint>{n >= FRUITS && seeds ? '씨를 받았어요' : `열매를 톡 눌러 따요 ${n}/${FRUITS}`}</CareHint>
     </>
   )

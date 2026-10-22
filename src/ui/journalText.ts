@@ -2,7 +2,7 @@ import type { JournalEntry } from '../sim/save'
 import { newPlant } from '../sim/day'
 import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
 import type { ConditionKey, Place, Status } from '../sim/types'
-import { CARE_TEXT } from './care/careText'
+import { CARE_TEXT, MOVE_IN_ON_DESK_DID } from './care/careText'
 import { weatherNote } from './weatherText'
 
 /** Short stage names for strips and sentences ("꽃 단계까지 자랐어요"). Use stageName() to show one. */
@@ -69,7 +69,8 @@ export function actionsText(entry: JournalEntry, prevPlace: Place): string {
   if (a.pellets > 0) parts.push(`영양분 ${a.pellets}알 주기`)
   if (a.bugsRemoved > 0) parts.push(`벌레 ${a.bugsRemoved}마리 잡기`)
   for (const t of a.care ?? []) {
-    const did = CARE_TEXT[t]?.did
+    // moveIn done while the pot already stood on the desk (finished by ending the day there): nothing was moved
+    const did = t === 'moveIn' && a.place === 'desk' && prevPlace === 'desk' ? MOVE_IN_ON_DESK_DID : CARE_TEXT[t]?.did
     if (did && !parts.includes(did)) parts.push(did)
   }
   if (a.tied) parts.push(TIED_TEXT)

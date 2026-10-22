@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { propArt } from '../art'
 import { plink, pop } from '../sound'
+import { DANDELION_POLLINATE_HINT } from './careText'
 import { CareHint, Target, picStyle, type CareProps, type Pt } from './parts'
 import { usePress } from './press'
 import { careGeo, carePoints, hits } from './targets'
@@ -135,7 +136,7 @@ export function Pollinate({ L, rects, pic, speciesId, disabled, sound, onDone, t
           <Target r={bR} label="다른 꽃에 꽃가루 옮기기" disabled={disabled} press={flowerB} mark={loaded} className="care-flower" />
         </>
       )}
-      <CareHint>{done ? '꽃가루를 옮겼어요' : loaded ? '다른 꽃을 눌러 꽃가루를 묻혀요' : '붓을 끌어 다른 꽃에 꽃가루를 옮겨요'}</CareHint>
+      <CareHint>{done ? '꽃가루를 옮겼어요' : loaded ? '다른 꽃을 눌러 꽃가루를 묻혀요' : speciesId === 'dandelion' ? DANDELION_POLLINATE_HINT : '붓을 끌어 다른 꽃에 꽃가루를 옮겨요'}</CareHint>
     </>
   )
 }

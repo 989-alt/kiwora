@@ -57,7 +57,7 @@ export function Pinch({ L, rects, pic, disabled, sound, onDone }: CareProps) {
           />
         ),
       )}
-      {rects.map((r, i) => (cut[i] ? null : <Target key={i} r={r} label="곁가지 자르기" disabled={disabled} press={presses[i]} />))}
+      {rects.map((r, i) => (cut[i] ? null : <Target key={i} r={r} label={`곁가지 자르기 ${i + 1}`} disabled={disabled} press={presses[i]} />))}
       <CareHint>곁가지를 톡 눌러 잘라요 {cut.filter(Boolean).length}/2</CareHint>
     </>
   )
