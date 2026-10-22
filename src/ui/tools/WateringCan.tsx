@@ -1,4 +1,4 @@
-import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from 'react'
+import { useEffect, useRef, type PointerEvent } from 'react'
 import type { SceneLayout } from '../PlantView'
 import { asset } from '../art'
 import { startWater } from '../sound'
@@ -6,6 +6,8 @@ import './tools.css'
 
 const TICK_MS = 100
 export const WATER_PER_TICK = 1.2
+/** A click this soon after a press belongs to that press (its pour already counted). */
+export const PRESS_CLICK_MS = 1000
 
 type Props = {
   disabled: boolean
@@ -14,14 +16,19 @@ type Props = {
   onPourChange: (pouring: boolean) => void
 }
 
-/** Hold to pour: one `water` every 100 ms (12 per second) while the press lasts. */
+/**
+ * Hold to pour: one `water` every 100 ms (12 per second) while the press lasts.
+ * A plain click without a press (keyboard Enter/Space, a screen reader) gives one dose.
+ */
 export function WateringCan({ disabled, sound, onWater, onPourChange }: Props) {
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
   const stopSound = useRef<() => void>(() => {})
   const latest = useRef({ onWater, onPourChange })
   latest.current = { onWater, onPourChange }
+  const lastPress = useRef(Number.NEGATIVE_INFINITY)
 
   const stop = () => {
+    lastPress.current = Date.now()
     if (timer.current === null) return
     clearInterval(timer.current)
     timer.current = null
@@ -32,6 +39,7 @@ export function WateringCan({ disabled, sound, onWater, onPourChange }: Props) {
 
   const start = (e: PointerEvent<HTMLButtonElement>) => {
     if (disabled || timer.current !== null) return
+    lastPress.current = Date.now()
     e.preventDefault()
     try {
       e.currentTarget.setPointerCapture(e.pointerId)
@@ -61,11 +69,9 @@ export function WateringCan({ disabled, sound, onWater, onPourChange }: Props) {
     }
   }, [])
 
-  const onKey = (e: KeyboardEvent<HTMLButtonElement>) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault()
-      if (!disabled) onWater(WATER_PER_TICK)
-    }
+  const onClick = () => {
+    if (disabled || Date.now() - lastPress.current < PRESS_CLICK_MS) return
+    onWater(WATER_PER_TICK)
   }
 
   return (
@@ -80,7 +86,7 @@ export function WateringCan({ disabled, sound, onWater, onPourChange }: Props) {
       onPointerLeave={stop}
       onLostPointerCapture={stop}
       onContextMenu={(e) => e.preventDefault()}
-      onKeyDown={onKey}
+      onClick={onClick}
     >
       <img src={asset('tools/watering_can.png')} alt="" draggable={false} />
       <span className="tool-text">

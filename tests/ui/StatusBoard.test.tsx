@@ -55,3 +55,18 @@ test('pest row shows bug count, and calm copy when not needed', () => {
   )
   expect(screen.getByRole('group', { name: /^병충해/ }).textContent).toContain('아직 걱정 없어요')
 })
+
+test('the health group says 위험해요 to a screen reader under 30', () => {
+  const { unmount } = render(<StatusBoard statuses={base} health={25} bugs={0} layout="side" />)
+  expect(screen.getByRole('group', { name: '건강 25 위험해요' })).toBeTruthy()
+  unmount()
+  render(<StatusBoard statuses={base} health={30} bugs={0} layout="side" />)
+  expect(screen.getByRole('group', { name: '건강 30' })).toBeTruthy()
+})
+
+test('a broken (NaN) health never shows NaN', () => {
+  const { container } = render(<StatusBoard statuses={base} health={Number.NaN} bugs={0} layout="side" />)
+  expect(container.textContent).not.toContain('NaN')
+  expect((container.querySelector('.sb-hfill') as HTMLElement).style.width).not.toContain('NaN')
+  expect(screen.getByRole('group', { name: /^건강 \d+/ })).toBeTruthy()
+})

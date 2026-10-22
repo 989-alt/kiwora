@@ -61,12 +61,13 @@ function Row({ condKey, name, icon, status, bugs }: { condKey: ConditionKey; nam
 }
 
 export function StatusBoard({ statuses, health, bugs, layout }: Props) {
-  const h = Math.max(0, Math.min(100, Math.round(health)))
+  // A broken (non-finite) health reads as full, as the plant picture does (plantLook).
+  const h = Math.max(0, Math.min(100, Math.round(Number.isFinite(health) ? health : 100)))
   const danger = h < 30
   return (
     <section className={`sb sb--${layout}`} aria-label="내 식물 상태">
       <h2 className="sb-title">내 식물 상태</h2>
-      <div role="group" aria-label={`건강 ${h}`} className="sb-health">
+      <div role="group" aria-label={`건강 ${h}${danger ? ' 위험해요' : ''}`} className="sb-health">
         <div className="sb-head">
           <HeartIcon size={26} />
           <span className="sb-name">건강</span>

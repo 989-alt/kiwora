@@ -7,7 +7,7 @@ import { morningShown, type Action, type AppState } from '../../store'
 import { PlantView, faceFor, isYardPlace } from '../PlantView'
 import { potArt } from '../art'
 import { StatusBoard } from '../StatusBoard'
-import { Tutorial } from '../Tutorial'
+import { Tutorial, type TipTarget } from '../Tutorial'
 import { installAudioUnlock } from '../sound'
 import { Bugs } from '../tools/Bugs'
 import { Fertilizer } from '../tools/Fertilizer'
@@ -18,6 +18,7 @@ import { MorningCard } from './MorningCard'
 import './GrowScreen.css'
 
 const PORTRAIT = '(max-width: 899px)'
+const YARD_TIPS: TipTarget[] = ['water', 'bug']
 const ROOM = ['window', 'desk', 'shade']
 
 function useMedia(query: string): boolean {
@@ -59,7 +60,7 @@ export function GrowScreen({ state, dispatch }: Props) {
   const [pelletDrag, setPelletDrag] = useState(false)
   const locked = state.dayDone
   const sound = state.settings.sound
-  const drag = usePotDrag(locked, (place) => dispatch({ type: 'move', place }))
+  const drag = usePotDrag(locked, (place) => dispatch({ type: 'move', place }), state.plant?.place)
   const soundRef = useRef(sound)
   soundRef.current = sound
   useEffect(() => installAudioUnlock(() => soundRef.current), [])
@@ -204,7 +205,10 @@ export function GrowScreen({ state, dispatch }: Props) {
           style={{ left: drag.ghost.x, top: drag.ghost.y }}
         />
       )}
-      {!state.settings.tutorialSeen && !yard && <Tutorial rootRef={rootRef} onDone={() => dispatch({ type: 'tutorialDone' })} />}
+      {!state.settings.tutorialSeen && (
+        // In the yard there is no pot to move: only the watering can and bug tips.
+        <Tutorial rootRef={rootRef} steps={yard ? YARD_TIPS : undefined} onDone={() => dispatch({ type: 'tutorialDone' })} />
+      )}
     </div>
   )
 }

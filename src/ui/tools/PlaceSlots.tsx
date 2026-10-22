@@ -67,8 +67,8 @@ export type PotDrag = {
   hover: RoomPlace | null
 }
 
-/** Drag the pot (after 8 px of movement) and drop it on a slot to move it there. */
-export function usePotDrag(disabled: boolean, onMove: (place: RoomPlace) => void): PotDrag {
+/** Drag the pot (after 8 px of movement) and drop it on a slot to move it there; its own slot (`current`) does nothing. */
+export function usePotDrag(disabled: boolean, onMove: (place: RoomPlace) => void, current?: Place): PotDrag {
   const start = useRef<{ id: number; x: number; y: number } | null>(null)
   // Drag state lives in a ref so a fast flick is judged by distance, not by a render that hasn't happened yet.
   const dragging = useRef(false)
@@ -113,7 +113,7 @@ export function usePotDrag(disabled: boolean, onMove: (place: RoomPlace) => void
         if (!s || e.pointerId !== s.id) return
         const target = dragging.current || farEnough(e, s) ? slotAt(e.clientX, e.clientY) : null
         reset()
-        if (target && !disabled) onMove(target)
+        if (target && !disabled && target !== current) onMove(target)
       },
       onPointerCancel: reset,
       onLostPointerCapture: reset,

@@ -173,6 +173,33 @@ describe('DexScreen', () => {
   })
 })
 
+describe('GrowScreen tutorial', () => {
+  test('a plant that reaches the yard before the tutorial was seen gets the water and bug tips (no pot tip)', () => {
+    const dispatch = vi.fn()
+    const s: AppState = {
+      ...base(),
+      plant: { ...newPlant('apple'), stageIndex: 3, place: 'yardSunny', day: 9 },
+      settings: { sound: false, tutorialSeen: false },
+      screen: 'grow',
+    }
+    render(<GrowScreen state={s} dispatch={dispatch} />)
+    const tip1 = screen.getByRole('button', { name: /물뿌리개를 꾹 누르면 물이 나와요/ })
+    expect(tip1.textContent).toContain('1/2')
+    fireEvent.click(tip1)
+    const tip2 = screen.getByRole('button', { name: /벌레를 톡 눌러 잡아요/ })
+    expect(tip2.textContent).toContain('2/2')
+    expect(screen.queryByText(/화분을 끌어서/)).toBeNull()
+    fireEvent.click(tip2)
+    expect(dispatch).toHaveBeenCalledWith({ type: 'tutorialDone' })
+  })
+
+  test('in the room the three tips stay', () => {
+    const s: AppState = { ...base(), plant: { ...newPlant('bean'), day: 1 }, settings: { sound: false, tutorialSeen: false }, screen: 'grow' }
+    render(<GrowScreen state={s} dispatch={() => {}} />)
+    expect(screen.getByRole('button', { name: /물뿌리개를 꾹/ }).textContent).toContain('1/3')
+  })
+})
+
 describe('GrowScreen menu', () => {
   test('씨 도감 sits next to 관찰 일지 and opens the dex', () => {
     const dispatch = vi.fn()

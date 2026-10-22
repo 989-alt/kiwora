@@ -2,7 +2,8 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { Bugs } from '../../src/ui/tools/Bugs'
 import { Fertilizer } from '../../src/ui/tools/Fertilizer'
-import { WateringCan } from '../../src/ui/tools/WateringCan'
+import { PlaceSlots, usePotDrag, type RoomPlace } from '../../src/ui/tools/PlaceSlots'
+import { WATER_PER_TICK, WateringCan } from '../../src/ui/tools/WateringCan'
 
 // jsdom has no PointerEvent, so fireEvent would drop clientX/pointerId; a MouseEvent-based stand-in keeps them.
 class TestPointerEvent extends MouseEvent {
@@ -129,4 +130,81 @@ test('the first bugs of the day sit on measured spots before any padded place', 
     .getAllByRole('button', { name: '벌레 잡기' })
     .map((b) => [parseFloat(b.style.left) + parseFloat(b.style.width) / 2, parseFloat(b.style.top) + parseFloat(b.style.height) / 2])
   expect(placed.sort()).toEqual(spots.slice(0, 2))
+})
+
+test('the watering can gives one dose on a plain click (keyboard, screen reader)', () => {
+  const onWater = vi.fn()
+  render(<WateringCan disabled={false} sound={false} onWater={onWater} onPourChange={() => {}} />)
+  fireEvent.click(screen.getByRole('button', { name: /물 주기/ }))
+  expect(onWater).toHaveBeenCalledTimes(1)
+  expect(onWater).toHaveBeenCalledWith(WATER_PER_TICK)
+})
+
+test('a press and its click do not dose twice', () => {
+  const onWater = vi.fn()
+  render(<WateringCan disabled={false} sound={false} onWater={onWater} onPourChange={() => {}} />)
+  const can = screen.getByRole('button', { name: /물 주기/ })
+  fireEvent.pointerDown(can, { pointerId: 1 })
+  act(() => {
+    vi.advanceTimersByTime(250)
+  })
+  fireEvent.pointerUp(can, { pointerId: 1 })
+  const poured = onWater.mock.calls.length
+  expect(poured).toBe(3) // at 0, 100 and 200 ms
+  fireEvent.click(can)
+  expect(onWater).toHaveBeenCalledTimes(poured)
+  // much later, a plain click is a dose again
+  act(() => {
+    vi.advanceTimersByTime(5000)
+  })
+  fireEvent.click(can)
+  expect(onWater).toHaveBeenCalledTimes(poured + 1)
+})
+
+test('a disabled can ignores clicks', () => {
+  const onWater = vi.fn()
+  render(<WateringCan disabled sound={false} onWater={onWater} onPourChange={() => {}} />)
+  fireEvent.click(screen.getByRole('button', { name: /물 주기/ }))
+  expect(onWater).not.toHaveBeenCalled()
+})
+
+test('the fertilizer gives one pellet on a plain click, and a tap is still one pellet', () => {
+  const onPellet = vi.fn()
+  document.elementFromPoint = () => null
+  render(<Fertilizer disabled={false} sound={false} onPellet={onPellet} onDragChange={() => {}} />)
+  const btn = screen.getByRole('button', { name: /영양분/ })
+  fireEvent.click(btn)
+  expect(onPellet).toHaveBeenCalledTimes(1)
+  fireEvent.pointerDown(btn, { pointerId: 3, clientX: 10, clientY: 10 })
+  fireEvent.pointerUp(btn, { pointerId: 3, clientX: 11, clientY: 10 })
+  fireEvent.click(btn)
+  expect(onPellet).toHaveBeenCalledTimes(2)
+})
+
+function PotHarness({ place, onMove }: { place: RoomPlace; onMove: (p: RoomPlace) => void }) {
+  const drag = usePotDrag(false, onMove, place)
+  return (
+    <>
+      <div data-testid="pot" {...drag.potProps} />
+      <PlaceSlots place={place} disabled={false} dragging={drag.ghost !== null} hover={drag.hover} onPick={onMove} />
+    </>
+  )
+}
+
+test('dropping the pot on the slot it already stands on does nothing', () => {
+  const onMove = vi.fn()
+  render(<PotHarness place="desk" onMove={onMove} />)
+  const pot = screen.getByTestId('pot')
+  const slot = (name: string) => screen.getByRole('button', { name })
+  document.elementFromPoint = () => slot('책상')
+  fireEvent.pointerDown(pot, { pointerId: 1, clientX: 10, clientY: 10 })
+  fireEvent.pointerMove(pot, { pointerId: 1, clientX: 60, clientY: 60 })
+  fireEvent.pointerUp(pot, { pointerId: 1, clientX: 60, clientY: 60 })
+  expect(onMove).not.toHaveBeenCalled()
+  // another slot still moves it
+  document.elementFromPoint = () => slot('창가')
+  fireEvent.pointerDown(pot, { pointerId: 2, clientX: 10, clientY: 10 })
+  fireEvent.pointerMove(pot, { pointerId: 2, clientX: 60, clientY: 60 })
+  fireEvent.pointerUp(pot, { pointerId: 2, clientX: 60, clientY: 60 })
+  expect(onMove).toHaveBeenCalledWith('window')
 })

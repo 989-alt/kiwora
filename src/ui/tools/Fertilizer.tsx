@@ -1,6 +1,7 @@
 import { useRef, useState, type PointerEvent } from 'react'
 import { asset } from '../art'
 import { plink } from '../sound'
+import { PRESS_CLICK_MS } from './WateringCan'
 import './tools.css'
 
 export const DRAG_START_PX = 8
@@ -17,11 +18,13 @@ type Props = {
 
 const overPot = (x: number, y: number) => document.elementFromPoint(x, y)?.closest('[data-drop="pot"]') != null
 
-/** Drag a pellet onto the pot (or just tap) to give 1 pellet. */
+/** Drag a pellet onto the pot (or just tap) to give 1 pellet. A plain click (keyboard, screen reader) gives 1 too. */
 export function Fertilizer({ disabled, sound, onPellet, onDragChange, target = '화분' }: Props) {
   const start = useRef<{ id: number; x: number; y: number } | null>(null)
   // Whether this press became a drag is decided from the ref, not render state, so a fast flick is never a tap.
   const dragging = useRef(false)
+  // A click right after a press is that press's own click (the tap already gave its pellet).
+  const lastPress = useRef(Number.NEGATIVE_INFINITY)
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null)
 
   const give = () => {
@@ -32,6 +35,7 @@ export function Fertilizer({ disabled, sound, onPellet, onDragChange, target = '
   const end = (dropped: boolean, e?: PointerEvent<HTMLButtonElement>) => {
     const s = start.current
     if (!s || (e && e.pointerId !== s.id)) return
+    lastPress.current = Date.now()
     start.current = null
     const wasDrag = dragging.current
     dragging.current = false
@@ -52,6 +56,7 @@ export function Fertilizer({ disabled, sound, onPellet, onDragChange, target = '
         disabled={disabled}
         onPointerDown={(e) => {
           if (disabled) return
+          lastPress.current = Date.now()
           e.preventDefault()
           try {
             e.currentTarget.setPointerCapture(e.pointerId)
@@ -83,11 +88,8 @@ export function Fertilizer({ disabled, sound, onPellet, onDragChange, target = '
         onPointerCancel={(e) => end(false, e)}
         onLostPointerCapture={(e) => end(false, e)}
         onContextMenu={(e) => e.preventDefault()}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            if (!disabled) give()
-          }
+        onClick={() => {
+          if (!disabled && Date.now() - lastPress.current >= PRESS_CLICK_MS) give()
         }}
       >
         <img src={asset('tools/fertilizer.png')} alt="" draggable={false} />
