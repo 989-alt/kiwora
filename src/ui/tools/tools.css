@@ -63,6 +63,12 @@
 }
 .tool--water .tool-name { color: #1e40af; }
 .tool--water .tool-hint { color: #1e3a8a; }
+/* The can waits for the seed: its name says why. */
+.tool-name--blocked {
+  font-size: 21px;
+  line-height: 1.2;
+  word-break: keep-all;
+}
 .tool--fert {
   border-color: #fed7aa;
   background: #fff7ed;

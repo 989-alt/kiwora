@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { pendingCare } from '../../sim/care'
 import { currentStatuses } from '../../sim/day'
 import { seedFor } from '../../sim/rng'
 import { phaseOf, SPECIES } from '../../sim/species'
@@ -9,6 +10,9 @@ import { PlantView, faceFor, isYardPlace } from '../PlantView'
 import { potArt, propArt } from '../art'
 import { NightScene } from '../NightScene'
 import { StatusBoard } from '../StatusBoard'
+import { TodayCard } from '../TodayCard'
+import { todoItems } from '../todo'
+import { CareLayer } from '../care/CareLayer'
 import { Tutorial, type TipTarget } from '../Tutorial'
 import { installAudioUnlock } from '../sound'
 import { Bugs } from '../tools/Bugs'
@@ -80,6 +84,9 @@ export function GrowScreen({ state, dispatch }: Props) {
   // A grown tree shows how long it has been growing: first half of the stage = 1 year, second half = 2.
   const yearsLater = stage === 'grownTree' ? (plant.growth < 2 ? '1년 뒤' : '2년 뒤') : null
 
+  // The seed is sown (and covered) before it can be watered.
+  const sowFirst = pendingCare(plant) === 'sow'
+
   const moon = propArt('moon')
   const endButton = (
     <button type="button" className="gs-end" disabled={busy} onClick={() => dispatch({ type: 'endDay' })}>
@@ -125,6 +132,8 @@ export function GrowScreen({ state, dispatch }: Props) {
         </nav>
       </header>
 
+      <TodayCard items={todoItems(state)} />
+
       <div className="gs-body">
         <section className="gs-left" aria-label="식물">
           <div className="gs-scene">
@@ -157,7 +166,18 @@ export function GrowScreen({ state, dispatch }: Props) {
                   onCatch={() => dispatch({ type: 'removeBug' })}
                 />
               )}
-              sceneOverlay={(L) => (pouring ? <WaterStream layout={L} /> : null)}
+              sceneOverlay={(L) => (
+                <>
+                  <CareLayer
+                    plant={plant}
+                    layout={L}
+                    disabled={busy}
+                    sound={sound}
+                    onDone={(task) => dispatch({ type: 'care', task })}
+                  />
+                  {pouring && <WaterStream layout={L} />}
+                </>
+              )}
             />
             {state.morning && !locked && !morningShown(state) && (
               <MorningCard
@@ -190,6 +210,7 @@ export function GrowScreen({ state, dispatch }: Props) {
             )}
             <WateringCan
               disabled={busy}
+              blocked={sowFirst ? '씨를 먼저 심어요' : undefined}
               sound={sound}
               onWater={(amount) => dispatch({ type: 'water', amount })}
               onPourChange={setPouring}

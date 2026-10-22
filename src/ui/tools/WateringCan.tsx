@@ -14,13 +14,16 @@ type Props = {
   sound: boolean
   onWater: (amount: number) => void
   onPourChange: (pouring: boolean) => void
+  /** Why the can can't be used yet (e.g. the seed is not sown): shown as its name, and the can is disabled. */
+  blocked?: string
 }
 
 /**
  * Hold to pour: one `water` every 100 ms (12 per second) while the press lasts.
  * A plain click without a press (keyboard Enter/Space, a screen reader) gives one dose.
  */
-export function WateringCan({ disabled, sound, onWater, onPourChange }: Props) {
+export function WateringCan({ disabled: off, sound, onWater, onPourChange, blocked }: Props) {
+  const disabled = off || blocked !== undefined
   const timer = useRef<ReturnType<typeof setInterval> | null>(null)
   const stopSound = useRef<() => void>(() => {})
   const latest = useRef({ onWater, onPourChange })
@@ -90,8 +93,14 @@ export function WateringCan({ disabled, sound, onWater, onPourChange }: Props) {
     >
       <img src={asset('tools/watering_can.png')} alt="" draggable={false} />
       <span className="tool-text">
-        <span className="tool-name">물 주기</span>
-        <span className="tool-hint">길게 꾹 눌러요</span>
+        {blocked ? (
+          <span className="tool-name tool-name--blocked">{blocked}</span>
+        ) : (
+          <>
+            <span className="tool-name">물 주기</span>
+            <span className="tool-hint">길게 꾹 눌러요</span>
+          </>
+        )}
       </span>
     </button>
   )

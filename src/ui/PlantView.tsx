@@ -48,7 +48,14 @@ export type SceneLayout = {
   soilLine: number
   plant: Box & { originX: number; originY: number }
   shadow: { cx: number; cy: number; rx: number; ry: number; blur: number }
+  /** y of the top of the visible plant (the ground line when no plant is drawn). */
+  plantTopY: number
+  /** y of the soil line in the pot, or of the ground in the yard. */
+  groundY: number
 }
+
+/** y of the visible plant's top: never below the ground (a seed draws no plant). */
+const topOf = (plant: Box, plA: PlantAnchor, ground: number) => Math.min(ground, plant.y + plA.top * plant.scale)
 
 /** Picture px per scene px so the visible pot is MOCK_POT_W wide and the visible plant is `heightShare` of the full height. */
 const potScale = (potA: PotAnchor, unit: number) => (MOCK_POT_W * unit) / (potA.bbox[2] - potA.bbox[0])
@@ -103,7 +110,7 @@ export function sceneLayout(W: number, H: number, plantStageScale: number, art: 
     originY: plA.stemY * pl,
   }
   const shadow = { cx, cy: surface - 2 * unit, rx: 118 * unit, ry: 14 * unit, blur: 6 * unit }
-  return { unit, bg, surface, pot, soilLine, plant, shadow }
+  return { unit, bg, surface, pot, soilLine, plant, shadow, plantTopY: topOf(plant, plA, soilLine), groundY: soilLine }
 }
 
 const YARD_PLACES: readonly Place[] = ['yardSunny', 'yardPartial', 'yardShade']
@@ -151,6 +158,8 @@ export function yardLayout(W: number, H: number, plantStageScale: number, art: P
     soilLine: surface,
     plant,
     shadow: { cx, cy: surface + 2 * unit, rx: 110 * unit, ry: 10 * unit, blur: 6 * unit },
+    plantTopY: topOf(plant, plA, surface),
+    groundY: surface,
     mound,
     sign: { cx: signCx, bottom: surface + 8 },
     drop: { left: cx - 90 * unit, top: surface - 40 * unit, width: 180 * unit, height: 70 * unit },
