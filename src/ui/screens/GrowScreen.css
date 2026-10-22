@@ -257,6 +257,22 @@
 .morning svg {
   flex-shrink: 0;
 }
+.morning-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* Health under 30: the card says so clearly (red line, red edge). */
+.morning--danger {
+  box-shadow:
+    0 0 0 3px var(--lv-0),
+    0 5px 0 rgba(220, 38, 38, 0.25);
+}
+.morning-danger {
+  font-family: var(--font-title);
+  font-size: 21px;
+  color: #b91c1c;
+}
 
 /* First-visit tips */
 .tip {

@@ -1,7 +1,7 @@
 import { SPECIES, type SpeciesId } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
 import { growing, isComplete, type Action, type AppState } from '../../store'
-import { dayReached, feelingText, journalRows, stageName } from '../journalText'
+import { dayReached, feelingText, journalRows, seedSizeText, stageName } from '../journalText'
 import { plantSrc } from '../PlantView'
 import '../../styles/print.css'
 import './Screens.css'
@@ -36,8 +36,10 @@ export function JournalScreen({ state, dispatch, record }: Props) {
   const species = speciesId ? SPECIES[speciesId] : null
   const complete = kept !== undefined || (plant !== null && isComplete(plant))
   const rows = speciesId ? journalRows(journal, speciesId) : []
-  // Without a journal (a plant restored from the short code) the plant itself counts the finished days.
-  const lastDay = journal.length > 0 ? journal[journal.length - 1].day : Math.max(0, (plant?.day ?? 1) - 1)
+  // Without a journal (a plant restored from the short code) the plant itself counts the finished days:
+  // a living plant is on the day after its last finished one, a dead plant keeps the day it died on.
+  const lastDay =
+    journal.length > 0 ? journal[journal.length - 1].day : plant?.dead ? plant.day : Math.max(0, (plant?.day ?? 1) - 1)
   const back = backTarget(plant)
   const pastTries = kept ? state.pastTries.filter((t) => t.speciesId === speciesId) : state.pastTries
 
@@ -88,6 +90,7 @@ export function JournalScreen({ state, dispatch, record }: Props) {
                     <img src={plantSrc(speciesId, stage)} alt="" draggable={false} />
                     <span className="jr-stage-name">{stageName(speciesId, stage)}</span>
                     <span className="jr-stage-day">{day === null ? '아직' : `${day}일`}</span>
+                    {stage === 'seed' && <span className="seed-mm jr-seed-mm">{seedSizeText(speciesId)}</span>}
                     {i < species.stages.length - 1 && <Arrow />}
                   </li>
                 )

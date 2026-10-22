@@ -17,6 +17,8 @@ export type Species = {
   stages: StageId[]
   transplant: boolean
   bands: Record<Phase, PhaseBands>
+  /** About how long the real seed is, in mm (shown under the seed pictures). */
+  seedMm: number
 }
 
 export const STAGE_POINTS = 4
@@ -92,6 +94,18 @@ function makeBands(over: Override = {}, spanScale = 1): Record<Phase, PhaseBands
   return { seed: scale(seed), grow: scale(grow), winter: scale(winter) }
 }
 
+const SEED_MM: Record<SpeciesId, number> = {
+  balsam: 3,
+  bean: 15,
+  morningGlory: 5,
+  rice: 7,
+  corn: 10,
+  apple: 7,
+  dandelion: 3,
+  forsythia: 5,
+  persimmon: 15,
+}
+
 function make(
   id: SpeciesId,
   name: string,
@@ -109,6 +123,7 @@ function make(
     transplant,
     stages: [...(life === 'annual' ? ANNUAL_STAGES : PERENNIAL_STAGES)],
     bands: makeBands(over, spanScale),
+    seedMm: SEED_MM[id],
   }
 }
 

@@ -87,6 +87,20 @@ describe('JournalScreen', () => {
     render(<JournalScreen state={stateWith([], { plant: done, dex: ['balsam'] })} dispatch={() => {}} />)
     expect(screen.getByText('10일 만에 씨를 얻었어요!')).toBeTruthy()
   })
+
+  test('a dead plant restored from a short code: the journal counts the same days as the death screen', () => {
+    // a plant that died keeps the day it died on (no day + 1), and the death screen says "7일째"
+    const dead = { ...newPlant('balsam'), stageIndex: 2, day: 7, health: 0, dead: true, deathCause: '물이 부족해서 말라 버렸어요.' }
+    render(<JournalScreen state={stateWith([], { plant: dead, screen: 'journal' })} dispatch={() => {}} />)
+    expect(screen.getByText('7일 동안 키웠어요')).toBeTruthy()
+  })
+
+  test('the seed picture of the strip says how big the real seed is', () => {
+    render(<JournalScreen state={stateWith([entry(1, { stage: 'seed' })])} dispatch={() => {}} />)
+    const strip = screen.getByRole('list', { name: '한살이 단계' })
+    expect(within(strip).getByText('실제 크기 약 3 mm')).toBeTruthy()
+    expect(within(strip).getAllByText(/실제 크기/)).toHaveLength(1)
+  })
 })
 
 describe('journal text', () => {

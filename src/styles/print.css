@@ -59,6 +59,11 @@
     height: 22mm !important;
     border-radius: 0 !important;
   }
+  .seed-mm {
+    background: none !important;
+    color: #000 !important;
+    font-size: 8pt !important;
+  }
   .jr-stage-name,
   .jr-stage-day {
     color: #000 !important;

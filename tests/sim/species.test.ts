@@ -10,6 +10,13 @@ describe('species data', () => {
     expect(all.filter((s) => s.life === 'perennial')).toHaveLength(4)
   })
 
+  it('every species knows how big its real seed is (mm)', () => {
+    const mm = Object.fromEntries(all.map((s) => [s.id, s.seedMm]))
+    expect(mm).toEqual({
+      balsam: 3, bean: 15, morningGlory: 5, rice: 7, corn: 10, apple: 7, dandelion: 3, forsythia: 5, persimmon: 15,
+    })
+  })
+
   it('stage lists', () => {
     for (const s of all) {
       if (s.life === 'annual') {

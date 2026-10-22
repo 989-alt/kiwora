@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import type { DayReport } from '../../src/sim/types'
 import { MorningCard, morningSummary } from '../../src/ui/screens/MorningCard'
 
@@ -46,8 +46,24 @@ test('seed card on the grow screen', () => {
 })
 
 test('card shows the morning line and closes on tap', () => {
-  render(<MorningCard report={{ ...base, heightDelta: 2 }} day={4} dayDone={false} />)
+  const onClose = vi.fn()
+  render(<MorningCard report={{ ...base, heightDelta: 2 }} day={4} dayDone={false} onClose={onClose} />)
   const card = screen.getByRole('button', { name: '4일째 아침! 키가 2cm 자랐어요' })
   fireEvent.click(card)
   expect(screen.queryByRole('button')).toBeNull()
+  expect(onClose).toHaveBeenCalledTimes(1)
+})
+
+test('height is told in whole cm, never with decimals', () => {
+  expect(morningSummary({ ...base, grew: true, heightDelta: 2.3 })).toBe('키가 2cm 자랐어요')
+  expect(morningSummary({ ...base, grew: true, heightDelta: 1.5 })).toBe('키가 2cm 자랐어요')
+  expect(morningSummary({ ...base, grew: true, heightDelta: 0.3 })).toBe('키가 조금 자랐어요')
+})
+
+test('a very sick plant gets a clear danger line (health < 30)', () => {
+  const { unmount } = render(<MorningCard report={{ ...base, healthDelta: -12 }} day={5} dayDone={false} health={20} />)
+  expect(screen.getByText('식물이 많이 아파요! 상태판을 살펴봐요.')).toBeTruthy()
+  unmount()
+  render(<MorningCard report={{ ...base, healthDelta: -12 }} day={5} dayDone={false} health={30} />)
+  expect(screen.queryByText(/많이 아파요/)).toBeNull()
 })

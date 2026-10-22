@@ -148,6 +148,42 @@ describe('DexScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: '다른 식물 키우기' }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'pick' })
   })
+
+  test('every seed picture says how big the real seed is', () => {
+    render(<DexScreen state={{ ...base(), dex: ['balsam', 'bean'] }} dispatch={() => {}} />)
+    expect(screen.getByText('실제 크기 약 3 mm')).toBeTruthy()
+    expect(screen.getByText('실제 크기 약 15 mm')).toBeTruthy()
+  })
+
+  test('opened while a plant grows: kept journals stay reachable, back returns to grow, no new plant', () => {
+    const dispatch = vi.fn()
+    const s: AppState = {
+      ...base(),
+      plant: { ...newPlant('corn'), day: 3 },
+      dex: ['balsam'],
+      finished: { balsam: { journal: [{ day: 10, dateKey: '2026-10-11', stage: 'seedDone', heightCm: 20, leaves: 9, actions: { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' }, statuses: { water: { level: 4, dir: null }, light: { level: 4, dir: null }, temp: { level: 4, dir: null }, nutrient: { level: 4, dir: null }, pest: { level: 4, dir: null } } }] } },
+      screen: 'dex',
+    }
+    render(<DexScreen state={s} dispatch={dispatch} />)
+    expect(screen.queryByRole('button', { name: '다른 식물 키우기' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '봉숭아 일지 보기' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'openRecord', id: 'balsam' })
+    fireEvent.click(screen.getByRole('button', { name: '돌아가기' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'grow' })
+  })
+})
+
+describe('GrowScreen menu', () => {
+  test('씨 도감 sits next to 관찰 일지 and opens the dex', () => {
+    const dispatch = vi.fn()
+    const s: AppState = { ...base(), plant: { ...newPlant('corn'), day: 3 }, settings: { sound: false, tutorialSeen: true }, screen: 'grow' }
+    render(<GrowScreen state={s} dispatch={dispatch} />)
+    const menu = screen.getByRole('navigation', { name: '메뉴' })
+    const names = within(menu).getAllByRole('button').map((b) => b.textContent)
+    expect(names.indexOf('씨 도감')).toBe(names.indexOf('관찰 일지') + 1)
+    fireEvent.click(within(menu).getByRole('button', { name: '씨 도감' }))
+    expect(dispatch).toHaveBeenCalledWith({ type: 'open', screen: 'dex' })
+  })
 })
 
 describe('DexScreen journal link', () => {
@@ -267,9 +303,14 @@ describe('BackupPanel', () => {
     render(<BackupPanel state={withPlant()} dispatch={dispatch} back="grow" />)
     fireEvent.change(screen.getByLabelText('되살릴 코드'), { target: { value: shortCode(toSave(other)).toLowerCase() } })
     fireEvent.click(screen.getByRole('button', { name: '기록 되살리기' }))
+    // a short code only brings the plant back: the question says what changes, and what stays
+    expect(screen.getByText('지금 키우는 식물이 코드의 식물로 바뀌어요. 계속할까요?')).toBeTruthy()
+    expect(screen.getByText('끝낸 일지와 지난 시도는 그대로 남아요.')).toBeTruthy()
+    expect(screen.queryByText('지금 기록이 바뀌어요. 계속할까요?')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '바꾸기' }))
     const a = dispatch.mock.calls[0][0]
     expect(a.type).toBe('restore')
+    expect(a.keep).toBe(true)
     expect(a.data.plant).toMatchObject({ speciesId: 'rice', day: 9 })
     expect(a.data.dex).toEqual(['bean'])
   })

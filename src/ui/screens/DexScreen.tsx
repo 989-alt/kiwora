@@ -1,5 +1,6 @@
 import { SPECIES, type SpeciesId } from '../../sim/species'
 import { growing, isComplete, type Action, type AppState } from '../../store'
+import { seedSizeText } from '../journalText'
 import { plantSrc } from '../PlantView'
 import './Screens.css'
 
@@ -9,6 +10,8 @@ type Props = { state: AppState; dispatch: (a: Action) => void }
 
 export function DexScreen({ state, dispatch }: Props) {
   const done = new Set(state.dex)
+  // Opened from the grow screen: a look at the kept journals; a new plant waits until this one is done.
+  const busy = growing(state.plant)
   return (
     <div className="sc dx">
       <header className="sc-head">
@@ -19,7 +22,7 @@ export function DexScreen({ state, dispatch }: Props) {
           </span>
         </div>
         <nav className="sc-nav" aria-label="메뉴">
-          {growing(state.plant) && (
+          {busy && (
             <button type="button" className="sc-btn" onClick={() => dispatch({ type: 'open', screen: 'grow' })}>
               돌아가기
             </button>
@@ -29,9 +32,11 @@ export function DexScreen({ state, dispatch }: Props) {
               일지 다시 보기
             </button>
           )}
-          <button type="button" className="sc-btn sc-btn--primary" onClick={() => dispatch({ type: 'open', screen: 'pick' })}>
-            다른 식물 키우기
-          </button>
+          {!busy && (
+            <button type="button" className="sc-btn sc-btn--primary" onClick={() => dispatch({ type: 'open', screen: 'pick' })}>
+              다른 식물 키우기
+            </button>
+          )}
         </nav>
       </header>
 
@@ -54,6 +59,7 @@ export function DexScreen({ state, dispatch }: Props) {
               <span className="dx-art">
                 <img src={plantSrc(id, 'seed')} alt="" draggable={false} />
               </span>
+              <span className="seed-mm">{seedSizeText(id)}</span>
               <span className="dx-name">{sp.name}</span>
               <ul className="dx-strip" aria-label={`${sp.name} 한살이`}>
                 {sp.stages.map((stage, i) => (

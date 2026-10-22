@@ -1,6 +1,6 @@
 import type { JournalEntry } from '../sim/save'
 import { newPlant } from '../sim/day'
-import { STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
+import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
 import type { ConditionKey, Place, Status } from '../sim/types'
 
 /** Short stage names for strips and sentences ("꽃 단계까지 자랐어요"). Use stageName() to show one. */
@@ -28,6 +28,9 @@ const SPECIES_STAGE: Partial<Record<SpeciesId, Partial<Record<StageId, string>>>
 export function stageName(id: SpeciesId, stage: StageId, form: 'short' | 'long' = 'short'): string {
   return SPECIES_STAGE[id]?.[stage] ?? (form === 'long' ? STAGE_LABEL[stage] : STAGE_SHORT[stage])
 }
+
+/** The caption under a seed picture: how big the real seed is. */
+export const seedSizeText = (id: SpeciesId): string => `실제 크기 약 ${SPECIES[id].seedMm} mm`
 
 const hasFinalConsonant = (word: string): boolean => {
   const code = word.charCodeAt(word.length - 1)

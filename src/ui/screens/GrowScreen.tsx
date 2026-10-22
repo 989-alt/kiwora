@@ -3,7 +3,7 @@ import { currentStatuses } from '../../sim/day'
 import { seedFor } from '../../sim/rng'
 import { phaseOf, SPECIES } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
-import type { Action, AppState } from '../../store'
+import { morningShown, type Action, type AppState } from '../../store'
 import { PlantView, faceFor, isYardPlace } from '../PlantView'
 import { potArt } from '../art'
 import { StatusBoard } from '../StatusBoard'
@@ -45,6 +45,7 @@ const LEAF = ['M7 20h10', 'M12 20v-8', 'M12 12c0-4 3-6 7-6 0 4-3 6-7 6z', 'M12 1
 const SOUND_ON = ['M11 5 6 9H2v6h4l5 4V5z', 'M15.5 8.5a5 5 0 0 1 0 7', 'M19 5a10 10 0 0 1 0 14']
 const SOUND_OFF = ['M11 5 6 9H2v6h4l5 4V5z', 'm22 9-6 6', 'm16 9 6 6']
 const BOOK = ['M4 19.5V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2z', 'M8 7h8', 'M8 11h6']
+const SEED = ['M12 21c-4 0-7-3.5-7-8.5C5 7 8.5 3 12 3s7 4 7 9.5c0 5-3 8.5-7 8.5z', 'M12 7c-1.5 2-1.5 8 0 11']
 const SHIELD = ['M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z', 'm9 12 2 2 4-4']
 const MOON = ['M20 15.5A8 8 0 1 1 8.5 4a6.5 6.5 0 0 0 11.5 11.5z']
 
@@ -101,6 +102,10 @@ export function GrowScreen({ state, dispatch }: Props) {
             <Icon d={BOOK} />
             관찰 일지
           </button>
+          <button type="button" className="gs-menu-btn" onClick={() => dispatch({ type: 'open', screen: 'dex' })}>
+            <Icon d={SEED} />
+            씨 도감
+          </button>
           <button type="button" className="gs-menu-btn" onClick={() => dispatch({ type: 'open', screen: 'backup' })}>
             <Icon d={SHIELD} />
             기록 지키기
@@ -142,8 +147,16 @@ export function GrowScreen({ state, dispatch }: Props) {
               )}
               sceneOverlay={(L) => (pouring ? <WaterStream layout={L} /> : null)}
             />
-            {state.morning && (
-              <MorningCard key={`${plant.day}-${locked}`} report={state.morning} day={plant.day} dayDone={locked} stage={stage} />
+            {state.morning && !morningShown(state) && (
+              <MorningCard
+                key={`${plant.day}-${locked}`}
+                report={state.morning}
+                day={plant.day}
+                dayDone={locked}
+                stage={stage}
+                health={plant.health}
+                onClose={() => dispatch({ type: 'morningSeen' })}
+              />
             )}
           </div>
 
