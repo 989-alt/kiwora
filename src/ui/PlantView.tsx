@@ -1,5 +1,7 @@
 import { useLayoutEffect, useRef, useState, type HTMLAttributes, type ReactNode } from 'react'
-import { SPECIES, type SpeciesId, type StageId } from '../sim/species'
+import { CM_PER_POINT } from '../sim/day'
+import { fullHeightCm } from '../sim/measure'
+import { SPECIES, STAGE_POINTS, type SpeciesId, type StageId } from '../sim/species'
 import { stageName } from './journalText'
 import type { Place } from '../sim/types'
 import { DEFAULTS, bgArt, bugSpots, plantArt, plantSrc, potArt, standY, type BgAnchor, type BugSpots, type PlantAnchor, type PotAnchor } from './art'
@@ -15,13 +17,33 @@ export function faceFor(health: number): Face {
   return 'sick'
 }
 
-/** Visible plant height per stage, as a share of the full-grown plant. Seed = no plant is drawn. */
+/**
+ * A representative share of the full-grown plant per stage (for layouts without a height, e.g. tests of
+ * things drawn on the plant). The screen draws the plant at its height (plantShare). Seed = no plant.
+ */
 export function stageScale(stage: StageId): number {
   if (stage === 'seed') return 0
   if (stage === 'sprout') return 0.35
   if (stage === 'leafStem') return 0.65
   return 1
 }
+
+/** The ruler starts at 1 cm: a plant under that is drawn 1 cm tall. */
+const MIN_DRAWN_CM = 1
+
+/**
+ * The visible plant height as a share of the full-grown plant in that place (fullHeightCm), so one cm has
+ * the same size on screen every day: the measuring ruler keeps its spacing. Seed = no plant is drawn.
+ */
+export function plantShare(id: SpeciesId, stage: StageId, heightCm: number, yard: boolean): number {
+  if (stage === 'seed') return 0
+  const h = Number.isFinite(heightCm) ? Math.max(MIN_DRAWN_CM, heightCm) : MIN_DRAWN_CM
+  return Math.min(1, h / fullHeightCm(id, yard))
+}
+
+/** A height in the middle of the stage, for a picture shown without the plant's own height. */
+const midStageCm = (id: SpeciesId, stage: StageId) =>
+  Math.max(0, SPECIES[id].stages.indexOf(stage) - 0.5) * STAGE_POINTS * CM_PER_POINT
 
 // Numbers of the approved composition (docs/mockup/compose.py, 746×586 scene).
 const MOCK_W = 746
@@ -33,6 +55,8 @@ const MOCK_PLANT_H = 0.22 * (1415 - 23)
 const STEM_DEPTH = 9
 /** Keeps the pot from filling a very narrow scene. */
 const MAX_UNIT_PER_WIDTH = 1.3 / MOCK_W
+/** A full-grown plant's top stays at least this far (scene px) below the top of the scene. */
+const TOP_ROOM = 12
 
 /** Anchors of the pictures a scene is built from. */
 export type SceneArt = { bg: BgAnchor; pot: PotAnchor; plant: PlantAnchor }
@@ -57,10 +81,14 @@ export type SceneLayout = {
 /** y of the visible plant's top: never below the ground (a seed draws no plant). */
 const topOf = (plant: Box, plA: PlantAnchor, ground: number) => Math.min(ground, plant.y + plA.top * plant.scale)
 
-/** Picture px per scene px so the visible pot is MOCK_POT_W wide and the visible plant is `heightShare` of the full height. */
+/** Picture px per scene px so the visible pot is MOCK_POT_W wide. */
 const potScale = (potA: PotAnchor, unit: number) => (MOCK_POT_W * unit) / (potA.bbox[2] - potA.bbox[0])
-const plantScale = (plA: PlantAnchor, unit: number, heightShare: number) =>
-  (MOCK_PLANT_H * unit * heightShare) / (plA.stemY - plA.top)
+/**
+ * Picture px per scene px so the plant shows `share` of `full` (scene px of a full-grown plant above the
+ * ground) above the ground, its stem base `depth` px under it.
+ */
+const plantScale = (plA: PlantAnchor, full: number, share: number, depth: number) =>
+  (share * full + depth) / (plA.stemY - plA.top)
 
 /** Background covers the scene, bottom aligned so the placing surface stays in view. */
 function coverBg(W: number, H: number, bgA: BgAnchor) {
@@ -73,8 +101,10 @@ function coverBg(W: number, H: number, bgA: BgAnchor) {
  * Port of compose.py: background covers the scene (bottom aligned so the sill stays in view),
  * pot bottom stands on the measured top face of the sill / desk / shelf (standY), plant stem base 9 mockup-px
  * under the soil line. Sizes follow that line too, so a lifted pot still has room for the full-grown plant.
+ * `plantShare` = visible height as a share of a full-grown plant, which is the mockup's full plant or, in a
+ * short scene, what fits under the top (TOP_ROOM): either way the same for every stage of the scene.
  */
-export function sceneLayout(W: number, H: number, plantStageScale: number, art: SceneArt = DEFAULT_ART): SceneLayout {
+export function sceneLayout(W: number, H: number, plantShare: number, art: SceneArt = DEFAULT_ART): SceneLayout {
   const { bg: bgA, pot: potA, plant: plA } = art
 
   const { bg } = coverBg(W, H, bgA)
@@ -99,7 +129,8 @@ export function sceneLayout(W: number, H: number, plantStageScale: number, art: 
   }
   const soilLine = pot.y + potA.soilY * ps
 
-  const pl = plantScale(plA, unit, plantStageScale)
+  const full = Math.min((MOCK_PLANT_H - STEM_DEPTH) * unit, soilLine - TOP_ROOM)
+  const pl = plantScale(plA, full, plantShare, STEM_DEPTH * unit)
   const plant = {
     x: cx - plA.stemX * pl,
     y: soilLine + STEM_DEPTH * unit - plA.stemY * pl,
@@ -130,12 +161,13 @@ export type YardLayout = SceneLayout & {
 }
 
 /** The yard: no pot, the stem base stands on the soil line of the yard picture. */
-export function yardLayout(W: number, H: number, plantStageScale: number, art: Pick<SceneArt, 'bg' | 'plant'> = DEFAULT_ART): YardLayout {
+export function yardLayout(W: number, H: number, plantShare: number, art: Pick<SceneArt, 'bg' | 'plant'> = DEFAULT_ART): YardLayout {
   const plA = art.plant
   const { bg, surface } = coverBg(W, H, art.bg)
   const unit = Math.min(surface / MOCK_SURFACE, W * MAX_UNIT_PER_WIDTH)
   const cx = W * YARD_TREE_X
-  const pl = plantScale(plA, unit, YARD_PLANT_BOOST * plantStageScale)
+  const full = Math.min((YARD_PLANT_BOOST * MOCK_PLANT_H - YARD_STEM_DEPTH) * unit, surface - TOP_ROOM)
+  const pl = plantScale(plA, full, plantShare, YARD_STEM_DEPTH * unit)
   const plant = {
     x: cx - plA.stemX * pl,
     y: surface + YARD_STEM_DEPTH * unit - plA.stemY * pl,
@@ -171,14 +203,17 @@ const WINTER_FILTER = 'grayscale(.7) brightness(.9) contrast(.9)'
 
 const r2 = (v: number) => Math.round(v * 100) / 100
 
-/** Health → faded colour and tilted stem; low light → pale, thin and a little stretched. */
+/**
+ * Health → faded colour and tilted stem; low light → pale and thin (spindly). The height is left as drawn,
+ * so the plant top stays where the measuring ruler reads the plant's height.
+ */
 export function plantLook(health: number, lightLow: boolean): { filter: string; transform: string } {
   const h = Math.max(0, Math.min(100, Number.isFinite(health) ? health : 100))
   const d = h >= 75 ? 0 : (75 - h) / 75
   const filters: string[] = []
   if (d > 0) filters.push(`saturate(${r2(1 - 0.6 * d)}) sepia(${r2(0.45 * d)})`)
   if (lightLow) filters.push('saturate(0.5) brightness(1.15)')
-  const transform = `rotate(${r2(16 * d)}deg)${lightLow ? ' scale(0.85, 1.06)' : ''}`
+  const transform = `rotate(${r2(16 * d)}deg)${lightLow ? ' scale(0.85, 1)' : ''}`
   return { filter: filters.join(' ') || 'none', transform }
 }
 
@@ -215,9 +250,28 @@ function useSize(ref: React.RefObject<HTMLElement>) {
   return size
 }
 
+/** What decides where the scene's pictures go. */
+export type PlantPlace = { speciesId: SpeciesId; stage: StageId; heightCm: number; place: Place; health: number }
+
+/** Pictures of the scene: the place's background, the pot of the health face, the plant of the stage. */
+function sceneArt(p: PlantPlace) {
+  return { bg: bgArt(p.place), pot: potArt(faceFor(p.health)), plant: plantArt(p.speciesId, p.stage) }
+}
+
+/** The layout PlantView draws for a plant of `heightCm` at `place` in a W×H scene. */
+export function plantLayout(W: number, H: number, p: PlantPlace): SceneLayout {
+  const pics = sceneArt(p)
+  const yard = isYardPlace(p.place)
+  const share = plantShare(p.speciesId, p.stage, p.heightCm, yard)
+  const art: SceneArt = { bg: pics.bg.a, pot: pics.pot.a, plant: pics.plant.a }
+  return yard ? yardLayout(W, H, share, art) : sceneLayout(W, H, share, art)
+}
+
 type Props = {
   speciesId: SpeciesId
   stage: StageId
+  /** The plant's height (cm): the picture is drawn at it (default: the middle of the stage). */
+  heightCm?: number
   health: number
   lightLow: boolean
   place: Place
@@ -236,22 +290,21 @@ type Props = {
   sceneOverlay?: (layout: SceneLayout) => ReactNode
 }
 
-export function PlantView({ speciesId, stage, health, lightLow, place, winter = false, potProps, potHighlight, plantOverlay, sceneOverlay }: Props) {
+export function PlantView({
+  speciesId, stage, heightCm, health, lightLow, place, winter = false, potProps, potHighlight, plantOverlay, sceneOverlay,
+}: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const { w, h } = useSize(ref)
-  const scale = stageScale(stage)
   const yard = isYardPlace(place)
   const face = faceFor(health)
-  const bgPic = bgArt(place)
-  const potPic = potArt(face)
-  const plantPic = plantArt(speciesId, stage)
-  const art: SceneArt = { bg: bgPic.a, pot: potPic.a, plant: plantPic.a }
-  const L = yard ? yardLayout(w, h, scale, art) : sceneLayout(w, h, scale, art)
+  const spot: PlantPlace = { speciesId, stage, heightCm: heightCm ?? midStageCm(speciesId, stage), place, health }
+  const { bg: bgPic, pot: potPic, plant: plantPic } = sceneArt(spot)
+  const L = plantLayout(w, h, spot)
   const potSrc = potPic.src
   const potFilter = face === 'sick' ? 'saturate(.6)' : undefined
   const look = plantLook(health, lightLow)
   const name = SPECIES[speciesId].name
-  const hasPlant = scale > 0
+  const hasPlant = stage !== 'seed'
   // A species with a real winter picture shows it as drawn; the muted filter only fakes winter on a stand-in.
   const fakeWinter = winter && !plantPic.real
   const plantFilter = fakeWinter ? [look.filter === 'none' ? '' : look.filter, WINTER_FILTER].join(' ').trim() : look.filter

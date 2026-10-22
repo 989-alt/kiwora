@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isTrueObservation } from './data/observations'
 import { pendingCare } from './sim/care'
 import { isNewDay, todayKey } from './sim/clock'
 import { applyActions, endDay, newPlant } from './sim/day'
@@ -339,9 +340,11 @@ export function reducer(prev: AppState, a: Action, today: string): AppState {
           : null,
       )
     case 'observe':
-      // Task 11 adds the check against the stage's observation sentences.
-      return record(s, (_p, obs) =>
-        obs.observed === undefined && typeof a.text === 'string' && a.text.trim() !== '' ? { ...obs, observed: a.text } : null,
+      // Only a true sentence of the plant's species and stage today (src/data/observations.ts).
+      return record(s, (p, obs) =>
+        obs.observed === undefined && typeof a.text === 'string' && isTrueObservation(p.speciesId, stageOf(p), a.text)
+          ? { ...obs, observed: a.text }
+          : null,
       )
     case 'nightFxDone': {
       if (!s.nightFx) return s

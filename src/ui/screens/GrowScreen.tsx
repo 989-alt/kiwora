@@ -21,6 +21,9 @@ import { PlaceSlots, usePotDrag } from '../tools/PlaceSlots'
 import { WaterStream, WateringCan } from '../tools/WateringCan'
 import { stageName } from '../journalText'
 import { MorningCard, morningSummary } from './MorningCard'
+import { Magnifier } from '../observe/Magnifier'
+import { MISSES_FOR_HINT, ObserveButton, ObservePanel, ObserveTools, useObserve } from '../observe/ObservePanel'
+import { Ruler } from '../observe/Ruler'
 import './GrowScreen.css'
 
 const PORTRAIT = '(max-width: 899px)'
@@ -68,6 +71,15 @@ export function GrowScreen({ state, dispatch }: Props) {
   const busy = locked || state.nightFx !== undefined
   const sound = state.settings.sound
   const drag = usePotDrag(busy, (place) => dispatch({ type: 'move', place }), state.plant?.place)
+  const sceneRef = useRef<HTMLDivElement>(null)
+  const obs = useObserve(plant, state.pendingObs, dispatch, sound)
+  /** The ruler was let go: over the scene it stands there; a tap stands it beside the plant. */
+  const dropRuler = (at: { x: number; y: number } | null) => {
+    if (at === null) return obs.placeRuler(null)
+    const r = sceneRef.current?.querySelector('.pv')?.getBoundingClientRect()
+    if (!r || at.x < r.left || at.x > r.right || at.y < r.top || at.y > r.bottom) return
+    obs.placeRuler(at.x - r.left)
+  }
   const soundRef = useRef(sound)
   soundRef.current = sound
   useEffect(() => installAudioUnlock(() => soundRef.current), [])
@@ -140,10 +152,11 @@ export function GrowScreen({ state, dispatch }: Props) {
 
       <div className="gs-body">
         <section className="gs-left" aria-label="식물">
-          <div className="gs-scene">
+          <div className="gs-scene" ref={sceneRef}>
             <PlantView
               speciesId={plant.speciesId}
               stage={stage}
+              heightCm={plant.heightCm}
               health={plant.health}
               lightLow={lightLow}
               place={plant.place}
@@ -181,6 +194,20 @@ export function GrowScreen({ state, dispatch }: Props) {
                     morningCard={morningUp}
                   />
                   {pouring && <WaterStream layout={L} />}
+                  {obs.ui.open && obs.ui.tool === 'ruler' && obs.ruler && (
+                    <Ruler
+                      L={L}
+                      heightCm={plant.heightCm}
+                      x={obs.ui.rulerX}
+                      hint={obs.measured === undefined && obs.ui.misses.ruler >= MISSES_FOR_HINT}
+                      disabled={busy}
+                      onMove={obs.moveRuler}
+                      onPickTick={() => obs.pick('ruler', String(obs.ruler?.answer))}
+                    />
+                  )}
+                  {obs.ui.open && obs.ui.tool === 'magnifier' && (
+                    <Magnifier L={L} speciesId={plant.speciesId} stage={stage} part={obs.part} />
+                  )}
                 </>
               )}
             />
@@ -204,41 +231,55 @@ export function GrowScreen({ state, dispatch }: Props) {
           </div>
 
           <div className="gs-tools">
-            {inRoom && (
-              <PlaceSlots
-                place={plant.place}
-                disabled={busy}
-                dragging={drag.ghost !== null}
-                hover={drag.hover}
-                glow={moveIn ? 'desk' : undefined}
-                onPick={(place) => dispatch({ type: 'move', place })}
-              />
+            {obs.ui.open ? (
+              <ObserveTools obs={obs} disabled={busy} onDropRuler={dropRuler} />
+            ) : (
+              <>
+                {inRoom && (
+                  <PlaceSlots
+                    place={plant.place}
+                    disabled={busy}
+                    dragging={drag.ghost !== null}
+                    hover={drag.hover}
+                    glow={moveIn ? 'desk' : undefined}
+                    onPick={(place) => dispatch({ type: 'move', place })}
+                  />
+                )}
+                <WateringCan
+                  disabled={busy}
+                  blocked={sowFirst ? '씨를 먼저 심어요' : undefined}
+                  sound={sound}
+                  onWater={(amount) => dispatch({ type: 'water', amount })}
+                  onPourChange={setPouring}
+                />
+                <Fertilizer
+                  disabled={busy}
+                  sound={sound}
+                  onPellet={() => dispatch({ type: 'pellet' })}
+                  onDragChange={setPelletDrag}
+                  target={yard ? '땅' : '화분'}
+                />
+                <ObserveButton obs={obs} disabled={busy} />
+              </>
             )}
-            <WateringCan
-              disabled={busy}
-              blocked={sowFirst ? '씨를 먼저 심어요' : undefined}
-              sound={sound}
-              onWater={(amount) => dispatch({ type: 'water', amount })}
-              onPourChange={setPouring}
-            />
-            <Fertilizer
-              disabled={busy}
-              sound={sound}
-              onPellet={() => dispatch({ type: 'pellet' })}
-              onDragChange={setPelletDrag}
-              target={yard ? '땅' : '화분'}
-            />
           </div>
+          {/* Portrait: the choices come right under the tools (the status board is further down the page). */}
+          {portrait && obs.ui.open && <ObservePanel obs={obs} disabled={busy} />}
         </section>
 
         <aside className="gs-aside" aria-label="상태판">
-          <StatusBoard statuses={statuses} health={plant.health} bugs={plant.bugs} layout={portrait ? 'bottom' : 'side'} />
+          {!portrait && obs.ui.open ? (
+            <ObservePanel obs={obs} disabled={busy} />
+          ) : (
+            <StatusBoard statuses={statuses} health={plant.health} bugs={plant.bugs} layout={portrait ? 'bottom' : 'side'} />
+          )}
           {!portrait && endButton}
         </aside>
       </div>
 
       {/* Portrait: the page scrolls, so 하루 마치기 rides along in a bar stuck to the bottom of the screen. */}
-      {portrait && <div className="gs-endbar">{endButton}</div>}
+      {/* (hidden while observing: the choices sit there; 관찰 마치기 brings it back) */}
+      {portrait && !obs.ui.open && <div className="gs-endbar">{endButton}</div>}
 
       {drag.ghost && (
         <img

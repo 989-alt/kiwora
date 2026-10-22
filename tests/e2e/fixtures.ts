@@ -3,6 +3,7 @@ import type { Page } from '@playwright/test'
 type PlantOver = Partial<{
   speciesId: string
   stageIndex: number
+  heightCm: number
   growth: number
   health: number
   water: number

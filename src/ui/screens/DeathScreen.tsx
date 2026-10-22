@@ -24,6 +24,7 @@ export function DeathScreen({ state, dispatch }: Props) {
         <PlantView
           speciesId={plant.speciesId}
           stage={sceneStage}
+          heightCm={plant.heightCm}
           health={Math.min(plant.health, 10)}
           lightLow={false}
           place={plant.place}

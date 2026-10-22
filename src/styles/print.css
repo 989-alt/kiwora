@@ -70,18 +70,37 @@
     font-size: 10pt !important;
   }
 
+  /* 8 columns across A4 portrait: smaller print letters and fixed column widths (the screen keeps its size). */
   .jr-table {
-    font-size: 11pt !important;
+    font-size: 9pt !important;
+    table-layout: fixed;
+    width: 100% !important;
   }
   .jr-table th {
     color: #000 !important;
     border-bottom: 1px solid #000;
-    font-size: 11pt !important;
+    font-size: 9pt !important;
+    padding: 1.5mm 1mm !important;
+  }
+  .jr-table th,
+  .jr-table td {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    vertical-align: top;
   }
   .jr-table td {
     border-top: 1px solid #888 !important;
-    padding: 2.5mm 2mm !important;
+    padding: 1.8mm 1mm !important;
   }
+  /* 며칠째 | 단계 | 키 | 내가 잰 키 | 잎 | 한 일 | 관찰한 것 | 어땠나요 */
+  .jr-table th:nth-child(1) { width: 9%; }
+  .jr-table th:nth-child(2) { width: 9%; }
+  .jr-table th:nth-child(3) { width: 7%; }
+  .jr-table th:nth-child(4) { width: 10%; }
+  .jr-table th:nth-child(5) { width: 6%; }
+  .jr-table th:nth-child(6) { width: 22%; }
+  .jr-table th:nth-child(7) { width: 22%; }
+  .jr-table th:nth-child(8) { width: 15%; }
   .jr-table tr {
     break-inside: avoid;
   }

@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { OBSERVATIONS } from '../../src/data/observations'
 import { pendingCare } from '../../src/sim/care'
 import { newPlant } from '../../src/sim/day'
 import { measureAnswer } from '../../src/sim/measure'
@@ -979,16 +980,26 @@ describe('measure and observe', () => {
   })
 
   it('observe records once a day and goes into the journal with the measurement', () => {
-    const t = reducer(holding(sprout), { type: 'observe', text: '떡잎이 두 장이에요' }, D1)
-    expect(t.pendingObs).toEqual({ observed: '떡잎이 두 장이에요' })
-    expect(reducer(t, { type: 'observe', text: '다른 문장' }, D1).pendingObs?.observed).toBe('떡잎이 두 장이에요')
+    const [said, other] = OBSERVATIONS.bean.sprout!.yes
+    const t = reducer(holding(sprout), { type: 'observe', text: said }, D1)
+    expect(t.pendingObs).toEqual({ observed: said })
+    expect(reducer(t, { type: 'observe', text: other }, D1).pendingObs?.observed).toBe(said)
     const both = reducer(t, { type: 'measure', cm: 3, helped: false }, D1)
-    expect(both.pendingObs).toEqual({ observed: '떡잎이 두 장이에요', measuredCm: 3, measureHelped: false })
-    expect(reducer(both, { type: 'endDay' }, D1).journal[0]).toMatchObject({ observed: '떡잎이 두 장이에요', measuredCm: 3 })
+    expect(both.pendingObs).toEqual({ observed: said, measuredCm: 3, measureHelped: false })
+    expect(reducer(both, { type: 'endDay' }, D1).journal[0]).toMatchObject({ observed: said, measuredCm: 3 })
     // a day with only an observation is still finalized by the next date
     const r = boot(persist(t), D2)
-    expect(r.journal[0].observed).toBe('떡잎이 두 장이에요')
+    expect(r.journal[0].observed).toBe(said)
     expect(r.pendingObs).toBeNull()
+  })
+
+  it("observe accepts only a true sentence of today's stage", () => {
+    const s = holding(sprout)
+    const set = OBSERVATIONS.bean.sprout!
+    // a false sentence, a true sentence of another stage or species, free text: nothing is recorded
+    for (const text of [set.no[0], OBSERVATIONS.bean.flower!.yes[0], OBSERVATIONS.corn.sprout!.yes[1], '아무 말', ''])
+      expect(reducer(s, { type: 'observe', text }, D1).pendingObs ?? null, text).toBeNull()
+    for (const text of set.yes) expect(reducer(s, { type: 'observe', text }, D1).pendingObs, text).toEqual({ observed: text })
   })
 })
 

@@ -1,3 +1,4 @@
+import type { JournalEntry } from '../../sim/save'
 import { SPECIES, type SpeciesId } from '../../sim/species'
 import type { Mode, PlantState } from '../../sim/types'
 import { growing, isComplete, type Action, type AppState } from '../../store'
@@ -20,6 +21,10 @@ const Arrow = () => (
     <path d="m13 6 6 6-6 6" />
   </svg>
 )
+
+/** The height the student read off the ruler that day ('(도움)' after two misses), or '-'. */
+const measuredText = (e: JournalEntry) =>
+  e.measuredCm === undefined ? '-' : `${e.measuredCm} cm${e.measureHelped ? ' (도움)' : ''}`
 
 /** Where the back button leads while the record is not finished (a finished one leads on to the dex). */
 function backTarget(plant: PlantState | null): { label: string; screen: 'grow' | 'dead' | 'pick' } {
@@ -109,8 +114,10 @@ export function JournalScreen({ state, dispatch, record }: Props) {
                   <th scope="col">며칠째</th>
                   <th scope="col">단계</th>
                   <th scope="col">키</th>
+                  <th scope="col">내가 잰 키</th>
                   <th scope="col">잎</th>
                   <th scope="col">한 일</th>
+                  <th scope="col">관찰한 것</th>
                   <th scope="col">어땠나요</th>
                 </tr>
               </thead>
@@ -120,8 +127,10 @@ export function JournalScreen({ state, dispatch, record }: Props) {
                     <td>{entry.day}일째</td>
                     <td>{stageName(speciesId, entry.stage)}</td>
                     <td>{Math.round(entry.heightCm)}cm</td>
+                    <td>{measuredText(entry)}</td>
                     <td>{Math.round(entry.leaves)}장</td>
                     <td>{did}</td>
+                    <td>{entry.observed ?? '-'}</td>
                     <td>{feelingText(entry.statuses)}</td>
                   </tr>
                 ))}

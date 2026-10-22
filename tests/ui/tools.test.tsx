@@ -88,6 +88,18 @@ test('bugs sit on the leaf spots of the current plant picture, as aphids or cate
   }
 })
 
+test('on a small plant the bugs are pushed apart: no bug button covers the middle of another', () => {
+  // a plant drawn small: its leaf spots are a few px apart
+  render(<Bugs count={5} seed={3} scale={0.05} disabled={false} sound={false} onCatch={() => {}} />)
+  const mids = screen
+    .getAllByRole('button', { name: '벌레 잡기' })
+    .map((b) => [parseFloat(b.style.left) + parseFloat(b.style.width) / 2, parseFloat(b.style.top) + parseFloat(b.style.height) / 2])
+  expect(mids).toHaveLength(5)
+  for (let i = 0; i < mids.length; i++)
+    for (let j = i + 1; j < mids.length; j++)
+      expect(Math.max(Math.abs(mids[i][0] - mids[j][0]), Math.abs(mids[i][1] - mids[j][1]))).toBeGreaterThanOrEqual(58)
+})
+
 test('bug buttons stay at least 48 px under the low-light scaleX(0.85)', () => {
   render(<Bugs count={2} seed={1} scale={0.2} disabled={false} sound={false} onCatch={() => {}} />)
   for (const b of screen.getAllByRole('button', { name: '벌레 잡기' })) {

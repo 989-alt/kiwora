@@ -116,6 +116,27 @@ describe('JournalScreen', () => {
     expect(rows[3].textContent).toContain('물 주기')
     expect(rows[3].textContent).not.toContain('씨 심기')
   })
+
+  test('journal shows measured height and observation columns', () => {
+    const journal = [
+      entry(1, { heightCm: 3.4, measuredCm: 3, measureHelped: false, observed: '떡잎 두 장이 먼저 나와요' }),
+      entry(2, { heightCm: 5.2, measuredCm: 5, measureHelped: true }),
+      entry(3, { heightCm: 6.6 }),
+    ]
+    render(<JournalScreen state={stateWith(journal)} dispatch={() => {}} />)
+    const table = screen.getByRole('table')
+    const heads = within(table).getAllByRole('columnheader').map((th) => th.textContent)
+    expect(heads).toEqual(['며칠째', '단계', '키', '내가 잰 키', '잎', '한 일', '관찰한 것', '어땠나요'])
+    const cells = (i: number) => within(within(table).getAllByRole('row')[i]).getAllByRole('cell').map((td) => td.textContent)
+    expect(cells(1)[3]).toBe('3 cm')
+    expect(cells(1)[6]).toBe('떡잎 두 장이 먼저 나와요')
+    expect(cells(2)[3]).toBe('5 cm (도움)')
+    expect(cells(2)[6]).toBe('-')
+    expect(cells(3)[3]).toBe('-')
+    expect(cells(3)[6]).toBe('-')
+    // the simulated height column stays as it was
+    expect(cells(3)[2]).toBe('7cm')
+  })
 })
 
 describe('journal text', () => {

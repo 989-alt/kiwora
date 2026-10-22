@@ -31,7 +31,7 @@ const RECOVER = 10
 const GROWTH_FOR: Record<Level, number> = { 0: 0, 1: 0, 2: 0.5, 3: 1.5, 4: 2 }
 
 /** cm per growth point and growth points per leaf (heightCm/leaves are display values, never shrink). */
-const CM_PER_POINT = 1.5
+export const CM_PER_POINT = 1.5
 const POINTS_PER_LEAF = 2
 
 const NOT_NEEDED: Status = { level: null, notNeeded: true }

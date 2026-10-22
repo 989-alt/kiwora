@@ -204,6 +204,25 @@
   min-height: 76px;
 }
 
+/* Narrow landscape (scene under ~880 px wide): the tool row also holds [관찰하기], so the place slots and the
+   tool pictures are a little smaller (same height, so the scene keeps its size). */
+@media (min-width: 900px) and (max-width: 1300px) {
+  .gs-tools .slot {
+    width: 80px;
+  }
+  .gs-tools .tool {
+    gap: 6px;
+    padding: 8px 6px;
+  }
+  .gs-tools .tool:not(.tool--obs) img {
+    width: 56px;
+    height: 56px;
+  }
+  .gs-tools .tool-name {
+    white-space: nowrap;
+  }
+}
+
 /* Short landscape screens (e.g. a Chromebook window): tighter status board so 하루 마치기 stays on screen. */
 @media (max-height: 760px) and (min-width: 900px) {
   .gs {

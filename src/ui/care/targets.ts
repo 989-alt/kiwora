@@ -227,7 +227,8 @@ export function careTargets(task: CareTaskId, L: SceneLayout, pic: PlantArt, id?
     case 'hillUp':
       return heapXs(g).map((x) => at(x, g.ground - 4 * u, 60 * u, 44 * u))
     case 'pinch':
-      return branchPoints(L, pic).map(([x, y]) => at(x, y, 50 * u, 50 * u, 56))
+      // a small plant (drawn at its height) has its two branches close together: keep the marks apart
+      return pointTargets(branchPoints(L, pic), 50 * u, 56, W, H, avoidMorning, at)
     case 'drainCheck':
       return [at(g.cx, g.surface, 180 * u, 60 * u, 64)]
     case 'prune':

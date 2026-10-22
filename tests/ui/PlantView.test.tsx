@@ -1,7 +1,9 @@
 import { render } from '@testing-library/react'
 import { describe, expect, test } from 'vitest'
-import { SPECIES } from '../../src/sim/species'
-import { PlantView, faceFor, sceneLayout, stageScale, yardLayout } from '../../src/ui/PlantView'
+import { fullHeightCm } from '../../src/sim/measure'
+import { SPECIES, type SpeciesId, type StageId } from '../../src/sim/species'
+import type { Place } from '../../src/sim/types'
+import { PlantView, faceFor, plantLayout, plantLook, sceneLayout, stageScale, yardLayout } from '../../src/ui/PlantView'
 import { DEFAULTS, bgArt, plantArt, potArt } from '../../src/ui/art'
 
 const anchors = { bg: { window: DEFAULTS.bg }, pot: DEFAULTS.pot, plant: { default: DEFAULTS.plant } }
@@ -118,13 +120,13 @@ describe('PlantView', () => {
     expect(plant.style.filter).toMatch(/sepia/)
   })
 
-  test('low light makes the plant pale and thin', () => {
+  test('low light makes the plant pale and thin (its height stays what the ruler reads)', () => {
     const { container } = render(
       <PlantView speciesId="balsam" stage="leafStem" health={90} lightLow place="shade" />,
     )
     const plant = container.querySelector('[data-layer="plant"]') as HTMLElement
     expect(plant.style.filter).toContain('saturate(0.5) brightness(1.15)')
-    expect(plant.style.transform).toContain('scale(0.85, 1.06)')
+    expect(plant.style.transform).toContain('scale(0.85, 1)')
   })
 })
 
@@ -331,5 +333,91 @@ describe('pictures and their anchors', () => {
   test('the yard draws the yard picture of the place', () => {
     const { container } = render(<PlantView speciesId="apple" stage="grownTree" health={90} lightLow={false} place="yardShade" />)
     expect(container.querySelector('[data-layer="yard-bg"]')!.getAttribute('src')).toBe('/bg/yardShade.webp')
+  })
+})
+
+describe('the plant is drawn at its height (a fixed cm per scene)', () => {
+  // scene px of the 6 viewports (1194×834, 1280×800, 1366×640, 1366×768, 820×1180, 768×1024) without and with
+  // the '오늘 할 일' band, measured by tests/e2e/observe.spec.ts
+  const SCENES: [number, number][] = [
+    [746, 584], [832, 550], [936, 416], [918, 518], [764, 632], [712, 565],
+    [746, 516], [832, 484], [936, 358], [918, 452],
+  ]
+  const IDS = Object.keys(SPECIES) as SpeciesId[]
+  const ROOM = ['window', 'desk', 'shade'] as const
+  const YARD = ['yardSunny', 'yardPartial', 'yardShade'] as const
+  /** Where a plant at `stage` can stand: a tree is in the yard from the young-tree stage on. */
+  const placesOf = (id: SpeciesId, stage: StageId): Place[] =>
+    SPECIES[id].transplant && SPECIES[id].stages.indexOf(stage) >= SPECIES[id].stages.indexOf('grownTree') ? [...YARD] : [...ROOM]
+  /** The highest height of a stage (growth waits at the stage's top until its care is done). */
+  const stageTop = (id: SpeciesId, stage: StageId) => SPECIES[id].stages.indexOf(stage) * 6
+
+  test('one cm is the same number of px on every day and stage of a plant in a scene', () => {
+    for (const [W, H] of SCENES)
+      for (const id of IDS)
+        for (const yard of [false, true]) {
+          if (yard && !SPECIES[id].transplant) continue
+          const place: Place = yard ? 'yardSunny' : 'desk'
+          const full = fullHeightCm(id, yard)
+          const stages = SPECIES[id].stages.filter((st) => st !== 'seed' && placesOf(id, st).includes(place))
+          const per: number[] = []
+          for (const st of stages)
+            for (let h = Math.max(1, stageTop(id, st) - 6); h <= Math.min(full, stageTop(id, st)); h += 0.7) {
+              const L = plantLayout(W, H, { speciesId: id, stage: st, heightCm: h, place, health: 90 })
+              per.push((L.groundY - L.plantTopY) / h)
+            }
+          const label = `${W}x${H} ${id} ${place}`
+          expect(per.length, label).toBeGreaterThan(3)
+          for (const v of per) expect(v, label).toBeCloseTo(per[0], 6)
+          expect(per[0], label).toBeGreaterThan(3)
+        }
+  })
+
+  test('a just-sprouted plant under 1 cm is drawn 1 cm tall (the ruler starts at 1 cm)', () => {
+    const at = (h: number) => plantLayout(746, 584, { speciesId: 'bean', stage: 'sprout', heightCm: h, place: 'desk', health: 90 })
+    const one = at(1)
+    expect(at(0).plantTopY).toBeCloseTo(one.plantTopY, 6)
+    expect(at(0.4).plantTopY).toBeCloseTo(one.plantTopY, 6)
+    expect(one.plantTopY).toBeLessThan(one.groundY)
+    expect(at(2).plantTopY).toBeLessThan(one.plantTopY)
+  })
+
+  test('the plant top is never cut off, also when it is pale and stretched by low light or tilted by sickness', () => {
+    // the drawn top after the CSS transform of plantLook (scale about the stem base)
+    const scaleY = (t: string) => {
+      const m = /scale\(([\d.]+), ([\d.]+)\)/.exec(t)
+      return m ? Number(m[2]) : 1
+    }
+    for (const [W, H] of SCENES)
+      for (const id of IDS)
+        for (const st of SPECIES[id].stages) {
+          if (st === 'seed') continue
+          // the tallest the plant can be while at this stage in that place
+          const h = Math.min(stageTop(id, st), fullHeightCm(id, placesOf(id, st)[0].startsWith('yard')))
+          for (const place of placesOf(id, st))
+            for (const health of [100, 60, 10])
+              for (const lightLow of [false, true]) {
+                const L = plantLayout(W, H, { speciesId: id, stage: st, heightCm: h, place, health })
+                const sy = scaleY(plantLook(health, lightLow).transform)
+                const base = L.plant.y + L.plant.originY
+                const top = base - sy * (base - L.plantTopY)
+                expect(top, `${W}x${H} ${id}/${st} ${place} ${health} ${lightLow}`).toBeGreaterThanOrEqual(0)
+              }
+        }
+  })
+
+  test('the dandelion flower head stands inside the room scene at every size', () => {
+    for (const [W, H] of SCENES) {
+      const L = plantLayout(W, H, { speciesId: 'dandelion', stage: 'flower', heightCm: 24, place: 'window', health: 90 })
+      expect(L.plantTopY, `${W}x${H}`).toBeGreaterThanOrEqual(12)
+    }
+  })
+
+  test('PlantView draws the picture where the layout of its height puts it', () => {
+    const { container } = render(<PlantView speciesId="bean" stage="leafStem" heightCm={9} health={90} lightLow={false} place="desk" />)
+    const img = container.querySelector('[data-layer="plant"]') as HTMLElement
+    const L = plantLayout(746, 586, { speciesId: 'bean', stage: 'leafStem', heightCm: 9, place: 'desk', health: 90 })
+    expect(Number.parseFloat(img.style.top)).toBeCloseTo(L.plant.y, 3)
+    expect(Number.parseFloat(img.style.height)).toBeCloseTo(L.plant.h, 3)
   })
 })
