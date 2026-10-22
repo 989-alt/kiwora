@@ -126,16 +126,25 @@ type Props = {
   disabled: boolean
   dragging: boolean
   hover: RoomPlace | null
+  /** A place the day's care asks for (winter: the desk): it shines until the pot is there. */
+  glow?: RoomPlace
   onPick: (place: RoomPlace) => void
 }
 
 /** The three room spots. Tapping a slot also moves the pot (for students who find dragging hard). */
-export function PlaceSlots({ place, disabled, dragging, hover, onPick }: Props) {
+export function PlaceSlots({ place, disabled, dragging, hover, glow, onPick }: Props) {
   return (
     <div className={`slots${dragging ? ' slots--dragging' : ''}`} role="group" aria-label="화분 자리">
       {SLOTS.map((s) => {
         const here = s.place === place
-        const cls = ['slot', `slot--${s.place}`, here && 'slot--here', dragging && !here && 'slot--target', hover === s.place && 'slot--hover']
+        const cls = [
+          'slot',
+          `slot--${s.place}`,
+          here && 'slot--here',
+          dragging && !here && 'slot--target',
+          hover === s.place && 'slot--hover',
+          glow === s.place && !here && 'slot--glow',
+        ]
           .filter(Boolean)
           .join(' ')
         return (

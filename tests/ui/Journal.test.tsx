@@ -101,6 +101,21 @@ describe('JournalScreen', () => {
     expect(within(strip).getByText('실제 크기 약 3 mm')).toBeTruthy()
     expect(within(strip).getAllByText(/실제 크기/)).toHaveLength(1)
   })
+
+  test('the journal lists care done that day', () => {
+    const journal = [
+      entry(1, { stage: 'seed', actions: { waterAdded: 30, pellets: 0, bugsRemoved: 0, place: 'desk', care: ['sow'] } }),
+      entry(2, { actions: { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk', care: ['thin'], tied: true } }),
+      entry(3, { actions: { waterAdded: 30, pellets: 0, bugsRemoved: 0, place: 'desk', care: [] } }),
+    ]
+    render(<JournalScreen state={stateWith(journal)} dispatch={() => {}} />)
+    const rows = within(screen.getByRole('table')).getAllByRole('row')
+    expect(rows[1].textContent).toContain('물 주기, 씨 심기')
+    expect(rows[2].textContent).toContain('솎아내기, 지지대에 묶기')
+    expect(rows[2].textContent).not.toContain('살펴보기')
+    expect(rows[3].textContent).toContain('물 주기')
+    expect(rows[3].textContent).not.toContain('씨 심기')
+  })
 })
 
 describe('journal text', () => {
@@ -108,6 +123,16 @@ describe('journal text', () => {
     const e = entry(2, { actions: { waterAdded: 20, pellets: 1, bugsRemoved: 2, place: 'window' } })
     expect(actionsText(e, 'desk')).toBe('물 주기, 창가로 옮기기, 영양분 1알 주기, 벌레 2마리 잡기')
     expect(actionsText(entry(3, { actions: { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk' } }), 'desk')).toBe('살펴보기')
+  })
+
+  test('actionsText adds the care of the day and the tying, each once', () => {
+    const care = (c: Partial<JournalEntry['actions']>) => entry(4, { actions: { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'desk', ...c } })
+    expect(actionsText(care({ care: ['prune'] }), 'desk')).toBe('가지치기')
+    expect(actionsText(care({ waterAdded: 10, care: ['harvestSeed'] }), 'desk')).toBe('물 주기, 씨 받기')
+    expect(actionsText(care({ tied: true }), 'desk')).toBe('지지대에 묶기')
+    expect(actionsText(care({ tied: false, care: [] }), 'desk')).toBe('살펴보기')
+    // moving the pot in to the desk is the winter care: written once
+    expect(actionsText(care({ care: ['moveIn'] }), 'window')).toBe('책상으로 옮기기')
   })
 
   test('feelingText names the worst condition', () => {

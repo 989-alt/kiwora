@@ -2,6 +2,7 @@ import type { JournalEntry } from '../sim/save'
 import { newPlant } from '../sim/day'
 import { SPECIES, STAGE_LABEL, type SpeciesId, type StageId } from '../sim/species'
 import type { ConditionKey, Place, Status } from '../sim/types'
+import { CARE_TEXT } from './care/careText'
 
 /** Short stage names for strips and sentences ("꽃 단계까지 자랐어요"). Use stageName() to show one. */
 export const STAGE_SHORT: Record<StageId, string> = {
@@ -51,9 +52,13 @@ const MOVED_TO: Record<Place, string> = {
 
 const isYard = (p: Place) => p === 'yardSunny' || p === 'yardPartial' || p === 'yardShade'
 
+/** The journal word for tying the plant to its stake before a typhoon. */
+export const TIED_TEXT = '지지대에 묶기'
+
 /**
  * What the student did that day. A move shows when the place differs from the previous day's
- * (the first day compares with the place a new plant starts in).
+ * (the first day compares with the place a new plant starts in). The stage care done that day and the
+ * tying come after; a word already there is not written twice (moving the pot in is also the winter care).
  */
 export function actionsText(entry: JournalEntry, prevPlace: Place): string {
   const a = entry.actions
@@ -62,6 +67,11 @@ export function actionsText(entry: JournalEntry, prevPlace: Place): string {
   if (a.place !== prevPlace && !(isYard(a.place) && isYard(prevPlace))) parts.push(MOVED_TO[a.place])
   if (a.pellets > 0) parts.push(`영양분 ${a.pellets}알 주기`)
   if (a.bugsRemoved > 0) parts.push(`벌레 ${a.bugsRemoved}마리 잡기`)
+  for (const t of a.care ?? []) {
+    const did = CARE_TEXT[t]?.did
+    if (did && !parts.includes(did)) parts.push(did)
+  }
+  if (a.tied) parts.push(TIED_TEXT)
   return parts.length > 0 ? parts.join(', ') : '살펴보기'
 }
 

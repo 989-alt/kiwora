@@ -86,6 +86,10 @@ export function GrowScreen({ state, dispatch }: Props) {
 
   // The seed is sown (and covered) before it can be watered.
   const sowFirst = pendingCare(plant) === 'sow'
+  // Winter asks a potted perennial in to the desk: that slot shines (moving there finishes the care).
+  const moveIn = pendingCare(plant) === 'moveIn'
+  // The morning card (top left of the scene) is up until it is closed: care targets keep out from under it.
+  const morningUp = !!state.morning && !locked && !morningShown(state)
 
   const moon = propArt('moon')
   const endButton = (
@@ -174,12 +178,13 @@ export function GrowScreen({ state, dispatch }: Props) {
                     disabled={busy}
                     sound={sound}
                     onDone={(task) => dispatch({ type: 'care', task })}
+                    morningCard={morningUp}
                   />
                   {pouring && <WaterStream layout={L} />}
                 </>
               )}
             />
-            {state.morning && !locked && !morningShown(state) && (
+            {morningUp && state.morning && (
               <MorningCard
                 key={`${plant.day}-${locked}`}
                 report={state.morning}
@@ -205,6 +210,7 @@ export function GrowScreen({ state, dispatch }: Props) {
                 disabled={busy}
                 dragging={drag.ghost !== null}
                 hover={drag.hover}
+                glow={moveIn ? 'desk' : undefined}
                 onPick={(place) => dispatch({ type: 'move', place })}
               />
             )}

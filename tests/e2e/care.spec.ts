@@ -3,7 +3,8 @@ import { centerOf, saveWith, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 
-type Case = { task: string; species: string; stageIndex: number; todo: string; taps: [string, number][] }
+/** `place`: where the plant stands (trees are in the yard from the young-tree stage on); default the desk. */
+type Case = { task: string; species: string; stageIndex: number; todo: string; taps: [string, number][]; place?: string }
 const CASES: Case[] = [
   { task: 'sow', species: 'bean', stageIndex: 0, todo: '씨를 2~3알 심고 흙을 덮어 주세요', taps: [['흙에 씨 놓기', 3], ['흙 덮기', 3]] },
   { task: 'thin', species: 'balsam', stageIndex: 1, todo: '약한 싹을 뽑아 하나만 남겨요', taps: [['약한 싹 뽑기', 2]] },
@@ -24,13 +25,38 @@ const CASES: Case[] = [
   },
   { task: 'pinch', species: 'balsam', stageIndex: 2, todo: '곁가지를 정리해 줘요', taps: [['곁가지 자르기', 2]] },
   { task: 'drainCheck', species: 'apple', stageIndex: 2, todo: '화분 밑으로 물이 잘 빠지는지 살펴요', taps: [['물받이 살펴보기', 1]] },
+  // young tree → winter (perennial stages: grownTree 3, flower 4, fruit 5, winter 6; annual: flower 3, fruit 4)
+  { task: 'prune', species: 'apple', stageIndex: 3, place: 'yardSunny', todo: '마른 가지를 잘라 줘요', taps: [['마른 가지 자르기', 3]] },
+  {
+    task: 'pollinate',
+    species: 'bean',
+    stageIndex: 3,
+    todo: '붓으로 꽃가루를 다른 꽃에 옮겨요',
+    taps: [['꽃가루 묻히기', 1], ['다른 꽃에 꽃가루 옮기기', 1]],
+  },
+  { task: 'shakePollen', species: 'corn', stageIndex: 3, todo: '포기를 흔들어 꽃가루를 날려요', taps: [['포기 흔들기', 3]] },
+  { task: 'harvestSeed', species: 'bean', stageIndex: 4, todo: '열매를 따서 씨를 받아요', taps: [['열매 따기', 3]] },
+  { task: 'harvest', species: 'persimmon', stageIndex: 5, place: 'yardSunny', todo: '익은 열매를 따요', taps: [['열매 따기', 3]] },
+  {
+    task: 'winterWrap',
+    species: 'apple',
+    stageIndex: 6,
+    place: 'yardSunny',
+    todo: '줄기를 짚으로 감싸 겨울을 준비해요',
+    taps: [['짚 감쌀 밑동', 1]],
+  },
+  // a potted perennial is brought in: the desk slot under the scene
+  { task: 'moveIn', species: 'dandelion', stageIndex: 6, place: 'window', todo: '화분을 책상으로 옮겨 겨울을 준비해요', taps: [['책상', 1]] },
 ]
 
 const todo = (page: Page) => page.getByRole('status', { name: '오늘 할 일' })
 const stored = (page: Page) =>
   page.evaluate(() => JSON.parse(localStorage.getItem('plantlife.v1') ?? '{}') as { plant: { careDone: number }; pendingActions: { care?: string[] } | null })
 const openWith = async (page: Page, c: Case, over: Record<string, unknown> = {}) => {
-  await useSave(page, saveWith({ speciesId: c.species, stageIndex: c.stageIndex, mode: 'daily', careDone: 0, growth: 1, ...over }))
+  await useSave(
+    page,
+    saveWith({ speciesId: c.species, stageIndex: c.stageIndex, mode: 'daily', careDone: 0, growth: 1, place: c.place ?? 'desk', ...over }),
+  )
   await page.goto('/')
 }
 const imagesLoaded = (page: Page) => page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0))
@@ -46,7 +72,7 @@ for (const vp of [
       await expect(todo(page)).toContainText(c.todo)
       for (const [name, n] of c.taps)
         for (let i = 0; i < n; i++) {
-          const target = page.getByRole('button', { name }).first()
+          const target = page.getByRole('button', { name, exact: true }).first()
           // every target is on screen (portrait: the scene is at the top of the page)
           const b = await target.boundingBox()
           expect(b, name).not.toBeNull()
@@ -155,7 +181,7 @@ test('care screenshots', async ({ page, browserName }) => {
     await imagesLoaded(p)
     return { ctx, p }
   }
-  for (const c of CASES) {
+  for (const c of CASES.filter((k) => k.task in partial)) {
     const { ctx, p } = await open(c, true)
     for (const [name, n] of partial[c.task]) for (let i = 0; i < n; i++) await p.getByRole('button', { name }).first().tap()
     await p.waitForTimeout(900)
@@ -187,4 +213,126 @@ test('care screenshots', async ({ page, browserName }) => {
   await page.goto('/')
   await imagesLoaded(page)
   await page.screenshot({ path: `${SHOTS}/todo-820x1180.png` })
+})
+
+const caseOf = (task: string) => CASES.find((c) => c.task === task)!
+
+/** Mouse drag through the points, a few steps between each. */
+async function dragThrough(page: Page, pts: { x: number; y: number }[], steps = 6) {
+  await page.mouse.move(pts[0].x, pts[0].y)
+  await page.mouse.down()
+  for (const p of pts.slice(1)) await page.mouse.move(p.x, p.y, { steps })
+  await page.mouse.up()
+}
+
+test('winter: the desk slot shines for a potted perennial, and moving the pot there finishes the care', async ({ page }) => {
+  await openWith(page, caseOf('moveIn'))
+  const desk = page.getByRole('button', { name: '책상', exact: true })
+  await expect(desk).toHaveClass(/slot--glow/)
+  await expect(page.getByRole('button', { name: '그늘', exact: true })).not.toHaveClass(/slot--glow/)
+  await desk.click()
+  await expect(todo(page)).toHaveCount(0)
+  await expect(desk).not.toHaveClass(/slot--glow/)
+  expect((await stored(page)).pendingActions?.care).toEqual(['moveIn'])
+})
+
+test('picking the fruit gives the seeds; ending the day completes the plant and the journal says 씨 받기', async ({ page }) => {
+  await openWith(page, caseOf('harvestSeed'), { growth: 4, health: 95 })
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: '열매 따기' }).first().click()
+  await expect(todo(page)).toHaveCount(0)
+  // the seeds lie beside the pot
+  await expect(page.locator('.care-seeds')).toHaveCount(1)
+  await page.getByRole('button', { name: '하루 마치기' }).click()
+  await expect(page.getByRole('button', { name: '씨 도감에 넣기' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('table')).toContainText('씨 받기')
+})
+
+test('the brush can be dragged from flower to flower, the pollen following it', async ({ page }) => {
+  await openWith(page, caseOf('pollinate'))
+  const a = await centerOf(page, page.getByRole('button', { name: '꽃가루 묻히기' }))
+  const b = await centerOf(page, page.getByRole('button', { name: '다른 꽃에 꽃가루 옮기기' }))
+  await page.mouse.move(a.x, a.y)
+  await page.mouse.down()
+  // round about, so the brush travels a while before it reaches the other flower
+  await page.mouse.move(a.x - 60, a.y + 40, { steps: 8 })
+  await page.mouse.move((a.x + b.x) / 2, (a.y + b.y) / 2, { steps: 8 })
+  expect(await page.locator('.care-pollen--trail').count()).toBeGreaterThan(1)
+  await page.mouse.move(b.x, b.y, { steps: 6 })
+  await page.mouse.up()
+  await expect(todo(page)).toHaveCount(0)
+})
+
+test('the corn is swung left and right across its stem', async ({ page }) => {
+  await openWith(page, caseOf('shakePollen'))
+  const c = await centerOf(page, page.getByRole('button', { name: '포기 흔들기' }))
+  await dragThrough(page, [c, { x: c.x + 60, y: c.y }, { x: c.x - 60, y: c.y }, { x: c.x + 60, y: c.y }, { x: c.x - 60, y: c.y }], 4)
+  await expect(todo(page)).toHaveCount(0)
+})
+
+test('the straw is dragged to the tree trunk', async ({ page }) => {
+  await openWith(page, caseOf('winterWrap'))
+  const from = await centerOf(page, page.getByRole('button', { name: '짚', exact: true }))
+  const to = await centerOf(page, page.getByRole('button', { name: '짚 감쌀 밑동' }))
+  await dragThrough(page, [from, to], 12)
+  await expect(todo(page)).toHaveCount(0)
+  await expect(page.locator('.care-straw')).toHaveCount(1)
+})
+
+/** Screenshots of the young-tree → winter care mid-action (1194×834; yard for trees, room for pots), to look at. */
+test('care screenshots, young tree to winter', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'screenshots once')
+  test.setTimeout(180_000)
+  const browser = page.context().browser()!
+  type Shot = { c: Case; over?: Record<string, unknown>; taps?: [string, number][]; name: string; wait?: number; vp?: { width: number; height: number } }
+  const shoot = async ({ c, over = {}, taps = [], name, wait = 900, vp = { width: 1194, height: 834 } }: Shot) => {
+    const ctx = await browser.newContext({ baseURL: 'http://localhost:5173', viewport: vp, hasTouch: true })
+    const p = await ctx.newPage()
+    await useSave(p, saveWith({ speciesId: c.species, stageIndex: c.stageIndex, mode: 'daily', careDone: 0, growth: 1, place: c.place ?? 'desk', ...over }))
+    await p.goto('/')
+    await imagesLoaded(p)
+    for (const [label, n] of taps) for (let i = 0; i < n; i++) await p.getByRole('button', { name: label, exact: true }).first().tap()
+    await p.waitForTimeout(wait)
+    await p.screenshot({ path: `${SHOTS}/care-${name}.png` })
+    return { ctx, p }
+  }
+  const once = async (s: Shot) => (await shoot(s)).ctx.close()
+  const flower = (species: string, stageIndex: number, place = 'desk'): Case => ({ ...caseOf('pollinate'), species, stageIndex, place })
+  const fruit = (species: string): Case => ({ ...caseOf('harvest'), species })
+
+  await once({ c: caseOf('prune'), taps: [['마른 가지 자르기', 1]], name: 'prune-1194x834' })
+  await once({ c: caseOf('pollinate'), taps: [['꽃가루 묻히기', 1]], name: 'pollinate-1194x834' })
+  await once({ c: flower('apple', 4, 'yardSunny'), taps: [['꽃가루 묻히기', 1]], name: 'pollinate-apple-1194x834' })
+  await once({ c: flower('dandelion', 4), taps: [['꽃가루 묻히기', 1]], name: 'pollinate-dandelion-1194x834' })
+  await once({ c: caseOf('shakePollen'), taps: [['포기 흔들기', 1]], name: 'shakePollen-1194x834', wait: 260 })
+  await once({ c: { ...caseOf('shakePollen'), species: 'rice' }, taps: [['포기 흔들기', 1]], name: 'shakePollen-rice-1194x834', wait: 260 })
+  await once({ c: caseOf('harvestSeed'), taps: [['열매 따기', 1]], name: 'harvestSeed-1194x834', wait: 350 })
+  await once({ c: caseOf('harvestSeed'), taps: [['열매 따기', 3]], name: 'harvestSeed-seeds-1194x834', wait: 1200 })
+  await once({ c: caseOf('harvest'), taps: [['열매 따기', 1]], name: 'harvest-1194x834', wait: 350 })
+  await once({ c: fruit('dandelion'), over: { place: 'desk' }, taps: [['열매 따기', 1]], name: 'harvest-dandelion-1194x834', wait: 350 })
+  await once({ c: caseOf('winterWrap'), name: 'winterWrap-1194x834' })
+  await once({ c: caseOf('winterWrap'), taps: [['짚 감쌀 밑동', 1]], name: 'winterWrap-done-1194x834' })
+  await once({ c: caseOf('moveIn'), name: 'moveIn-1194x834', wait: 400 })
+  // the smallest scene: the yard tree's twigs, the straw and the step line
+  await once({ c: caseOf('prune'), name: 'prune-1366x640', vp: { width: 1366, height: 640 } })
+  await once({ c: caseOf('winterWrap'), name: 'winterWrap-1366x640', vp: { width: 1366, height: 640 } })
+
+  // mid-drag: the brush with its pollen trail, the straw under the pointer
+  for (const [c, src, dst, name] of [
+    [caseOf('pollinate'), '꽃가루 묻히기', '다른 꽃에 꽃가루 옮기기', 'pollinate-drag-1194x834'],
+    [caseOf('winterWrap'), '짚', '짚 감쌀 밑동', 'winterWrap-drag-1194x834'],
+  ] as const) {
+    const ctx = await browser.newContext({ baseURL: 'http://localhost:5173', viewport: { width: 1194, height: 834 } })
+    const q = await ctx.newPage()
+    await useSave(q, saveWith({ speciesId: c.species, stageIndex: c.stageIndex, mode: 'daily', careDone: 0, growth: 1, place: c.place ?? 'desk' }))
+    await q.goto('/')
+    await imagesLoaded(q)
+    const a = await centerOf(q, q.getByRole('button', { name: src, exact: true }))
+    const b = await centerOf(q, q.getByRole('button', { name: dst, exact: true }))
+    await q.mouse.move(a.x, a.y)
+    await q.mouse.down()
+    await q.mouse.move(a.x + (b.x - a.x) * 0.6, a.y + (b.y - a.y) * 0.6 - 10, { steps: 12 })
+    await q.screenshot({ path: `${SHOTS}/care-${name}.png` })
+    await q.mouse.up()
+    await ctx.close()
+  }
 })
