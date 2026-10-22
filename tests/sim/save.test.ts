@@ -201,7 +201,7 @@ describe('restore code', () => {
 
 describe('short code (for writing down)', () => {
   const BAD = '코드가 맞지 않아요. 다시 확인해 주세요.'
-  const FORMAT = /^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4})+$/
+  const FORMAT = /^[0-9A-HJKMNP-TV-Z]{5}(-[0-9A-HJKMNP-TV-Z]{5}){4}$/
 
   /** What a short code brings back: plant (no history), dex, day gating, settings; no journal or past tries. */
   const expected = (d: SaveData): SaveData => ({
@@ -231,7 +231,7 @@ describe('short code (for writing down)', () => {
       leaves: 2,
       history: [{ water: { level: 4, dir: null }, light: { level: 3, dir: null }, temp: { level: 4, dir: null }, nutrient: { level: 3, dir: null }, pest: { level: 2, dir: 'high' } }],
     }
-    d.pendingActions = { waterAdded: 1, pellets: 2, bugsRemoved: 1, place: 'window' }
+    d.pendingActions = { waterAdded: 25, pellets: 2, bugsRemoved: 1, place: 'window' }
     d.lastDayKey = '2026-10-22'
     d.dayDone = false
     d.dex = ['balsam', 'rice']
@@ -241,10 +241,33 @@ describe('short code (for writing down)', () => {
     return d
   }
 
-  it('is short, in groups of 4, without I, L, O or U', () => {
+  it('is short, in 5 groups of 5, without I, L, O or U', () => {
     const code = shortCode(growingBean())
-    expect(code.length).toBeLessThanOrEqual(32)
+    expect(code.length).toBe(29)
     expect(code).toMatch(FORMAT)
+  })
+
+  it("keeps the day's pending water in steps of 5 (0..150), so the journal's 한 일 stays right", () => {
+    const water = (w: number) => {
+      const d = growingBean()
+      d.pendingActions = { ...d.pendingActions!, waterAdded: w }
+      const r = importCode(shortCode(d))
+      return r.ok ? r.data.pendingActions?.waterAdded : undefined
+    }
+    expect(water(0)).toBe(0)
+    expect(water(1.2)).toBe(5) // any watering is still a watering
+    expect(water(23)).toBe(25)
+    expect(water(42)).toBe(40)
+    expect(water(150)).toBe(150)
+    expect(water(400)).toBe(150)
+  })
+
+  it('still reads an older 24-letter code (format 1, written before the water amount was kept)', () => {
+    const r = importCode('8MRP-1F4E-E0G5-2T43-8H4W-15NG')
+    const d = growingBean()
+    expect(r).toEqual({ ok: true, data: expected({ ...d, pendingActions: { ...d.pendingActions!, waterAdded: 1 } }) })
+    // and a typo in it is still caught
+    expect(importCode('8MRP-1F4E-E0G5-2T43-8H4W-15NH')).toEqual({ ok: false, message: BAD })
   })
 
   it('round-trips an in-progress plant with its dex, day and settings (journal and past tries are not kept)', () => {

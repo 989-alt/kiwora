@@ -520,7 +520,7 @@
   grid-template-columns: minmax(0, 1fr);
   max-width: 640px;
 }
-/* The code to write down: big letters, one box per group of 4. */
+/* The code to write down: big letters, one box per group of 5. */
 .bk-short {
   display: flex;
   flex-wrap: wrap;
