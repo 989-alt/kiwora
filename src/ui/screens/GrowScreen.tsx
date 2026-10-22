@@ -77,6 +77,13 @@ export function GrowScreen({ state, dispatch }: Props) {
   // A grown tree shows how long it has been growing: first half of the stage = 1 year, second half = 2.
   const yearsLater = stage === 'grownTree' ? (plant.growth < 2 ? '1년 뒤' : '2년 뒤') : null
 
+  const endButton = (
+    <button type="button" className="gs-end" disabled={locked} onClick={() => dispatch({ type: 'endDay' })}>
+      <Icon d={MOON} size={30} />
+      {locked ? '내일 다시 만나요' : '하루 마치기'}
+    </button>
+  )
+
   return (
     <div ref={rootRef} className={`gs${portrait ? ' gs--portrait' : ''}`}>
       <header className="gs-header">
@@ -189,12 +196,12 @@ export function GrowScreen({ state, dispatch }: Props) {
 
         <aside className="gs-aside" aria-label="상태판">
           <StatusBoard statuses={statuses} health={plant.health} bugs={plant.bugs} layout={portrait ? 'bottom' : 'side'} />
-          <button type="button" className="gs-end" disabled={locked} onClick={() => dispatch({ type: 'endDay' })}>
-            <Icon d={MOON} size={30} />
-            {locked ? '내일 다시 만나요' : '하루 마치기'}
-          </button>
+          {!portrait && endButton}
         </aside>
       </div>
+
+      {/* Portrait: the page scrolls, so 하루 마치기 rides along in a bar stuck to the bottom of the screen. */}
+      {portrait && <div className="gs-endbar">{endButton}</div>}
 
       {drag.ghost && (
         <img

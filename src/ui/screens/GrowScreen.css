@@ -183,6 +183,19 @@
 .gs--portrait .gs-aside {
   width: auto;
 }
+/* Portrait: 하루 마치기 in a bar stuck to the bottom of the screen (the page scrolls under it). */
+.gs-endbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 25;
+  margin: -6px -24px -20px;
+  padding: 14px 24px calc(14px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(rgba(240, 253, 244, 0), var(--c-bg) 22px);
+}
+.gs-endbar .gs-end {
+  width: 100%;
+  min-height: 76px;
+}
 
 /* Short landscape screens (e.g. a Chromebook window): tighter status board so 하루 마치기 stays on screen. */
 @media (max-height: 760px) and (min-width: 900px) {

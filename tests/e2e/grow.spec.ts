@@ -170,3 +170,34 @@ for (const vp of [
     }
   })
 }
+
+for (const [w, h] of [
+  [820, 1180],
+  [768, 1024],
+] as const) {
+  test(`portrait ${w}x${h}: 하루 마치기 is always on screen`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h })
+    await useSave(page, saveWith({ stageIndex: 3, bugs: 2, place: 'window' }))
+    await page.goto('/')
+    const end = page.getByRole('button', { name: '하루 마치기' })
+    const inView = async () => {
+      const b = await end.boundingBox()
+      if (!b) throw new Error('no end button')
+      expect(b.y).toBeGreaterThanOrEqual(0)
+      expect(b.y + b.height).toBeLessThanOrEqual(h)
+      expect(b.x).toBeGreaterThanOrEqual(0)
+      expect(b.x + b.width).toBeLessThanOrEqual(w)
+    }
+    await expect(end).toBeVisible()
+    await inView()
+    // still there with the page scrolled to the status board at the bottom
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+    await inView()
+    // and it is not covering the last status row
+    const last = await page.getByRole('group', { name: /^병충해/ }).boundingBox()
+    const bar = await end.boundingBox()
+    expect(last!.y + last!.height).toBeLessThanOrEqual(bar!.y + 1)
+    await end.click()
+    await expect(page.getByRole('button', { name: '내일 다시 만나요' })).toBeVisible()
+  })
+}
