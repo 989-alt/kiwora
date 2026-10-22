@@ -15,6 +15,18 @@ export type CareTaskId =
   | 'sow' | 'thin' | 'stake' | 'stakeTwine' | 'hillUp' | 'pinch' | 'drainCheck' | 'prune'
   | 'pollinate' | 'shakePollen' | 'harvestSeed' | 'harvest' | 'winterWrap' | 'moveIn'
 export type WeatherId = 'heat' | 'rain' | 'monsoon' | 'typhoon' | 'cold' | 'frost'
+/**
+ * What today's weather does when the day ends (weather.ts): the temperature at the plant's spot, an
+ * evaporation multiplier, rain setting the water ('over' = band hi + 15, 'ideal' = at least idealLo + 5),
+ * extra bug chance, and health lost (never below 1 by itself).
+ */
+export type WeatherHit = {
+  tempAt?: number
+  evapScale?: number
+  water?: 'over' | 'ideal'
+  pestBonus?: number
+  healthHit?: number
+}
 
 export type PlantState = {
   speciesId: SpeciesId

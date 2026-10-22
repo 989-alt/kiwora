@@ -1,16 +1,21 @@
 import { describe, expect, it } from 'vitest'
-import { careTasks } from '../../src/sim/care'
+import { careTasks, isOutdoor } from '../../src/sim/care'
 import { currentStatuses, endDay, newPlant, PLACE_ENV } from '../../src/sim/day'
 import { mulberry32, seedFor } from '../../src/sim/rng'
 import { phaseOf, SPECIES, type SpeciesId, type StageId } from '../../src/sim/species'
-import type { Band, DayActions, DayReport, Place, PlantState } from '../../src/sim/types'
+import type { Band, DayActions, DayReport, Place, PlantState, WeatherId } from '../../src/sim/types'
+import { weatherEvents, weatherOn } from '../../src/sim/weather'
 
 const noBugs = () => 0.99
 const mid = (b: Band) => (b.idealLo + b.idealHi) / 2
 const stageOf = (s: PlantState): StageId => SPECIES[s.speciesId].stages[s.stageIndex]
 
+/** Weather off: the scenarios below test the v1 rules on their own. */
+const calm = (p: PlantState): PlantState => ({ ...p, weatherFrom: 999 })
+const plant = (id: SpeciesId) => calm(newPlant(id))
+
 function at(id: SpeciesId, stage: StageId, over: Partial<PlantState> = {}): PlantState {
-  return { ...newPlant(id), stageIndex: SPECIES[id].stages.indexOf(stage), ...over }
+  return { ...plant(id), stageIndex: SPECIES[id].stages.indexOf(stage), ...over }
 }
 
 /** Light-loving species (light idealLo above the desk) go to the window, others stay on the desk. */
@@ -51,29 +56,29 @@ const PERENNIALS = (Object.keys(SPECIES) as SpeciesId[]).filter((id) => SPECIES[
 
 describe('endDay', () => {
   it('ideal care finishes annual in 10 days', () => {
-    const nine = run(newPlant('balsam'), 9).state
+    const nine = run(plant('balsam'), 9).state
     expect(stageOf(nine)).toBe('fruit')
-    const { state } = run(newPlant('balsam'), 10)
+    const { state } = run(plant('balsam'), 10)
     expect(stageOf(state)).toBe('seedDone')
     expect(state.dead).toBe(false)
     expect(state.day).toBe(11)
   })
 
   it.each(ANNUALS)('ideal care finishes annual %s in exactly 10 days', (id) => {
-    expect(stageOf(run(newPlant(id), 9).state)).toBe('fruit')
-    const { state } = run(newPlant(id), 10)
+    expect(stageOf(run(plant(id), 9).state)).toBe('fruit')
+    const { state } = run(plant(id), 10)
     expect(stageOf(state)).toBe('seedDone')
     expect(state.dead).toBe(false)
   })
 
   it.each(PERENNIALS)('ideal care finishes perennial %s within 15 days', (id) => {
-    const { state } = run(newPlant(id), 15)
+    const { state } = run(plant(id), 15)
     expect(stageOf(state)).toBe('newShoot')
     expect(state.dead).toBe(false)
   })
 
   it('stops advancing at the final stage', () => {
-    const { state, report } = run(newPlant('balsam'), 13)
+    const { state, report } = run(plant('balsam'), 13)
     expect(stageOf(state)).toBe('seedDone')
     expect(state.stageIndex).toBe(SPECIES.balsam.stages.length - 1)
     expect(report.stageChanged).toBe(false)
@@ -271,7 +276,7 @@ describe('endDay', () => {
   })
 
   it('height and leaves grow with growth after the seed stage and never shrink', () => {
-    let s = newPlant('balsam')
+    let s = plant('balsam')
     let prevH = s.heightCm
     let prevL = s.leaves
     for (let i = 0; i < 10; i++) {
@@ -291,7 +296,7 @@ describe('endDay', () => {
   })
 
   it.each([...ANNUALS, ...PERENNIALS])('a seed of %s does not grow taller or get leaves while it is still a seed', (id) => {
-    let s = newPlant(id)
+    let s = plant(id)
     while (stageOf(s) === 'seed') {
       s = doCare(s)
       const r = endDay(s, idealCare(s), noBugs)
@@ -310,7 +315,7 @@ describe('endDay', () => {
   })
 
   it('growth stops at the stage threshold while the stage care is not done', () => {
-    let s: PlantState = { ...newPlant('bean'), stageIndex: 3, growth: 3.5, careDone: 0 } // flower, pollinate pending
+    let s: PlantState = { ...plant('bean'), stageIndex: 3, growth: 3.5, careDone: 0 } // flower, pollinate pending
     const r = endDay(s, idealCare(s), mulberry32(1))
     expect(r.state.stageIndex).toBe(3)
     expect(r.state.growth).toBe(4)
@@ -332,7 +337,7 @@ describe('endDay', () => {
   })
 
   it('a plant below the threshold is not waiting, and care done early keeps the stage on time', () => {
-    const s: PlantState = { ...newPlant('bean'), stageIndex: 3, growth: 1, careDone: 0 }
+    const s: PlantState = { ...plant('bean'), stageIndex: 3, growth: 1, careDone: 0 }
     const r = endDay(s, idealCare(s), noBugs)
     expect(r.report.waiting).toBeFalsy()
     expect(r.state.growth).toBe(3)
@@ -362,7 +367,7 @@ describe('endDay', () => {
 
   it('a waiting plant does not get taller than its kept growth', () => {
     // a seed waiting on sow: no height and no leaves, however many days pass
-    let s = newPlant('bean')
+    let s = plant('bean')
     for (let i = 0; i < 4; i++) {
       const r = endDay(s, idealCare(s), noBugs)
       expect(stageOf(r.state)).toBe('seed')
@@ -385,11 +390,204 @@ describe('endDay', () => {
   })
 
   it('day 1 of a new plant under ideal care stays 0 cm with 0 leaves', () => {
-    const { state, report } = endDay(newPlant('bean'), idealCare(newPlant('bean')), noBugs)
+    const { state, report } = endDay(plant('bean'), idealCare(plant('bean')), noBugs)
     expect(stageOf(state)).toBe('seed')
     expect(report.heightDelta).toBe(0)
     expect(state.heightCm).toBe(0)
     expect(state.leaves).toBe(0)
+  })
+})
+
+/** A tree in the yard: light-loving species in the sun, others in partial shade (both in their light band). */
+const yardPlace = (id: SpeciesId): Place => (carePlace(id) === 'window' ? 'yardSunny' : 'yardPartial')
+
+/** The oracle also prepares for today's weather, as the forecast told it to. */
+function prepared(s: PlantState, a: DayActions): DayActions {
+  const w = weatherOn(s, s.day)
+  const out = { ...a, bugsRemoved: s.bugs }
+  if ((w === 'heat' || w === 'cold') && out.place === 'window') out.place = 'desk'
+  if (w === 'rain' || w === 'monsoon') out.waterAdded = 0
+  if (w === 'typhoon') out.tied = true
+  return out
+}
+
+/** Ideal care that moves a transplanted tree to the yard and prepares for every forecast. */
+function runWeather(s: PlantState, days: number) {
+  let state = s
+  let weatherDays = 0
+  for (let i = 0; i < days && !state.dead; i++) {
+    state = doCare(state)
+    const place = isOutdoor(state) ? yardPlace(state.speciesId) : carePlace(state.speciesId)
+    const r = endDay(state, prepared(state, idealCare(state, place)), noBugs)
+    if (r.report.weather) {
+      weatherDays++
+      expect(r.report.weather.prepared, `${s.speciesId} seed ${s.weatherSeed} day ${state.day}`).toBe(true)
+    }
+    expect(r.report.healthDelta, `${s.speciesId} seed ${s.weatherSeed} day ${state.day}`).toBeGreaterThanOrEqual(0)
+    state = r.state
+  }
+  return { state, weatherDays }
+}
+
+const SEEDS = Array.from({ length: 256 }, (_, i) => i)
+
+/** A plant at `stage` on a day the given weather comes (single-day events unless it is a monsoon). */
+function weatherDay(id: SpeciesId, stage: StageId, kind: WeatherId, over: Partial<PlantState> = {}): PlantState {
+  for (const weatherSeed of SEEDS) {
+    for (const e of weatherEvents(weatherSeed)) {
+      const s = at(id, stage, { ...over, weatherSeed, weatherFrom: 2, day: e.start })
+      if ((kind === 'monsoon' || e.len === 1) && weatherOn(s, e.start) === kind) return s
+    }
+  }
+  throw new Error(`no ${kind} day for ${id} ${stage}`)
+}
+
+/** The same day with the weather turned off; reports compare without the weather line. */
+function compareCalm(s: PlantState, a: DayActions, rng: () => () => number = () => noBugs) {
+  const r = endDay(s, a, rng())
+  const c = endDay(calm(s), a, rng())
+  const { weather, ...report } = r.report
+  return { r, c, weather, report, state: { ...r.state, weatherFrom: 0 }, calmState: { ...c.state, weatherFrom: 0 } }
+}
+
+const none = (place: Place, over: Partial<DayActions> = {}): DayActions => ({
+  waterAdded: 0, pellets: 0, bugsRemoved: 0, place, ...over,
+})
+
+describe('endDay with weather', () => {
+  it.each(ANNUALS)('ideal care that prepares for the weather still finishes annual %s in exactly 10 days', (id) => {
+    let total = 0
+    for (const weatherSeed of SEEDS) {
+      const s = { ...newPlant(id), weatherSeed }
+      expect(stageOf(runWeather(s, 9).state), `seed ${weatherSeed}`).toBe('fruit')
+      const { state, weatherDays } = runWeather(s, 10)
+      expect(stageOf(state), `seed ${weatherSeed}`).toBe('seedDone')
+      expect(state.health).toBe(100)
+      total += weatherDays
+    }
+    expect(total).toBeGreaterThan(256) // weather really came, about every 2~3 days
+  })
+
+  it.each(PERENNIALS)('ideal care that prepares for the weather still finishes perennial %s within 15 days', (id) => {
+    for (const weatherSeed of SEEDS) {
+      const { state } = runWeather({ ...newPlant(id), weatherSeed }, 15)
+      expect(stageOf(state), `seed ${weatherSeed}`).toBe('newShoot')
+      expect(state.health).toBe(100)
+    }
+  })
+
+  it('every kind of weather comes to some plant', () => {
+    const kinds = new Set<WeatherId>()
+    for (const weatherSeed of SEEDS.slice(0, 64)) {
+      for (const id of ['bean', 'apple', 'dandelion'] as SpeciesId[]) {
+        let s: PlantState = { ...newPlant(id), weatherSeed }
+        for (let i = 0; i < 15 && !s.dead; i++) {
+          s = doCare(s)
+          const place = isOutdoor(s) ? yardPlace(id) : carePlace(id)
+          const r = endDay(s, prepared(s, idealCare(s, place)), noBugs)
+          if (r.report.weather) kinds.add(r.report.weather.kind)
+          s = r.state
+        }
+      }
+    }
+    expect([...kinds].sort()).toEqual(['cold', 'frost', 'heat', 'monsoon', 'rain', 'typhoon'])
+  })
+
+  it('unprepared heat at the window shows 온도 위험 and doubles evaporation', () => {
+    const s = weatherDay('balsam', 'leafStem', 'heat', { water: 62.5, nutrient: 50, lightExp: 90, place: 'window' })
+    const { r, c, weather } = compareCalm(s, none('window'))
+    expect(weather).toEqual({ kind: 'heat', prepared: false })
+    expect(r.report.statuses.temp).toEqual({ level: 1, dir: 'high' })
+    expect(c.report.statuses.temp.level).toBeGreaterThanOrEqual(3)
+    expect(r.state.water).toBe(62.5 - 2 * PLACE_ENV.window.evap)
+    expect(c.state.water).toBe(62.5 - PLACE_ENV.window.evap)
+    expect(r.report.healthDelta).toBeLessThan(0)
+    // the board shows it during the day too
+    expect(currentStatuses(s, { tempAt: 36 }).temp).toEqual({ level: 1, dir: 'high' })
+  })
+
+  it('prepared heat, cold, typhoon and frost change nothing; prepared rain only waters to the ideal', () => {
+    const cases: [PlantState, DayActions][] = [
+      [weatherDay('balsam', 'leafStem', 'heat', { water: 62.5, nutrient: 50, place: 'desk' }), none('desk')],
+      [weatherDay('apple', 'grownTree', 'heat', { water: 62.5, nutrient: 50, place: 'yardSunny', lightExp: 90 }), none('yardSunny')],
+      [weatherDay('bean', 'sprout', 'cold', { water: 62.5, nutrient: 50, place: 'window' }), none('desk')],
+      [weatherDay('apple', 'flower', 'typhoon', { water: 62.5, nutrient: 50, place: 'yardSunny', lightExp: 90 }), none('yardSunny', { tied: true })],
+      [weatherDay('apple', 'winter', 'frost', { water: 30, nutrient: 10, place: 'yardSunny', lightExp: 90, careDone: 1 }), none('yardSunny')],
+    ]
+    for (const [s, a] of cases) {
+      const { weather, report, c, state, calmState } = compareCalm(s, a)
+      expect(weather, stageOf(s)).toMatchObject({ prepared: true })
+      expect(report).toEqual(c.report)
+      expect(state).toEqual(calmState)
+    }
+    // rain: not watering is prepared; dry soil gets watered up to the ideal, moist soil is left as it is
+    const dry = weatherDay('apple', 'grownTree', 'rain', { water: 40, nutrient: 50, place: 'yardSunny', lightExp: 90 })
+    const wet = compareCalm(dry, none('yardSunny'))
+    expect(wet.weather).toEqual({ kind: 'rain', prepared: true })
+    expect(wet.c.report.statuses.water.level).toBe(3)
+    expect(wet.report.statuses.water).toEqual({ level: 4, dir: null })
+    const ideal = SPECIES.apple.bands.grow.water.idealLo + 5
+    expect(wet.r.state.water).toBe(ideal - PLACE_ENV.yardSunny.evap)
+    const moist = compareCalm({ ...dry, water: 70 }, none('yardSunny'))
+    expect(moist.report).toEqual(moist.c.report)
+    expect(moist.state).toEqual(moist.calmState)
+  })
+
+  it('watering on a rainy day overwaters', () => {
+    const s = weatherDay('apple', 'grownTree', 'rain', { water: 40, nutrient: 50, place: 'yardSunny', lightExp: 90 })
+    const { r, weather } = compareCalm(s, none('yardSunny', { waterAdded: 20 }))
+    expect(weather).toEqual({ kind: 'rain', prepared: false })
+    expect(r.report.statuses.water).toMatchObject({ dir: 'high' })
+    expect(r.report.statuses.water.level).toBeLessThanOrEqual(2)
+  })
+
+  it('a monsoon with bugs left raises the chance of new bugs', () => {
+    const s = weatherDay('bean', 'flower', 'monsoon', { water: 62.5, nutrient: 50, bugs: 2 })
+    const rng = () => () => 0.2 // over the usual 0.03, under 0.03 + 0.3
+    const { r, c, weather } = compareCalm(s, none('desk'), rng)
+    expect(weather).toEqual({ kind: 'monsoon', prepared: false })
+    expect(c.report.newBugs).toBe(0)
+    expect(r.report.newBugs).toBeGreaterThan(0)
+    // removing the bugs and not watering is prepared
+    const ok = compareCalm(s, none('desk', { bugsRemoved: 2 }), rng)
+    expect(ok.weather).toEqual({ kind: 'monsoon', prepared: true })
+    expect(ok.r.report.newBugs).toBe(0)
+  })
+
+  it('a typhoon alone never kills', () => {
+    const s = weatherDay('apple', 'flower', 'typhoon', { water: 62.5, nutrient: 50, place: 'yardSunny', lightExp: 90 })
+    for (const health of [1, 5, 10, 15, 16, 50, 100]) {
+      const { r, weather } = compareCalm({ ...s, health }, none('yardSunny'))
+      expect(weather).toEqual({ kind: 'typhoon', prepared: false })
+      expect(r.state.dead).toBe(false)
+      expect(r.state.health, String(health)).toBeGreaterThanOrEqual(1)
+      expect(r.state.health).toBe(Math.max(1, Math.min(100, health + 10) - 15))
+      expect(r.report.healthDelta).toBe(r.state.health - health)
+    }
+    // with a slightly bad board on top, it still stops at 1
+    const { r } = compareCalm({ ...s, health: 5, water: 30 }, none('yardSunny'))
+    expect(r.report.statuses.water.level).toBe(2)
+    expect(r.state.health).toBe(1)
+    expect(r.state.dead).toBe(false)
+  })
+
+  it('a day without weather is the same as the v1 rules, rng order included', () => {
+    const s = at('bean', 'flower', { weatherSeed: 5, weatherFrom: 2, water: 62.5, nutrient: 50, bugs: 1 })
+    const first = weatherEvents(5)[0]
+    const day = first.start + first.len // events are at least one calm day apart
+    expect(weatherOn({ ...s, day }, day)).toBeNull()
+    for (const k of [1, 2, 3, 4, 5, 6, 7, 8]) {
+      const { report, c, state, calmState, weather } = compareCalm({ ...s, day }, none('desk'), () => mulberry32(k))
+      expect(weather).toBeUndefined()
+      expect(report).toEqual(c.report)
+      expect(state).toEqual(calmState)
+    }
+  })
+
+  it('a dead plant gets no weather', () => {
+    const s = weatherDay('apple', 'flower', 'typhoon', { place: 'yardSunny' })
+    const { report } = endDay({ ...s, dead: true }, none('yardSunny'), noBugs)
+    expect(report.weather).toBeUndefined()
   })
 })
 

@@ -34,6 +34,14 @@ describe('pestChance', () => {
     expect(c).toBeLessThanOrEqual(0.8)
   })
 
+  it('a weather bonus adds to the chance, still capped at 0.8', () => {
+    expect(pestChance(st(), 0.3)).toBe(0.33)
+    expect(pestChance(st({ water: { level: 2, dir: 'high' } }), 0.3)).toBe(0.63)
+    expect(pestChance(st({ water: { level: 1, dir: 'high' }, nutrient: { level: 2, dir: 'low' }, light: { level: 0, dir: 'low' } }), 0.3)).toBe(0.8)
+    // a seed has no bugs, whatever the weather
+    expect(pestChance(st({ light: NN, nutrient: NN, pest: NN }), 0.3)).toBe(0)
+  })
+
   it('seed stage has no bugs', () => {
     const seed = st({ light: NN, nutrient: NN, pest: NN, water: { level: 0, dir: 'high' } })
     expect(pestChance(seed)).toBe(0)
@@ -51,5 +59,10 @@ describe('rollPests', () => {
 
   it('spawns nothing when the roll is over the chance', () => {
     expect(rollPests(st(), () => 0.5)).toBe(0)
+  })
+
+  it('uses the weather bonus', () => {
+    expect(rollPests(st(), () => 0.2)).toBe(0)
+    expect(rollPests(st(), () => 0.2, 0.3)).toBe(1)
   })
 })

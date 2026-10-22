@@ -3,7 +3,8 @@ import { deathCause } from './death'
 import { levelFor } from './levels'
 import { rollPests } from './pests'
 import { phaseOf, SPECIES, STAGE_POINTS, type Phase, type SpeciesId } from './species'
-import type { ConditionKey, DayActions, DayReport, Level, Mode, Place, PlantState, Status } from './types'
+import type { ConditionKey, DayActions, DayReport, Level, Mode, Place, PlantState, Status, WeatherHit } from './types'
+import { todayWeather } from './weather'
 
 export const PLACE_ENV: Record<Place, { light: number; temp: number; evap: number }> = {
   window: { light: 90, temp: 27, evap: 25 },
@@ -56,15 +57,18 @@ function pestStatus(bugs: number): Status {
   return { level: 0, dir: 'high' }
 }
 
-/** Status board for the state as it is now (also used by the screen). */
-export function currentStatuses(s: PlantState): Record<ConditionKey, Status> {
+/**
+ * Status board for the state as it is now (also used by the screen). `hit` is today's weather: its
+ * `tempAt` is the temperature at the plant's spot (unprepared heat or cold shows on the board at once).
+ */
+export function currentStatuses(s: PlantState, hit: WeatherHit = {}): Record<ConditionKey, Status> {
   const phase = phaseOfState(s)
   const b = SPECIES[s.speciesId].bands[phase]
   const seed = phase === 'seed'
   return {
     water: levelFor(s.water, b.water),
     light: seed ? NOT_NEEDED : levelFor(s.lightExp, b.light),
-    temp: levelFor(placeEnv(s.place, phase).temp, b.temp),
+    temp: levelFor(hit.tempAt ?? placeEnv(s.place, phase).temp, b.temp),
     nutrient: seed ? NOT_NEEDED : levelFor(s.nutrient, b.nutrient),
     pest: seed ? NOT_NEEDED : pestStatus(s.bugs),
   }
@@ -116,10 +120,23 @@ export function applyActions(s: PlantState, a: DayActions): PlantState {
   }
 }
 
+/** Rain sets the soil water before the day is judged: 'over' = band hi + 15, 'ideal' = at least idealLo + 5. */
+function rainedWater(s: PlantState, hit: WeatherHit): number {
+  if (hit.water === undefined) return s.water
+  const b = SPECIES[s.speciesId].bands[phaseOfState(s)].water
+  const target = hit.water === 'over' ? b.hi + 15 : b.idealLo + 5
+  return clamp(Math.max(s.water, target), 0, MAX_STORE)
+}
+
+/**
+ * Ends the day. `opts.did` is what the student did that day, for the weather judgment (the store applies
+ * actions as they happen and passes zero `a`); without it `a` is used.
+ */
 export function endDay(
   s: PlantState,
   a: DayActions,
   rng: () => number,
+  opts: { did?: DayActions } = {},
 ): { state: PlantState; report: DayReport } {
   if (s.dead) {
     const report: DayReport = {
@@ -131,8 +148,11 @@ export function endDay(
   const species = SPECIES[s.speciesId]
   const lastStage = species.stages.length - 1
 
-  // 1. apply actions
-  const applied = applyActions(s, a)
+  // 1. apply actions; today's weather is judged on the result (rain waters the soil before the statuses)
+  const actioned = applyActions(s, a)
+  const weather = todayWeather(actioned, opts.did ?? a)
+  const hit: WeatherHit = weather?.hit ?? {}
+  const applied = { ...actioned, water: rainedWater(actioned, hit) }
   let { water, nutrient } = applied
   const { bugs: bugsLeft, place } = applied
 
@@ -143,20 +163,23 @@ export function endDay(
 
   // 3. statuses
   const phase = phaseOfState(state)
-  const statuses = currentStatuses(state)
+  const statuses = currentStatuses(state, hit)
   const history = [...s.history, statuses].slice(-HISTORY_DAYS)
   const active = Object.values(statuses).flatMap((st) => (st.level === null ? [] : [st.level]))
 
   // 4. health
   const allOk = active.every((l) => l >= 3)
   const delta = allOk ? RECOVER : active.reduce<number>((sum, l) => sum + PENALTY[l], 0)
-  const health = clamp(s.health + delta, 0, 100)
+  const judged = clamp(s.health + delta, 0, 100)
+  // The weather's own damage (typhoon) never takes a plant below 1: weather alone never kills.
+  const health = hit.healthHit ? Math.max(Math.min(judged, 1), judged - hit.healthHit) : judged
   const healthDelta = health - s.health
+  const weatherLine = weather ? { weather: { kind: weather.kind, prepared: weather.prepared } } : {}
 
   if (health === 0) {
     state = { ...state, health, history, dead: true, deathCause: deathCause(history) }
     const report: DayReport = {
-      statuses, healthDelta, grew: false, stageChanged: false, died: true, newBugs: 0, heightDelta: 0,
+      statuses, healthDelta, grew: false, stageChanged: false, died: true, newBugs: 0, heightDelta: 0, ...weatherLine,
     }
     return { state, report }
   }
@@ -195,7 +218,7 @@ export function endDay(
   const leaves = noNewLeaves ? s.leaves : Math.max(s.leaves, Math.floor(pastSeed / POINTS_PER_LEAF))
 
   // 6. prepare the next morning
-  water = Math.max(0, water - placeEnv(place, phase).evap)
+  water = Math.max(0, water - placeEnv(place, phase).evap * (hit.evapScale ?? 1))
   const nutrientUse = phase === 'grow' ? GROW_NUTRIENT_USE : phase === 'winter' ? WINTER_NUTRIENT_USE : 0
   nutrient = Math.max(0, nutrient - nutrientUse)
   if (stageChanged && phaseOf(species.stages[stageIndex]) === 'winter') {
@@ -205,7 +228,7 @@ export function endDay(
     water = Math.min(water, wb.water.hi)
     nutrient = Math.min(nutrient, wb.nutrient.hi)
   }
-  const newBugs = rollPests(statuses, rng)
+  const newBugs = rollPests(statuses, rng, hit.pestBonus ?? 0)
   const bugs = Math.min(MAX_BUGS, bugsLeft + bugsLeft + newBugs) // unremoved bugs multiply overnight
 
   state = {
@@ -214,6 +237,7 @@ export function endDay(
   const report: DayReport = {
     statuses, healthDelta, grew: gained > 0, stageChanged, died: false, newBugs, heightDelta,
     ...(waiting ? { waiting } : {}),
+    ...weatherLine,
   }
   return { state, report }
 }
