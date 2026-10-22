@@ -96,5 +96,29 @@ test('the app works under /kiwora/', async ({ page }) => {
   expect(scope).toBe(site)
   expect(scope.endsWith('/kiwora/')).toBe(true)
 
+  // the fonts come from the site itself (under the base), never from Google Fonts
+  const fontFaces = await page.evaluate(async () => {
+    await document.fonts.ready
+    const faces = [...(await document.fonts.load('20px Jua', '가')), ...(await document.fonts.load('20px "Gowun Dodum"', '가'))]
+    return faces.map((f) => `${f.family} ${f.status}`)
+  })
+  expect(fontFaces).toEqual(expect.arrayContaining(['Jua loaded', 'Gowun Dodum loaded']))
+  const fontUrls = await page.evaluate(() =>
+    performance.getEntriesByType('resource').map((e) => e.name).filter((n) => /\.woff2?($|\?)|fonts\.g/.test(n)),
+  )
+  expect(fontUrls.length).toBeGreaterThan(0)
+  expect(fontUrls.filter((u) => !u.startsWith(`${site}assets/`))).toEqual([])
+
+  // the woff2 files are in the service worker's precache
+  await expect
+    .poll(() =>
+      page.evaluate(async () => {
+        const name = (await caches.keys()).find((k) => k.includes('precache'))
+        if (!name) return 0
+        return (await (await caches.open(name)).keys()).filter((r) => r.url.includes('.woff2')).length
+      }),
+    )
+    .toBeGreaterThan(50)
+
   expect(failed).toEqual([])
 })

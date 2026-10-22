@@ -13,20 +13,13 @@ export default defineConfig({
       injectRegister: 'auto',
       manifest: false, // public/manifest.webmanifest is served as-is
       workbox: {
-        globPatterns: ['**/*.{js,css,html,woff,woff2,png,webp,json,webmanifest}'],
+        // Fonts are self-hosted (@fontsource): only the .woff2 files (every browser with a service worker reads them).
+        globPatterns: ['**/*.{js,css,html,woff2,png,webp,json,webmanifest}'],
         // The shared stand-in picture (1 MB) is never shown once every species has its own art.
         globIgnores: ['**/plants/standin.png'],
         // Art is .webp (<= 1024 px); the largest files (backgrounds, stand-in .png) stay well under this.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: 'index.html',
-        runtimeCaching: [
-          {
-            // Google Fonts (Jua, Gowun Dodum): cached after the first online load.
-            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/,
-            handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'google-fonts', cacheableResponse: { statuses: [0, 200] } },
-          },
-        ],
       },
     }),
   ],

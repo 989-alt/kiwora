@@ -26,3 +26,22 @@ test('the manifest lets a tablet turn either way', () => {
 test('the service worker does not precache the unused 1 MB stand-in picture', () => {
   expect(read('vite.config.ts')).toMatch(/globIgnores:\s*\[[^\]]*plants\/standin\.png/)
 })
+
+test('Jua and Gowun Dodum are self-hosted (no Google Fonts), so the app is fully offline after the first load', () => {
+  for (const f of ['index.html', 'vite.config.ts', 'src/main.tsx', 'src/styles/tokens.css']) {
+    expect(read(f), f).not.toMatch(/fonts\.(googleapis|gstatic)\.com/)
+  }
+  const main = read('src/main.tsx')
+  expect(main).toMatch(/import '@fontsource\/jua\/400\.css'/)
+  expect(main).toMatch(/import '@fontsource\/gowun-dodum\/400\.css'/)
+  const pkg = JSON.parse(read('package.json'))
+  expect(pkg.dependencies['@fontsource/jua']).toBeTruthy()
+  expect(pkg.dependencies['@fontsource/gowun-dodum']).toBeTruthy()
+  // the service worker precaches the woff2 files (the .woff copies are only for browsers without woff2)
+  const globs = /globPatterns:\s*\[([^\]]*)\]/.exec(read('vite.config.ts'))![1]
+  expect(globs).toContain('woff2')
+  expect(globs).not.toMatch(/woff,/)
+  // fontsource's own @font-face rules say font-display: swap
+  expect(read('node_modules/@fontsource/jua/400.css')).toContain('font-display: swap')
+  expect(read('node_modules/@fontsource/gowun-dodum/400.css')).toContain('font-display: swap')
+})

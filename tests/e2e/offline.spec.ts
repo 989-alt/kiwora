@@ -70,4 +70,10 @@ test('works offline after first load', async ({ page, context }) => {
   await expect
     .poll(() => page.evaluate(() => [...document.images].filter((i) => i.complete && i.naturalWidth > 0).length))
     .toBeGreaterThan(0)
+  // the self-hosted fonts load offline too (from the precache)
+  const faces = await page.evaluate(async () => {
+    const all = [...(await document.fonts.load('20px Jua', '나')), ...(await document.fonts.load('20px "Gowun Dodum"', '나'))]
+    return all.map((f) => `${f.family} ${f.status}`)
+  })
+  expect(faces).toEqual(expect.arrayContaining(['Jua loaded', 'Gowun Dodum loaded']))
 })
