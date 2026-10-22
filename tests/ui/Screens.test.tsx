@@ -330,7 +330,7 @@ describe('BackupPanel', () => {
     render(<BackupPanel state={s} dispatch={() => {}} back="grow" />)
     const short = screen.getByLabelText('짧은 기록 코드')
     expect(short.textContent).toBe(shortCode(toSave(s)).replace(/-/g, ''))
-    expect(short.querySelectorAll('.bk-group')).toHaveLength(5)
+    expect(short.querySelectorAll('.bk-group')).toHaveLength(7)
     expect(screen.getByText(/이 짧은 기록 코드를 실험관찰에 적어 두세요/)).toBeTruthy()
     expect(screen.getByText('짧은 기록 코드는 식물과 도감만 되살려요.')).toBeTruthy()
     expect(screen.getByLabelText('전체 기록 코드').textContent).toBe(exportCode(toSave(s)))

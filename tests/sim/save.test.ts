@@ -139,6 +139,79 @@ describe('shape validation', () => {
     expect(code.ok && code.data.finished).toEqual({ balsam: { journal: [entry] } })
   })
 
+  const v2Entry = {
+    day: 3,
+    dateKey: '2026-10-21',
+    stage: 'sprout',
+    heightCm: 1.5,
+    leaves: 2,
+    actions: { waterAdded: 10, pellets: 0, bugsRemoved: 0, place: 'desk', care: ['thin'], tied: false },
+    statuses: {},
+    measuredCm: 1.5,
+    measureHelped: true,
+    observed: 'leaves',
+    weather: { kind: 'heat', prepared: true },
+  }
+
+  it('journal entries keep measured height, observation and weather; bad values drop only that field', () => {
+    const r = load({ v: 1, journal: [v2Entry] })
+    expect(r.data.journal).toEqual([v2Entry])
+    const bads: Record<string, unknown[]> = {
+      measuredCm: ['3', NaN, null],
+      measureHelped: ['yes', 1],
+      observed: [5, {}],
+      weather: ['heat', { kind: 'snow', prepared: true }, { kind: 'rain', prepared: 'no' }, { kind: 'rain' }],
+    }
+    for (const [key, values] of Object.entries(bads)) {
+      for (const bad of values) {
+        const j = load({ v: 1, journal: [{ ...v2Entry, [key]: bad }] }).data.journal
+        expect(j.length, `${key} ${String(bad)}`).toBe(1)
+        expect(key in j[0], `${key} ${String(bad)}`).toBe(false)
+        const { [key as keyof typeof v2Entry]: _drop, ...rest } = v2Entry
+        expect(j[0]).toEqual(rest)
+      }
+    }
+    // the day's care and tie-down are kept in the entry's actions; junk drops only that field
+    const a = load({ v: 1, journal: [{ ...v2Entry, actions: { ...v2Entry.actions, care: ['dance'], tied: 'yes' } }] }).data.journal[0]
+    expect(a.actions).toEqual({ waterAdded: 10, pellets: 0, bugsRemoved: 0, place: 'desk' })
+    // and all of it survives the long code
+    const code = importCode(exportCode(r.data))
+    expect(code.ok && code.data.journal).toEqual([v2Entry])
+  })
+
+  it("pending actions keep today's care and tie-down", () => {
+    const pend = { waterAdded: 5, pellets: 1, bugsRemoved: 0, place: 'window', care: ['sow', 'thin'], tied: true }
+    expect(load({ v: 1, pendingActions: pend }).data.pendingActions).toEqual(pend)
+    expect(load({ v: 1, pendingActions: { ...pend, care: 'sow', tied: 1 } }).data.pendingActions).toEqual({ waterAdded: 5, pellets: 1, bugsRemoved: 0, place: 'window' })
+    expect(load({ v: 1, pendingActions: { ...pend, care: ['sow', 7] } }).data.pendingActions).toEqual({ waterAdded: 5, pellets: 1, bugsRemoved: 0, place: 'window', tied: true })
+  })
+
+  it('finished journal and past tries keep their mode', () => {
+    const tries = [
+      { speciesId: 'bean', days: 4, stage: 'seed', cause: 'x', mode: 'quick' },
+      { speciesId: 'corn', days: 2, stage: 'sprout', cause: 'y', mode: 'fast' },
+      { speciesId: 'rice', days: 1, stage: 'seed', cause: 'z' },
+    ]
+    const r = load({ v: 1, pastTries: tries, finished: { balsam: { journal: [v2Entry], mode: 'quick' }, bean: { journal: [v2Entry], mode: 3 }, rice: { journal: [v2Entry] } } })
+    expect(r.data.pastTries).toEqual([tries[0], { speciesId: 'corn', days: 2, stage: 'sprout', cause: 'y' }, tries[2]])
+    expect(r.data.finished).toEqual({ balsam: { journal: [v2Entry], mode: 'quick' }, bean: { journal: [v2Entry] }, rice: { journal: [v2Entry] } })
+    const code = importCode(exportCode(r.data))
+    expect(code.ok && code.data).toEqual(r.data)
+  })
+
+  it('pendingObs round-trips and junk becomes null', () => {
+    expect(emptySave().pendingObs).toBeNull()
+    expect(load({ v: 1, plant: null }).data.pendingObs).toBeNull()
+    const obs = { measuredCm: 2.5, measureHelped: false, observed: 'flower' }
+    const r = load({ v: 1, pendingObs: obs })
+    expect(r.data.pendingObs).toEqual(obs)
+    const code = importCode(exportCode(r.data))
+    expect(code.ok && code.data.pendingObs).toEqual(obs)
+    for (const junk of ['x', 5, [obs], true]) expect(load({ v: 1, pendingObs: junk }).data.pendingObs, String(junk)).toBeNull()
+    expect(load({ v: 1, pendingObs: { measuredCm: 'tall', measureHelped: false, observed: 3 } }).data.pendingObs).toEqual({ measureHelped: false })
+    expect(load({ v: 1, pendingObs: {} }).data.pendingObs).toEqual({})
+  })
+
   it('clamps and rounds bugs', () => {
     const d = sample()
     expect(load({ ...d, plant: { ...d.plant, bugs: -3 } }).data.plant!.bugs).toBe(0)
@@ -223,6 +296,13 @@ describe('lastReport', () => {
     expect(load({ ...sample(), lastReport: report }).lastReport).toEqual(report)
   })
 
+  it('keeps waiting and weather; bad values drop only that field', () => {
+    const v2 = { ...report, grew: false, waiting: true, weather: { kind: 'typhoon', prepared: false } }
+    expect(load({ ...sample(), lastReport: v2 }).lastReport).toEqual(v2)
+    expect(load({ ...sample(), lastReport: { ...v2, waiting: 'yes' } }).lastReport).toEqual({ ...report, grew: false, weather: v2.weather })
+    expect(load({ ...sample(), lastReport: { ...v2, weather: { kind: 'snow', prepared: true } } }).lastReport).toEqual({ ...report, grew: false, waiting: true })
+  })
+
   it('an invalid or missing report becomes null', () => {
     expect(load({ ...sample(), lastReport: { ...report, heightDelta: 'x' } }).lastReport).toBeNull()
     expect(load({ ...sample(), lastReport: 5 }).lastReport).toBeNull()
@@ -255,12 +335,19 @@ describe('restore code', () => {
 
 describe('short code (for writing down)', () => {
   const BAD = '기록 코드가 맞지 않아요. 다시 확인해 주세요.'
-  const FORMAT = /^[0-9A-HJKMNP-TV-Z]{5}(-[0-9A-HJKMNP-TV-Z]{5}){4}$/
+  const FORMAT = /^[0-9A-HJKMNP-TV-Z]{4}(-[0-9A-HJKMNP-TV-Z]{4}){6}$/
 
-  /**
-   * What a short code brings back: plant (no history), dex, day gating, settings; no journal or past tries.
-   * Formats 1 and 2 carry no mode, care or weather fields, so the plant comes back as a v1 plant does.
-   */
+  /** What a short code brings back: plant (no history), dex, day gating, settings; no journal or past tries. */
+  const expected = (d: SaveData): SaveData => ({
+    ...emptySave(),
+    plant: d.plant ? { ...d.plant, history: [] } : null,
+    pendingActions: d.pendingActions,
+    lastDayKey: d.lastDayKey,
+    dayDone: d.dayDone,
+    dex: d.dex,
+    settings: d.settings,
+  })
+  /** Formats 1 and 2 carry no mode, care or weather fields, so the plant comes back as a v1 plant does. */
   const asV1 = (p: NonNullable<SaveData['plant']>) => ({
     ...p,
     mode: 'daily' as const,
@@ -268,15 +355,10 @@ describe('short code (for writing down)', () => {
     weatherSeed: seedFor(0, p.speciesId) & 255,
     weatherFrom: p.day + 1,
   })
-  const expected = (d: SaveData): SaveData => ({
-    ...emptySave(),
-    plant: d.plant ? asV1({ ...d.plant, history: [] }) : null,
-    pendingActions: d.pendingActions,
-    lastDayKey: d.lastDayKey,
-    dayDone: d.dayDone,
-    dex: d.dex,
-    settings: d.settings,
-  })
+  const expectedV1 = (d: SaveData): SaveData => {
+    const e = expected(d)
+    return { ...e, plant: e.plant ? asV1(e.plant) : null }
+  }
 
   function growingBean(): SaveData {
     const d = emptySave()
@@ -305,10 +387,41 @@ describe('short code (for writing down)', () => {
     return d
   }
 
-  it('is short, in 5 groups of 5, without I, L, O or U', () => {
+  it('is 28 letters in 7 groups of 4 without I, L, O or U', () => {
     const code = shortCode(growingBean())
-    expect(code.length).toBe(29)
+    expect(code.replace(/-/g, '').length).toBe(28)
+    expect(code.length).toBe(34)
     expect(code).toMatch(FORMAT)
+  })
+
+  it('format 3 keeps a plant waiting on its care', () => {
+    // a quick-mode bean at the leafStem threshold, its stake not done yet, tied down for a typhoon today
+    const d = growingBean()
+    d.plant = { ...d.plant!, mode: 'quick', growth: 4, careDone: 0, weatherSeed: 201 }
+    d.pendingActions = { ...d.pendingActions!, tied: true }
+    expect(importCode(shortCode(d))).toEqual({ ok: true, data: expected(d) })
+    // and the other way round: daily, care done, not tied
+    const e = growingBean()
+    e.plant = { ...e.plant!, careDone: 1, weatherSeed: 255 }
+    expect(importCode(shortCode(e))).toEqual({ ok: true, data: expected(e) })
+  })
+
+  it('format 3 keeps when the weather starts (a new plant from day 2, a v1 plant from the day after the update)', () => {
+    const at = (day: number, weatherFrom: number) => {
+      const d = growingBean()
+      d.plant = { ...d.plant!, day, weatherFrom }
+      const r = importCode(shortCode(d))
+      return r.ok ? r.data.plant!.weatherFrom : undefined
+    }
+    expect(at(1, 2)).toBe(2)
+    expect(at(30, 2)).toBe(2)
+    expect(at(6, 7)).toBe(7) // updated today: no weather before tomorrow
+    expect(at(9, 7)).toBe(7)
+    expect(at(11, 7)).toBe(7)
+    // weather that started long ago only has to have started: today and later stay the same
+    const far = at(40, 7)!
+    expect(far).toBeGreaterThanOrEqual(2)
+    expect(far).toBeLessThanOrEqual(40)
   })
 
   it("keeps the day's pending water in steps of 5 (0..150), so the journal's 한 일 stays right", () => {
@@ -326,12 +439,14 @@ describe('short code (for writing down)', () => {
     expect(water(400)).toBe(150)
   })
 
-  it('still reads an older 24-letter code (format 1, written before the water amount was kept)', () => {
-    const r = importCode('8MRP-1F4E-E0G5-2T43-8H4W-15NG')
+  it('still reads format 1 and format 2 codes as daily v1 plants', () => {
     const d = growingBean()
-    expect(r).toEqual({ ok: true, data: expected({ ...d, pendingActions: { ...d.pendingActions!, waterAdded: 1 } }) })
-    // and a typo in it is still caught
+    // format 1 (24 letters, written before the water amount was kept)
+    expect(importCode('8MRP-1F4E-E0G5-2T43-8H4W-15NG')).toEqual({ ok: true, data: expectedV1({ ...d, pendingActions: { ...d.pendingActions!, waterAdded: 1 } }) })
     expect(importCode('8MRP-1F4E-E0G5-2T43-8H4W-15NH')).toEqual({ ok: false, message: BAD })
+    // format 2 (25 letters in 5 groups of 5)
+    expect(importCode('GMRP1-F4EE0-G52T4-2AH29-R2A4F')).toEqual({ ok: true, data: expectedV1(d) })
+    expect(importCode('GMRP1-F4EE0-G52T4-2AH29-R2A4G')).toEqual({ ok: false, message: BAD })
   })
 
   it('round-trips an in-progress plant with its dex, day and settings (journal and past tries are not kept)', () => {
@@ -351,7 +466,7 @@ describe('short code (for writing down)', () => {
 
   it('round-trips a perennial planted in the yard, and a save without a plant', () => {
     const d = emptySave()
-    d.plant = { ...newPlant('apple'), stageIndex: 5, growth: 0.25, place: 'yardSunny', water: 62, nutrient: 50, lightExp: 90, day: 12, heightCm: 22.5, leaves: 11 }
+    d.plant = { ...newPlant('apple', { mode: 'quick', weatherSeed: 9 }), stageIndex: 5, growth: 0.25, place: 'yardSunny', water: 62, nutrient: 50, lightExp: 90, day: 12, heightCm: 22.5, leaves: 11 }
     d.lastDayKey = '2027-03-02'
     d.dex = ['balsam', 'bean', 'morningGlory', 'rice', 'corn', 'apple', 'dandelion', 'forsythia', 'persimmon']
     expect(importCode(shortCode(d))).toEqual({ ok: true, data: expected(d) })
@@ -368,8 +483,12 @@ describe('short code (for writing down)', () => {
   })
 
   it('a typo (one wrong letter, two swapped letters, one missing) is rejected with the friendly message', () => {
-    const code = shortCode(growingBean())
+    const d = growingBean()
+    d.plant = { ...d.plant!, mode: 'quick', growth: 4, weatherSeed: 201 }
+    d.pendingActions = { ...d.pendingActions!, tied: true }
+    const code = shortCode(d)
     const chars = code.replace(/-/g, '').split('')
+    expect(chars.length).toBe(28)
     const ALPHA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
     for (let i = 0; i < chars.length; i++) {
       for (const c of ALPHA) {

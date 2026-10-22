@@ -179,8 +179,8 @@ test('backup: the short code written down by hand brings the plant back', async 
   await page.goto('/')
   await page.getByRole('button', { name: '기록 지키기' }).tap()
   const groups = await page.getByLabel('짧은 기록 코드').locator('.bk-group').allTextContents()
-  expect(groups).toHaveLength(5)
-  expect(groups.join('').length).toBe(25)
+  expect(groups).toHaveLength(7)
+  expect(groups.join('').length).toBe(28)
 
   await page.evaluate(() => localStorage.clear())
   await page.reload()
