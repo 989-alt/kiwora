@@ -2,6 +2,7 @@
 
     python scripts/gen_assets.py --species balsam [--only public/plants/balsam/leafStem.webp]
     python scripts/gen_assets.py --species shared        (pots, backgrounds, bugs)
+    python scripts/gen_assets.py --species props         (moon, care props, weather icons; 512 px)
 
 For each manifest row of the species it
   1. asks education-pptx/scripts/image_gen.py (manifest mode) for a png in assets/raw/ (transparent rows are
@@ -48,11 +49,16 @@ def raw_name(path: str) -> str:
     return path.replace("/", "__").rsplit(".", 1)[0] + ".png"
 
 
-def to_webp(png: Path, dest: Path, transparent: bool) -> None:
-    """Shrink to MAX_SIDE, clean the keyed edge of transparent pictures, save webp."""
+def row_max_side(row: dict) -> int:
+    """Long side of a row's webp: the row's own "maxSide" (small props use 512), else MAX_SIDE."""
+    return int(row.get("maxSide", MAX_SIDE))
+
+
+def to_webp(png: Path, dest: Path, transparent: bool, max_side: int = MAX_SIDE) -> None:
+    """Shrink to max_side, clean the keyed edge of transparent pictures, save webp."""
     with Image.open(png) as src:
         im = src.convert("RGBA")
-    scale = min(1.0, MAX_SIDE / max(im.size))
+    scale = min(1.0, max_side / max(im.size))
     if scale < 1.0:
         im = im.resize((round(im.width * scale), round(im.height * scale)), Image.LANCZOS)
     if transparent:
@@ -134,7 +140,7 @@ def main(argv: list[str] | None = None) -> int:
         if status[r["path"]] != "OK":
             print(f"FAILED {r['path']}")
             continue
-        to_webp(RAW / raw_name(r["path"]), ROOT / r["path"], r["transparent"])
+        to_webp(RAW / raw_name(r["path"]), ROOT / r["path"], r["transparent"], row_max_side(r))
         done.append(r["path"])
         print(f"OK     {r['path']}")
 

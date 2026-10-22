@@ -516,5 +516,141 @@
     "aspect": "1:1",
     "transparent": true,
     "species": "shared"
+  },
+  {
+    "path": "public/props/moon.webp",
+    "prompt": "Cute soft clay-toy illustration of a chubby 3D claymation-style crescent moon, soft pale yellow, a gentle warm glow around it, rounded plump horns, cute but no face, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/seedPacket.webp",
+    "prompt": "Cute soft clay-toy illustration of a small 3D claymation-style paper seed packet, cream paper with a folded zig-zag top edge, a simple green sprout picture on the front and a pastel blue band, slightly puffy, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/brush.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style soft round paintbrush lying diagonally, a smooth light wooden handle and a fluffy pale yellow bristle tip dusted with golden pollen, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/stake.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style straight wooden plant support stake standing upright, light tan wood stick with a sharpened pointed bottom end and a rounded top, slightly chunky, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/twine.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style small spool of natural beige jute twine, thick rope-like string wound in a neat round coil with one loose end hanging out, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/straw.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style bundle of golden-yellow dry rice straw lying diagonally, the middle tied with a thin brown string, fluffy ends, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/shears.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style garden pruning shears with two short curved silver-grey blades and two chunky bright red rounded handles, slightly open, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/dryBranch.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style dry withered tree twig, thin grey-brown branch with a small fork and two or three crinkled dry brown leaves hanging on it, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/soilScoop.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style small garden hand trowel with a rounded green metal scoop holding a heap of dark brown crumbly soil and a short light wooden handle, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/magnifier.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style magnifying glass, a round clear light-blue glass lens with a thick warm orange rim and a short chunky wooden handle, a small white shine on the glass, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/props/drainDish.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style round terracotta flower pot saucer plate seen from slightly above, matte orange-brown clay with a rounded rim, a little clear water with a few tiny blue droplets in the middle, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/weather/heat.webp",
+    "prompt": "Cute soft clay-toy illustration of a chubby 3D claymation-style bright orange-yellow sun with short rounded rays all around, glowing hot, a few small wavy orange heat lines above it, cute but no face, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/weather/rain.webp",
+    "prompt": "Cute soft clay-toy illustration of a puffy 3D claymation-style light grey-blue rain cloud with five plump blue raindrops falling from under it, calm and gentle, cute but no face, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/weather/monsoon.webp",
+    "prompt": "Cute soft clay-toy illustration of a big heavy 3D claymation-style dark grey-blue storm cloud with many long streams of blue raindrops pouring down in a dense curtain, gloomy and wet, cute but no face, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/weather/typhoon.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style typhoon: a big swirling spiral of dark grey-blue wind clay ribbons with a dark storm cloud on top and a small yellow lightning bolt, strong and scary but still cute, no face, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/weather/cold.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style cold wind: pale icy-blue curling wind swirls with two small white snowflakes and a tiny blue chill, chilly and crisp, cute but no face, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
+  },
+  {
+    "path": "public/weather/frost.webp",
+    "prompt": "Cute soft clay-toy illustration of a 3D claymation-style green leaf covered with white frost, sparkling pale blue ice crystals and tiny icicles along its edge, cold and frozen, cute but no face, matte soft clay material with gentle fingerprint texture, soft studio lighting, centered, seen from the front slightly from above, the whole object fully inside the frame with margin around it. Single object only, no face, no background scene. No text, no labels, no numbers.",
+    "aspect": "1:1",
+    "transparent": true,
+    "species": "props",
+    "maxSide": 512
   }
 ]

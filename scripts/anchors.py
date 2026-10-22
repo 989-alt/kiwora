@@ -19,6 +19,7 @@ Per kind (all numbers are px of the picture file itself):
          standTop / standBottom  the back and front edge of the placing surface's top face
          x0 / x1                 the x range that surface runs over
   bug    bbox only
+  prop   bbox only (public/props and public/weather)
 """
 from __future__ import annotations
 
@@ -35,7 +36,7 @@ OUT = PUBLIC / "anchors.json"
 STAND = ROOT / "assets" / "bg_stand.json"
 REVIEW = ROOT / "assets" / "review"
 ALPHA_MIN = 128
-KINDS = {"pots": "pot", "plants": "plant", "bg": "bg", "bugs": "bug"}
+KINDS = {"pots": "pot", "plants": "plant", "bg": "bg", "bugs": "bug", "props": "prop", "weather": "prop"}
 
 
 def kind_of(rel: str) -> str:
@@ -148,7 +149,12 @@ def measure_bug(im: Image.Image) -> dict:
     return {"w": im.width, "h": im.height, "bbox": [left, top, right, bottom]}
 
 
-MEASURE = {"pot": measure_pot, "plant": measure_plant, "bg": measure_bg, "bug": measure_bug}
+def measure_prop(im: Image.Image) -> dict:
+    left, top, right, bottom = _bbox(_alpha(im) >= ALPHA_MIN)
+    return {"w": im.width, "h": im.height, "bbox": [left, top, right, bottom]}
+
+
+MEASURE = {"pot": measure_pot, "plant": measure_plant, "bg": measure_bg, "bug": measure_bug, "prop": measure_prop}
 
 
 def _stand_overrides(stand: Path) -> dict:

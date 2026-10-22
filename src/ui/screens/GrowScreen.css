@@ -146,6 +146,13 @@
   gap: 12px;
   cursor: pointer;
 }
+.gs-end-moon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  object-fit: contain;
+  pointer-events: none;
+}
 .gs-end:active:not(:disabled) {
   transform: translateY(4px);
   box-shadow: 0 4px 0 #14532d;

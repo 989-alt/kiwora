@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import data from '../../public/anchors.json'
 import type { SpeciesId, StageId } from '../../src/sim/species'
-import { BUG_SLOTS, bugSpots, plantArt, type PlantArt } from '../../src/ui/art'
+import { BUG_SLOTS, bugSpots, plantArt, propArt, weatherArt, type PlantArt, type PropName } from '../../src/ui/art'
 
 const real = (a: Partial<PlantArt['a']>): PlantArt => ({
   src: '/plants/x/flower.webp',
@@ -54,6 +54,42 @@ describe('bugSpots', () => {
       const r = bugSpots(plantArt(id as SpeciesId, file.replace('.webp', '') as StageId))!
       expect(r.points, rel).toHaveLength(BUG_SLOTS)
       inside(r.points, 0, f.w, 0, f.h)
+    }
+  })
+})
+
+describe('propArt / weatherArt', () => {
+  test('a prop with a measured anchor is real and points at props/<name>.webp', () => {
+    const files = data.files as Record<string, { kind: string }>
+    const names: PropName[] = ['moon', 'seedPacket', 'brush', 'stake', 'twine', 'straw', 'shears', 'dryBranch', 'soilScoop', 'magnifier', 'drainDish']
+    for (const n of names) {
+      const art = propArt(n)
+      expect(art.src.endsWith(`props/${n}.webp`)).toBe(true)
+      const measured = `props/${n}.webp` in files
+      expect(art.real).toBe(measured)
+      if (measured) {
+        const [l, t, r, b] = art.bbox
+        expect(r).toBeGreaterThan(l)
+        expect(b).toBeGreaterThan(t)
+        expect(art.w).toBeGreaterThan(0)
+      }
+    }
+    expect(propArt('moon').real).toBe(true)
+  })
+
+  test('a prop without an anchor is not real and gets the full 512 box', () => {
+    const art = propArt('nope' as PropName)
+    expect(art.real).toBe(false)
+    expect(art.bbox).toEqual([0, 0, 511, 511])
+    expect([art.w, art.h]).toEqual([512, 512])
+  })
+
+  test('weather icons point at weather/<kind>.webp', () => {
+    const files = data.files as Record<string, { kind: string }>
+    for (const k of ['heat', 'rain', 'monsoon', 'typhoon', 'cold', 'frost'] as const) {
+      const art = weatherArt(k)
+      expect(art.src.endsWith(`weather/${k}.webp`)).toBe(true)
+      expect(art.real).toBe(`weather/${k}.webp` in files)
     }
   })
 })

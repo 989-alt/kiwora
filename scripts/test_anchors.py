@@ -137,3 +137,21 @@ def test_draw_stand_marks_the_two_lines_and_the_x_range(tmp_path):
     assert out.getpixel((200, 380)) != base.getpixel((200, 380))
     assert out.getpixel((12, 340)) != base.getpixel((12, 340))
     assert out.getpixel((388, 340)) != base.getpixel((388, 340))
+
+
+def test_prop_kind_measures_bbox(tmp_path):
+    assert anchors.kind_of("props/moon.webp") == "prop"
+    assert anchors.kind_of("weather/rain.webp") == "prop"
+    im = Image.new("RGBA", (512, 512), (0, 0, 0, 0))
+    ImageDraw.Draw(im).ellipse((100, 150, 400, 460), fill=(240, 220, 120, 255))
+    a = anchors.measure_prop(im)
+    assert (a["w"], a["h"]) == (512, 512)
+    l, t, r, b = a["bbox"]
+    assert 98 <= l <= 102 and 148 <= t <= 152 and 398 <= r <= 402 and 458 <= b <= 462
+    public = tmp_path / "public"
+    (public / "props").mkdir(parents=True)
+    im.save(public / "props" / "moon.webp")
+    out = tmp_path / "anchors.json"
+    anchors.update(["public/props/moon.webp"], public=public, out=out, stand=tmp_path / "none.json")
+    f = json.loads(out.read_text())["files"]["props/moon.webp"]
+    assert f["kind"] == "prop" and f["bbox"] == a["bbox"]

@@ -35,3 +35,21 @@ def test_a_fresh_png_counts_as_ok(tmp_path, monkeypatch):
 
     monkeypatch.setattr(ga.subprocess, "run", fake_run)
     assert ga.run_generator([ROW], "k") == {ROW["path"]: "OK"}
+
+
+def test_row_max_side(tmp_path):
+    from PIL import Image
+
+    png = tmp_path / "big.png"
+    Image.new("RGBA", (1024, 800), (200, 100, 50, 255)).save(png)
+    small = {**ROW, "maxSide": 512}
+    assert ga.row_max_side(small) == 512
+    assert ga.row_max_side(ROW) == ga.MAX_SIDE
+    dest = tmp_path / "small.webp"
+    ga.to_webp(png, dest, False, ga.row_max_side(small))
+    with Image.open(dest) as im:
+        assert max(im.size) == 512
+    dest2 = tmp_path / "default.webp"
+    ga.to_webp(png, dest2, False)
+    with Image.open(dest2) as im:
+        assert max(im.size) == 1024

@@ -5,7 +5,7 @@ import { phaseOf, SPECIES } from '../../sim/species'
 import type { PlantState } from '../../sim/types'
 import { morningShown, type Action, type AppState } from '../../store'
 import { PlantView, faceFor, isYardPlace } from '../PlantView'
-import { potArt } from '../art'
+import { potArt, propArt } from '../art'
 import { StatusBoard } from '../StatusBoard'
 import { Tutorial, type TipTarget } from '../Tutorial'
 import { installAudioUnlock } from '../sound'
@@ -48,7 +48,6 @@ const SOUND_OFF = ['M11 5 6 9H2v6h4l5 4V5z', 'm22 9-6 6', 'm16 9 6 6']
 const BOOK = ['M4 19.5V5a2 2 0 0 1 2-2h14v16H6a2 2 0 0 0-2 2z', 'M8 7h8', 'M8 11h6']
 const SEED = ['M12 21c-4 0-7-3.5-7-8.5C5 7 8.5 3 12 3s7 4 7 9.5c0 5-3 8.5-7 8.5z', 'M12 7c-1.5 2-1.5 8 0 11']
 const SHIELD = ['M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z', 'm9 12 2 2 4-4']
-const MOON = ['M20 15.5A8 8 0 1 1 8.5 4a6.5 6.5 0 0 0 11.5 11.5z']
 
 type Props = { state: AppState; dispatch: (a: Action) => void }
 
@@ -77,9 +76,10 @@ export function GrowScreen({ state, dispatch }: Props) {
   // A grown tree shows how long it has been growing: first half of the stage = 1 year, second half = 2.
   const yearsLater = stage === 'grownTree' ? (plant.growth < 2 ? '1년 뒤' : '2년 뒤') : null
 
+  const moon = propArt('moon')
   const endButton = (
     <button type="button" className="gs-end" disabled={locked} onClick={() => dispatch({ type: 'endDay' })}>
-      <Icon d={MOON} size={30} />
+      <img className="gs-end-moon" src={moon.src} alt="" width={36} height={36} draggable={false} />
       {locked ? '내일 다시 만나요' : '하루 마치기'}
     </button>
   )

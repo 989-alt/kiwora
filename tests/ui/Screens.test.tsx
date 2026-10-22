@@ -213,6 +213,19 @@ describe('GrowScreen menu', () => {
   })
 })
 
+describe('GrowScreen end button', () => {
+  test('end button shows the moon picture', () => {
+    const s: AppState = { ...base(), plant: { ...newPlant('corn'), day: 3 }, settings: { sound: false, tutorialSeen: true }, screen: 'grow' }
+    render(<GrowScreen state={s} dispatch={() => {}} />)
+    const btn = screen.getByRole('button', { name: '하루 마치기' })
+    const img = btn.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(img!.getAttribute('src')).toMatch(/props\/moon\.webp$/)
+    expect(img!.getAttribute('alt')).toBe('')
+    expect(img!.getAttribute('width')).toBe('36')
+  })
+})
+
 describe('DexScreen journal link', () => {
   test('a completed current plant can reopen its journal; a growing one cannot', () => {
     const dispatch = vi.fn()

@@ -2,6 +2,7 @@
 
     python scripts/contact_sheet.py --species balsam   ->  assets/review/balsam.png
     python scripts/contact_sheet.py --species shared   ->  assets/review/shared.png
+    python scripts/contact_sheet.py --species props    ->  assets/review/props.png
 
 A species sheet lays its stage pictures out in a row, in stage order, with the Korean stage name under
 each one. The shared sheet shows the pots, the backgrounds and the bugs. Labels are drawn here with PIL,
@@ -44,6 +45,26 @@ SHARED_NAME = {
     "yardShade": "배경 땅(그늘)",
     "aphid": "벌레 진딧물",
     "caterpillar": "벌레 애벌레",
+}
+
+PROP_NAME = {
+    "moon": "달",
+    "seedPacket": "씨앗 봉지",
+    "brush": "붓",
+    "stake": "지지대",
+    "twine": "끈",
+    "straw": "짚",
+    "shears": "가위",
+    "dryBranch": "마른 가지",
+    "soilScoop": "흙 삽",
+    "magnifier": "돋보기",
+    "drainDish": "물받이",
+    "heat": "날씨 폭염",
+    "rain": "날씨 비",
+    "monsoon": "날씨 장마",
+    "typhoon": "날씨 태풍",
+    "cold": "날씨 쌀쌀함",
+    "frost": "날씨 서리",
 }
 
 PAD = 16
@@ -123,11 +144,25 @@ def species_items(species: str, rows: list[dict] | None = None) -> list[Item]:
         if r["species"] != species:
             continue
         stage = Path(r["path"]).stem
-        items.append((ROOT / r["path"], STAGE_NAME.get(stage, stage)))
+        names = PROP_NAME if species == "props" else STAGE_NAME
+        items.append((ROOT / r["path"], names.get(stage, stage)))
     return items
 
 
+def make_props_sheet() -> Path:
+    groups: dict[str, list[Item]] = {"props": [], "weather": []}
+    for p, label in species_items("props"):
+        if p.exists() and p.parent.name in groups:
+            groups[p.parent.name].append((p, label))
+    rows = [(items, 300) for items in groups.values() if items]
+    if not rows:
+        raise SystemExit("no generated props pictures")
+    return build_rows(rows, REVIEW / "props.png")
+
+
 def make_species_sheet(species: str) -> Path:
+    if species == "props":
+        return make_props_sheet()
     items = [(p, label) for p, label in species_items(species) if p.exists()]
     if not items:
         raise SystemExit(f"no generated pictures for {species}")
@@ -152,7 +187,7 @@ def make_shared_sheet() -> Path:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--species", required=True, help="a species id, or 'shared'")
+    ap.add_argument("--species", required=True, help="a species id, 'shared' or 'props'")
     args = ap.parse_args(argv)
     out = make_shared_sheet() if args.species == "shared" else make_species_sheet(args.species)
     print(out)

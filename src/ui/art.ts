@@ -61,6 +61,49 @@ export function plantArt(id: SpeciesId, stage: StageId): PlantArt {
 
 export const plantSrc = (id: SpeciesId, stage: StageId) => plantArt(id, stage).src
 
+export type PropName =
+  | 'moon'
+  | 'seedPacket'
+  | 'brush'
+  | 'stake'
+  | 'twine'
+  | 'straw'
+  | 'shears'
+  | 'dryBranch'
+  | 'soilScoop'
+  | 'magnifier'
+  | 'drainDish'
+/** The six weather kinds (same ids as src/sim/types.ts WeatherId). */
+export type WeatherKind = 'heat' | 'rain' | 'monsoon' | 'typhoon' | 'cold' | 'frost'
+
+export type PropArt = {
+  src: string
+  /** opaque pixels [left, top, right, bottom] in the picture's own px */
+  bbox: [number, number, number, number]
+  w: number
+  h: number
+  /** false = no picture / anchor yet: the UI draws its SVG stand-in shape (full 512 box) */
+  real: boolean
+}
+
+const PROP_BOX: [number, number, number, number] = [0, 0, 511, 511]
+
+/** Care props (and the moon): 512 px pictures. Without picture or anchor: real false and the full 512 box. */
+export function propArt(name: PropName): PropArt {
+  const rel = `props/${name}.webp`
+  if (has(rel)) {
+    const a = files[rel] as unknown as { w: number; h: number; bbox: [number, number, number, number] }
+    return { src: asset(rel), bbox: a.bbox, w: a.w, h: a.h, real: true }
+  }
+  return { src: asset(rel), bbox: PROP_BOX, w: 512, h: 512, real: false }
+}
+
+/** Weather icon (512 px). real false until the picture is in: the UI then draws its own stand-in. */
+export function weatherArt(kind: WeatherKind): { src: string; real: boolean } {
+  const rel = `weather/${kind}.webp`
+  return { src: asset(rel), real: has(rel) }
+}
+
 /** Bugs on a plant never exceed this (the sim's MAX_BUGS), so every picture offers this many places. */
 export const BUG_SLOTS = 12
 

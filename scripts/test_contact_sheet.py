@@ -45,3 +45,14 @@ def test_labels_are_drawn_not_generated(tmp_path):
 def test_stage_names_are_korean_and_cover_every_stage():
     for stage in ["seed", "sprout", "leafStem", "grownTree", "flower", "fruit", "winter", "newShoot", "seedDone"]:
         assert cs.STAGE_NAME[stage]
+
+
+def test_props_sheet_lists_every_props_row():
+    import json
+
+    rows = [r for r in json.loads(cs.MANIFEST.read_text(encoding="utf-8")) if r["species"] == "props"]
+    assert len(rows) == 17
+    items = cs.species_items("props")
+    assert [p for p, _ in items] == [cs.ROOT / r["path"] for r in rows]
+    for p, label in items:
+        assert label and label != p.stem  # every picture has a Korean label

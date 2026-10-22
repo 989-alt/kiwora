@@ -37,13 +37,25 @@ describe('manifest', () => {
     }
   })
 
-  test('74 pictures: 62 plant stages, 4 pots, 6 backgrounds, 2 bugs, no duplicate paths', () => {
-    expect(rows).toHaveLength(74)
-    expect(paths.size).toBe(74)
+  test('91 pictures: 62 plant stages, 4 pots, 6 backgrounds, 2 bugs, 11 props, 6 weather icons, no duplicate paths', () => {
+    expect(rows).toHaveLength(91)
+    expect(paths.size).toBe(91)
     expect(rows.filter((r) => r.path.startsWith('public/plants/'))).toHaveLength(62)
     expect(rows.filter((r) => r.path.startsWith('public/pots/'))).toHaveLength(4)
     expect(rows.filter((r) => r.path.startsWith('public/bg/'))).toHaveLength(6)
     expect(rows.filter((r) => r.path.startsWith('public/bugs/'))).toHaveLength(2)
+    expect(rows.filter((r) => r.path.startsWith('public/props/'))).toHaveLength(11)
+    expect(rows.filter((r) => r.path.startsWith('public/weather/'))).toHaveLength(6)
+  })
+
+  test('prop and weather rows are 512 px transparent props with the no-text clause', () => {
+    const props = rows.filter((r) => r.species === 'props') as (typeof rows[number] & { maxSide?: number })[]
+    expect(props).toHaveLength(17)
+    for (const r of props) {
+      expect(r.maxSide, r.path).toBe(512)
+      expect(r.aspect, r.path).toBe('1:1')
+      expect(r.prompt, r.path).toMatch(/No text, no labels, no numbers\.$/)
+    }
   })
 
   test('backgrounds are opaque, everything else is transparent', () => {
