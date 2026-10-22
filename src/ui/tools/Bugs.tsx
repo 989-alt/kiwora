@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { mulberry32 } from '../../sim/rng'
-import { fillSpots } from '../art'
+import { asset, fillSpots } from '../art'
 import { pop } from '../sound'
 import './tools.css'
 
@@ -85,7 +85,7 @@ export function Bugs({ count, seed, scale, spots, measured, disabled, sound, onC
             }}
             onContextMenu={(e) => e.preventDefault()}
           >
-            <img src={`/bugs/${b.kind}.webp`} alt="" draggable={false} style={{ transform: `rotate(${b.tilt}deg)` }} />
+            <img src={asset(`bugs/${b.kind}.webp`)} alt="" draggable={false} style={{ transform: `rotate(${b.tilt}deg)` }} />
           </button>
         ),
       )}

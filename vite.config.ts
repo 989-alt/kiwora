@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  // GitHub Pages serves under /kiwora/ (npm run build:pages); everywhere else the app sits at the root.
+  base: process.env.VITE_BASE ?? '/',
   plugins: [
     react(),
     VitePWA({
@@ -16,7 +18,7 @@ export default defineConfig({
         globIgnores: ['**/plants/standin.png'],
         // Art is .webp (<= 1024 px); the largest files (backgrounds, stand-in .png) stay well under this.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-        navigateFallback: '/index.html',
+        navigateFallback: 'index.html',
         runtimeCaching: [
           {
             // Google Fonts (Jua, Gowun Dodum): cached after the first online load.

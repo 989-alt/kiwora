@@ -1,5 +1,6 @@
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from 'react'
 import type { SceneLayout } from '../PlantView'
+import { asset } from '../art'
 import { startWater } from '../sound'
 import './tools.css'
 
@@ -81,7 +82,7 @@ export function WateringCan({ disabled, sound, onWater, onPourChange }: Props) {
       onContextMenu={(e) => e.preventDefault()}
       onKeyDown={onKey}
     >
-      <img src="/tools/watering_can.png" alt="" draggable={false} />
+      <img src={asset('tools/watering_can.png')} alt="" draggable={false} />
       <span className="tool-text">
         <span className="tool-name">물 주기</span>
         <span className="tool-hint">꾹 누르고 있어요</span>
@@ -104,7 +105,7 @@ export function WaterStream({ layout }: { layout: SceneLayout }) {
     <div className="water-stream" aria-hidden="true">
       <img
         className="water-can"
-        src="/tools/watering_can.png"
+        src={asset('tools/watering_can.png')}
         alt=""
         draggable={false}
         style={{ left: tipX, top: tipY - 0.44 * imgH, width: size }}

@@ -26,23 +26,26 @@ export type PotArt = { src: string; a: PotAnchor }
 export type PlantArt = { src: string; a: PlantAnchor; /** false = the shared stand-in picture */ real: boolean }
 export type BgArt = { src: string; a: BgAnchor }
 
+/** URL of a file in public/, relative to the deploy base (`/` in dev, `/kiwora/` on GitHub Pages). */
+export const asset = (rel: string) => `${import.meta.env.BASE_URL}${rel}`
+
 const has = (rel: string) => rel in files
 
 export function potArt(face: string): PotArt {
   const rel = `pots/${face}.webp`
-  return { src: `/${rel}`, a: has(rel) ? (files[rel] as unknown as PotAnchor) : DEFAULTS.pot }
+  return { src: asset(rel), a: has(rel) ? (files[rel] as unknown as PotAnchor) : DEFAULTS.pot }
 }
 
 export function bgArt(place: Place): BgArt {
   const rel = `bg/${place}.webp`
-  return { src: `/${rel}`, a: has(rel) ? (files[rel] as unknown as BgAnchor) : DEFAULTS.bg }
+  return { src: asset(rel), a: has(rel) ? (files[rel] as unknown as BgAnchor) : DEFAULTS.bg }
 }
 
 /** The species' own picture for the stage, or the shared stand-in until that species' pictures are in. */
 export function plantArt(id: SpeciesId, stage: StageId): PlantArt {
   const rel = `plants/${id}/${stage}.webp`
-  if (has(rel)) return { src: `/${rel}`, a: files[rel] as unknown as PlantAnchor, real: true }
-  return { src: '/plants/standin.png', a: DEFAULTS.plant, real: false }
+  if (has(rel)) return { src: asset(rel), a: files[rel] as unknown as PlantAnchor, real: true }
+  return { src: asset('plants/standin.png'), a: DEFAULTS.plant, real: false }
 }
 
 export const plantSrc = (id: SpeciesId, stage: StageId) => plantArt(id, stage).src

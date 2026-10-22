@@ -1,4 +1,5 @@
 import { useRef, useState, type PointerEvent } from 'react'
+import { asset } from '../art'
 import { plink } from '../sound'
 import './tools.css'
 
@@ -89,7 +90,7 @@ export function Fertilizer({ disabled, sound, onPellet, onDragChange, target = '
           }
         }}
       >
-        <img src="/tools/fertilizer.png" alt="" draggable={false} />
+        <img src={asset('tools/fertilizer.png')} alt="" draggable={false} />
         <span className="tool-text">
           <span className="tool-name">영양분</span>
           <span className="tool-hint">{target}으로 끌어요</span>
