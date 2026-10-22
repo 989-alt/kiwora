@@ -346,7 +346,7 @@
 }
 /* "실제 크기 약 N mm" under a seed picture */
 .seed-mm {
-  font-size: 15px;
+  font-size: 18px;
   line-height: 1.2;
   color: #78350f;
   background: #fef3c7;

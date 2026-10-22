@@ -76,3 +76,33 @@ for (const [w, h] of [
     for (const b of boxes) expect(b.right).toBeLessThanOrEqual(w)
   })
 }
+
+/** Every visible piece of text is at least 18px (spec: Korean UI text), on the pick screen and the grow screens. */
+async function smallText(page: import('@playwright/test').Page) {
+  return page.evaluate(() => {
+    const bad: string[] = []
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      const text = (n.textContent ?? '').trim()
+      const el = n.parentElement
+      if (!text || !el) continue
+      if (el.closest('script, style, [aria-hidden="true"]')) continue
+      const cs = getComputedStyle(el)
+      const r = el.getBoundingClientRect()
+      if (cs.visibility === 'hidden' || cs.display === 'none' || r.width === 0 || r.height === 0) continue
+      if (parseFloat(cs.fontSize) < 18) bad.push(`${text.slice(0, 20)} ${cs.fontSize}`)
+    }
+    return bad
+  })
+}
+
+test('no visible text is smaller than 18px (pick, grow with a care due, night, journal)', async ({ page }) => {
+  await page.goto('/')
+  expect(await smallText(page)).toEqual([])
+  await useSave(page, saveWith({ mode: 'quick', careDone: 0, weatherFrom: 99, day: 1, stageIndex: 0, bugs: 1 }, { tutorialSeen: false }))
+  await page.goto('/')
+  await expect(page.getByRole('status', { name: '오늘 할 일' })).toBeVisible()
+  expect(await smallText(page)).toEqual([])
+  await page.getByRole('button', { name: '관찰 일지' }).click()
+  expect(await smallText(page)).toEqual([])
+})

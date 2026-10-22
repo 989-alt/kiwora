@@ -6,7 +6,7 @@ const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 /** `place`: where the plant stands (trees are in the yard from the young-tree stage on); default the desk. */
 type Case = { task: string; species: string; stageIndex: number; todo: string; taps: [string, number][]; place?: string }
 const CASES: Case[] = [
-  { task: 'sow', species: 'bean', stageIndex: 0, todo: '씨를 2~3알 심고 흙을 덮어 주세요', taps: [['흙에 씨 놓기', 3], ['흙 덮기', 3]] },
+  { task: 'sow', species: 'bean', stageIndex: 0, todo: '씨 3알을 심고 흙을 덮어 주세요', taps: [['흙에 씨 놓기', 3], ['흙 덮기', 3]] },
   { task: 'thin', species: 'balsam', stageIndex: 1, todo: '약한 싹을 뽑아 하나만 남겨요', taps: [['약한 싹 뽑기', 2]] },
   { task: 'stake', species: 'bean', stageIndex: 2, todo: '지지대를 세워 줘요', taps: [['지지대 꽂을 자리', 1]] },
   {
@@ -72,7 +72,7 @@ for (const vp of [
       await expect(todo(page)).toContainText(c.todo)
       for (const [name, n] of c.taps)
         for (let i = 0; i < n; i++) {
-          const target = page.getByRole('button', { name, exact: true }).first()
+          const target = page.getByRole('button', { name: new RegExp(`^${name}( \\d+)?$`) }).first()
           // every target is on screen (portrait: the scene is at the top of the page)
           const b = await target.boundingBox()
           expect(b, name).not.toBeNull()
@@ -290,7 +290,7 @@ test('care screenshots, young tree to winter', async ({ page, browserName }) => 
     await useSave(p, saveWith({ speciesId: c.species, stageIndex: c.stageIndex, mode: 'daily', careDone: 0, growth: 1, place: c.place ?? 'desk', ...over }))
     await p.goto('/')
     await imagesLoaded(p)
-    for (const [label, n] of taps) for (let i = 0; i < n; i++) await p.getByRole('button', { name: label, exact: true }).first().tap()
+    for (const [label, n] of taps) for (let i = 0; i < n; i++) await p.getByRole('button', { name: new RegExp(`^${label}( \\d+)?$`) }).first().tap()
     await p.waitForTimeout(wait)
     await p.screenshot({ path: `${SHOTS}/care-${name}.png` })
     return { ctx, p }
