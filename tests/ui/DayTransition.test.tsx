@@ -4,7 +4,7 @@ import type { NightFx } from '../../src/store'
 import App from '../../src/App'
 import { newPlant } from '../../src/sim/day'
 import { emptySave, SAVE_KEY } from '../../src/sim/save'
-import { DayTransition } from '../../src/ui/DayTransition'
+import { DayTransition, END_COOLDOWN_MS, TAP_GUARD_MS } from '../../src/ui/DayTransition'
 
 const fx = (over: Partial<NightFx> = {}): NightFx => ({ ending: 'sunrise', forecast: null, n: 1, ...over })
 
@@ -18,7 +18,7 @@ function stubMotion(reduced: boolean) {
   })) as unknown as typeof window.matchMedia
 }
 
-const phase = (c: HTMLElement) => c.querySelector('.dt')?.getAttribute('data-phase')
+const phase = (c: HTMLElement) => c.querySelector('.nt')?.getAttribute('data-phase')
 
 describe('DayTransition', () => {
   beforeEach(() => {
@@ -40,9 +40,10 @@ describe('DayTransition', () => {
     const onDone = vi.fn()
     const { container, unmount } = render(<DayTransition fx={fx()} day={5} onDone={onDone} />)
     expect(main.hasAttribute('inert')).toBe(true)
-    expect(document.activeElement).toBe(container.querySelector('.dt'))
+    expect(document.activeElement).toBe(container.querySelector('.nt'))
     expect(screen.getByRole('status').textContent).toBe('5일째 아침이에요')
-    fireEvent.keyDown(container.querySelector('.dt')!, { key: 'Enter' })
+    act(() => void vi.advanceTimersByTime(TAP_GUARD_MS))
+    fireEvent.keyDown(container.querySelector('.nt')!, { key: 'Enter' })
     expect(onDone).toHaveBeenCalledTimes(1)
     unmount()
     expect(main.hasAttribute('inert')).toBe(false)
@@ -53,7 +54,7 @@ describe('DayTransition', () => {
   test('sunrise ends after 2.5s', () => {
     const onDone = vi.fn()
     const { container } = render(<DayTransition fx={fx()} onDone={onDone} />)
-    const dt = container.querySelector('.dt')!
+    const dt = container.querySelector('.nt')!
     expect(dt.getAttribute('role')).toBe('presentation')
     expect(phase(container)).toBe('dusk')
     act(() => void vi.advanceTimersByTime(799))
@@ -81,7 +82,7 @@ describe('DayTransition', () => {
   test('a forecast keeps the night 2s longer', () => {
     const onDone = vi.fn()
     const { container } = render(<DayTransition fx={fx({ forecast: 'rain' })} onDone={onDone} />)
-    expect(container.querySelector('.dt-forecast')?.getAttribute('data-forecast')).toBe('rain')
+    expect(container.querySelector('.nt-forecast')?.getAttribute('data-forecast')).toBe('rain')
     act(() => void vi.advanceTimersByTime(2500))
     expect(onDone).not.toHaveBeenCalled()
     expect(phase(container)).toBe('night')
@@ -93,16 +94,30 @@ describe('DayTransition', () => {
 
   test('no forecast slot on a calm day', () => {
     const { container } = render(<DayTransition fx={fx()} onDone={() => {}} />)
-    expect(container.querySelector('.dt-forecast')).toBeNull()
+    expect(container.querySelector('.nt-forecast')).toBeNull()
   })
 
   test('tap skips at once, and only once', () => {
     const onDone = vi.fn()
     const { container } = render(<DayTransition fx={fx()} onDone={onDone} />)
-    act(() => void vi.advanceTimersByTime(300))
-    fireEvent.click(container.querySelector('.dt')!)
+    act(() => void vi.advanceTimersByTime(TAP_GUARD_MS))
+    fireEvent.click(container.querySelector('.nt')!)
     expect(onDone).toHaveBeenCalledTimes(1)
     act(() => void vi.advanceTimersByTime(10_000))
+    expect(onDone).toHaveBeenCalledTimes(1)
+  })
+
+  test('taps and keys in the first moments are ignored (a fast triple tap must not skip the cover)', () => {
+    const onDone = vi.fn()
+    const { container } = render(<DayTransition fx={fx()} onDone={onDone} />)
+    const cover = container.querySelector('.nt')!
+    act(() => void vi.advanceTimersByTime(TAP_GUARD_MS - 100))
+    fireEvent.click(cover)
+    fireEvent.keyDown(cover, { key: 'Enter' })
+    fireEvent.keyDown(cover, { key: 'Escape' })
+    expect(onDone).not.toHaveBeenCalled()
+    act(() => void vi.advanceTimersByTime(100))
+    fireEvent.click(cover)
     expect(onDone).toHaveBeenCalledTimes(1)
   })
 
@@ -118,7 +133,7 @@ describe('DayTransition', () => {
     stubMotion(true)
     const onDone = vi.fn()
     const { container } = render(<DayTransition fx={fx()} onDone={onDone} />)
-    const dt = container.querySelector('.dt')!
+    const dt = container.querySelector('.nt')!
     expect(dt.getAttribute('data-motion')).toBe('reduced')
     expect(phase(container)).toBe('night')
     act(() => void vi.advanceTimersByTime(399))
@@ -180,15 +195,20 @@ describe('App with the cover', () => {
     expect(day()).toBe('5')
     const end = screen.getByRole('button', { name: '하루 마치기' })
     fireEvent.click(end)
-    expect(container.ownerDocument.querySelector('.dt')).not.toBeNull()
+    expect(container.ownerDocument.querySelector('.nt')).not.toBeNull()
     fireEvent.click(end)
+    act(() => void vi.advanceTimersByTime(60))
+    fireEvent.click(container.ownerDocument.querySelector('.nt')!)
+    act(() => void vi.advanceTimersByTime(60))
     fireEvent.click(end)
     expect(day()).toBe('6')
+    expect(container.ownerDocument.querySelector('.nt')).not.toBeNull()
     // the cover is the last thing in the page and the end button is held while it runs
     expect((end as HTMLButtonElement).disabled).toBe(true)
     act(() => void vi.advanceTimersByTime(5000))
-    expect(container.ownerDocument.querySelector('.dt')).toBeNull()
+    expect(container.ownerDocument.querySelector('.nt')).toBeNull()
     expect(day()).toBe('6')
+    act(() => void vi.advanceTimersByTime(END_COOLDOWN_MS))
     expect((screen.getByRole('button', { name: '하루 마치기' }) as HTMLButtonElement).disabled).toBe(false)
   })
 
@@ -196,8 +216,16 @@ describe('App with the cover', () => {
     seedQuick()
     const { container } = render(<App />)
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
-    fireEvent.click(container.ownerDocument.querySelector('.dt')!)
-    expect(container.ownerDocument.querySelector('.dt')).toBeNull()
+    act(() => void vi.advanceTimersByTime(TAP_GUARD_MS))
+    fireEvent.click(container.ownerDocument.querySelector('.nt')!)
+    expect(container.ownerDocument.querySelector('.nt')).toBeNull()
     expect(day()).toBe('6')
+    // 하루 마치기 stays held for a moment after the cover closes (the tap that closed it must not end another day)
+    const end = screen.getByRole('button', { name: '하루 마치기' }) as HTMLButtonElement
+    expect(end.disabled).toBe(true)
+    fireEvent.click(end)
+    expect(day()).toBe('6')
+    act(() => void vi.advanceTimersByTime(END_COOLDOWN_MS))
+    expect(end.disabled).toBe(false)
   })
 })

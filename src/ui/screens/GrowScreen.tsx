@@ -8,6 +8,7 @@ import { weatherOn } from '../../sim/weather'
 import { growing, morningShown, weatherToday, type Action, type AppState } from '../../store'
 import { PlantView, faceFor, isYardPlace } from '../PlantView'
 import { potArt, propArt } from '../art'
+import { END_COOLDOWN_MS } from '../DayTransition'
 import { NightScene } from '../NightScene'
 import { StatusBoard } from '../StatusBoard'
 import { TodayCard } from '../TodayCard'
@@ -67,7 +68,20 @@ export function GrowScreen({ state, dispatch }: Props) {
   const [pelletDrag, setPelletDrag] = useState(false)
   // The day is done (daily: waits for the next date). busy also holds the tools while the day-transition cover is up.
   const locked = state.dayDone
-  const busy = locked || state.nightFx !== undefined
+  const coverUp = state.nightFx !== undefined
+  const [wasCover, setWasCover] = useState(coverUp)
+  const [cooling, setCooling] = useState(false)
+  // The cover has just closed: 하루 마치기 stays held a moment (derived state, so there is no frame in between).
+  if (wasCover !== coverUp) {
+    setWasCover(coverUp)
+    setCooling(!coverUp)
+  }
+  useEffect(() => {
+    if (!cooling) return
+    const t = window.setTimeout(() => setCooling(false), END_COOLDOWN_MS)
+    return () => window.clearTimeout(t)
+  }, [cooling])
+  const busy = locked || coverUp
   const sound = state.settings.sound
   const drag = usePotDrag(busy, (place) => dispatch({ type: 'move', place }), state.plant?.place)
   const sceneRef = useRef<HTMLDivElement>(null)
@@ -120,7 +134,7 @@ export function GrowScreen({ state, dispatch }: Props) {
 
   const moon = propArt('moon')
   const endButton = (
-    <button type="button" className="gs-end" disabled={busy} onClick={() => dispatch({ type: 'endDay' })}>
+    <button type="button" className="gs-end" disabled={busy || cooling} onClick={() => dispatch({ type: 'endDay' })}>
       <img className="gs-end-moon" src={moon.src} alt="" width={36} height={36} draggable={false} />
       {locked ? '내일 다시 만나요' : '하루 마치기'}
     </button>

@@ -22,7 +22,7 @@
 }
 
 /* The cover between two days: sunset -> night -> sunrise. Only gradients, opacity and transforms move. */
-.dt {
+.nt {
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -32,11 +32,11 @@
   touch-action: manipulation;
   user-select: none;
 }
-.dt:focus {
+.nt:focus {
   outline: none;
 }
 /* Read out by a screen reader only. */
-.dt-live {
+.nt-live {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -45,28 +45,28 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-.dt-sky {
+.nt-sky {
   position: absolute;
   inset: 0;
   transition: opacity 0.5s ease-in-out;
 }
-.dt-sky--dusk {
+.nt-sky--dusk {
   background: linear-gradient(180deg, #4c2f7a 0%, #b4412b 58%, #f59e0b 100%);
 }
-.dt-sky--night {
+.nt-sky--night {
   background: linear-gradient(180deg, #0a1030 0%, #1a2557 100%);
   opacity: 0;
 }
-.dt-sky--dawn {
+.nt-sky--dawn {
   background: linear-gradient(180deg, #7dd3fc 0%, #fde68a 68%, #fdba74 100%);
   opacity: 0;
 }
-.dt .stars {
+.nt .stars {
   opacity: 0;
   transition: opacity 0.6s ease-in-out;
 }
 
-.dt-sun {
+.nt-sun {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -78,7 +78,7 @@
   box-shadow: 0 0 8vmin 3vmin rgba(253, 186, 116, 0.65);
   transform: translateY(70vh);
 }
-.dt-moon {
+.nt-moon {
   position: absolute;
   right: 12%;
   top: 14%;
@@ -108,7 +108,7 @@
   word-break: keep-all;
   text-shadow: 0 3px 0 rgba(0, 0, 0, 0.35);
 }
-.dt-forecast {
+.nt-forecast {
   position: absolute;
   left: 50%;
   bottom: 12%;
@@ -126,75 +126,75 @@
   transition: opacity 0.5s ease-in-out;
   pointer-events: none;
 }
-.dt[data-phase='night'] .dt-forecast,
-.dt[data-phase='out'] .dt-forecast {
+.nt[data-phase='night'] .nt-forecast,
+.nt[data-phase='out'] .nt-forecast {
   opacity: 1;
 }
-.dt[data-motion='reduced'] .dt-forecast {
+.nt[data-motion='reduced'] .nt-forecast {
   transition: none;
 }
 
 /* dusk: the cover thickens as the sun goes down */
-.dt[data-phase='dusk'] {
-  animation: dt-fade-in 0.8s ease-out both;
+.nt[data-phase='dusk'] {
+  animation: nt-fade-in 0.8s ease-out both;
 }
-.dt[data-phase='dusk'] .dt-sun {
-  animation: dt-sun-down 0.8s ease-in both;
+.nt[data-phase='dusk'] .nt-sun {
+  animation: nt-sun-down 0.8s ease-in both;
 }
 /* night */
-.dt[data-phase='night'] .dt-sky--night,
-.dt[data-phase='out'] .dt-sky--night,
-.dt[data-phase='dawn'] .dt-sky--night {
+.nt[data-phase='night'] .nt-sky--night,
+.nt[data-phase='out'] .nt-sky--night,
+.nt[data-phase='dawn'] .nt-sky--night {
   opacity: 1;
 }
-.dt[data-phase='night'] .stars,
-.dt[data-phase='out'] .stars {
+.nt[data-phase='night'] .stars,
+.nt[data-phase='out'] .stars {
   opacity: 1;
 }
-.dt[data-phase='night'] .dt-moon,
-.dt[data-phase='out'] .dt-moon {
+.nt[data-phase='night'] .nt-moon,
+.nt[data-phase='out'] .nt-moon {
   opacity: 1;
-  animation: dt-moon-rise 0.9s ease-out both;
+  animation: nt-moon-rise 0.9s ease-out both;
 }
 /* dawn: the moon and stars go, the sun comes up and the cover lifts to show the next morning */
-.dt[data-phase='dawn'] {
-  animation: dt-fade-out 0.8s ease-in 0.1s both;
+.nt[data-phase='dawn'] {
+  animation: nt-fade-out 0.8s ease-in 0.1s both;
 }
-.dt[data-phase='dawn'] .dt-sky--dawn {
+.nt[data-phase='dawn'] .nt-sky--dawn {
   opacity: 1;
   transition-duration: 0.35s;
 }
-.dt[data-phase='dawn'] .dt-sun {
-  animation: dt-sun-up 0.8s ease-out both;
+.nt[data-phase='dawn'] .nt-sun {
+  animation: nt-sun-up 0.8s ease-out both;
 }
-.dt[data-phase='dawn'] .dt-moon {
+.nt[data-phase='dawn'] .nt-moon {
   opacity: 0;
   transition: opacity 0.3s;
 }
 /* out: a daily night hands over to the night scene underneath */
-.dt[data-phase='out'] {
-  animation: dt-fade-out 0.4s ease-in both;
+.nt[data-phase='out'] {
+  animation: nt-fade-out 0.4s ease-in both;
 }
 
 /* Reduced motion (the setting, or a plant that died, finished or must move): no travel, one short fade each way. */
-.dt[data-motion='reduced'][data-phase='night'],
-.dt[data-ending='fade'][data-phase='night'] {
-  animation: dt-fade-in 0.2s ease-out both;
+.nt[data-motion='reduced'][data-phase='night'],
+.nt[data-ending='fade'][data-phase='night'] {
+  animation: nt-fade-in 0.2s ease-out both;
 }
-.dt[data-motion='reduced'][data-phase='out'],
-.dt[data-ending='fade'][data-phase='out'] {
-  animation: dt-fade-out 0.2s ease-in both;
+.nt[data-motion='reduced'][data-phase='out'],
+.nt[data-ending='fade'][data-phase='out'] {
+  animation: nt-fade-out 0.2s ease-in both;
 }
-.dt[data-motion='reduced'] .dt-moon,
-.dt[data-ending='fade'] .dt-moon {
+.nt[data-motion='reduced'] .nt-moon,
+.nt[data-ending='fade'] .nt-moon {
   animation: none !important;
 }
-.dt[data-motion='reduced'] .dt-sky,
-.dt[data-motion='reduced'] .stars {
+.nt[data-motion='reduced'] .nt-sky,
+.nt[data-motion='reduced'] .stars {
   transition: none;
 }
 
-@keyframes dt-fade-in {
+@keyframes nt-fade-in {
   from {
     opacity: 0;
   }
@@ -202,7 +202,7 @@
     opacity: 1;
   }
 }
-@keyframes dt-fade-out {
+@keyframes nt-fade-out {
   from {
     opacity: 1;
   }
@@ -210,7 +210,7 @@
     opacity: 0;
   }
 }
-@keyframes dt-sun-down {
+@keyframes nt-sun-down {
   from {
     transform: translateY(-18vh);
   }
@@ -218,7 +218,7 @@
     transform: translateY(70vh);
   }
 }
-@keyframes dt-sun-up {
+@keyframes nt-sun-up {
   from {
     transform: translateY(70vh);
   }
@@ -226,7 +226,7 @@
     transform: translateY(-6vh);
   }
 }
-@keyframes dt-moon-rise {
+@keyframes nt-moon-rise {
   from {
     transform: translateY(24vh);
     opacity: 0;
@@ -241,7 +241,7 @@
   .star {
     animation: none;
   }
-  .dt-moon {
+  .nt-moon {
     animation: none !important;
   }
 }

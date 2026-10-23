@@ -111,7 +111,7 @@ async function playDay(page: Page, browserName: string) {
   }
   const end = page.getByRole('button', { name: '하루 마치기' })
   if (await end.isEnabled()) await end.click()
-  await expect(page.locator('.dt')).toBeHidden({ timeout: 6000 })
+  await expect(page.locator('.nt')).toBeHidden({ timeout: 6000 })
 }
 
 test('balsam, 한 번에 키우기: care by taps, a measurement, the finished journal and the dex', async ({ page, browserName }) => {

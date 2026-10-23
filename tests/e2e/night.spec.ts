@@ -21,7 +21,7 @@ for (const { w, h } of VIEWPORTS) {
     await page.goto('/')
     await expect(title(page)).toHaveAttribute('aria-label', /4일째/)
     await endDay(page).click()
-    const cover = page.locator('.dt')
+    const cover = page.locator('.nt')
     await expect(cover).toBeVisible()
     await expect(cover).toHaveAttribute('role', 'presentation')
     // mid-night
@@ -43,7 +43,7 @@ for (const { w, h } of VIEWPORTS) {
     await useSave(page, daily())
     await page.goto('/')
     await endDay(page).click()
-    const cover = page.locator('.dt')
+    const cover = page.locator('.nt')
     await expect(cover).toBeVisible()
     await expect(cover).toBeHidden({ timeout: 3200 })
     const scene = page.locator('.gs-scene .gs-night')
@@ -57,7 +57,7 @@ for (const { w, h } of VIEWPORTS) {
     await page.reload()
     await expect(scene).toBeVisible()
     await expect(scene.getByText('내일 다시 만나요')).toBeVisible()
-    await expect(page.locator('.dt')).toHaveCount(0)
+    await expect(page.locator('.nt')).toHaveCount(0)
     // the menu is not covered
     await page.getByRole('button', { name: '씨 도감' }).click()
     await expect(page.getByRole('list', { name: '씨 도감' })).toBeVisible()
@@ -68,19 +68,31 @@ test('a tap skips the cover at once', async ({ page }) => {
   await useSave(page, quick())
   await page.goto('/')
   await endDay(page).click()
-  const cover = page.locator('.dt')
+  const cover = page.locator('.nt')
   await expect(cover).toBeVisible()
+  await page.waitForTimeout(650) // taps in the first moments are ignored
   await cover.click({ position: { x: 100, y: 100 } })
   await expect(cover).toBeHidden({ timeout: 500 })
   await expect(title(page)).toHaveAttribute('aria-label', /5일째/)
 })
 
-test('double-tapping 하루 마치기 in quick mode advances one day only', async ({ page }) => {
+test('a fast triple tap on 하루 마치기 in quick mode advances one day only', async ({ page }) => {
   await useSave(page, quick())
   await page.goto('/')
-  await endDay(page).dblclick()
-  await expect(page.locator('.dt')).toBeHidden({ timeout: 3500 })
+  await expect(title(page)).toHaveAttribute('aria-label', /4일째/)
+  const b = (await endDay(page).boundingBox())!
+  const x = b.x + b.width / 2
+  const y = b.y + b.height / 2
+  // taps 60 and 120 ms apart (200 ms from the first tap): the 2nd lands on the cover, the 3rd where the button was
+  await page.touchscreen.tap(x, y)
+  await page.waitForTimeout(60)
+  await page.touchscreen.tap(x, y)
+  await page.waitForTimeout(120)
+  await page.touchscreen.tap(x, y)
+  await expect(page.locator('.nt')).toBeHidden({ timeout: 3500 })
   await expect(title(page)).toHaveAttribute('aria-label', /5일째/)
+  // and the button is back after a moment
+  await expect(endDay(page)).toBeEnabled()
 })
 
 test('reduced motion: a short fade, no sunrise', async ({ page }) => {
@@ -88,7 +100,7 @@ test('reduced motion: a short fade, no sunrise', async ({ page }) => {
   await useSave(page, quick())
   await page.goto('/')
   await endDay(page).click()
-  const cover = page.locator('.dt')
+  const cover = page.locator('.nt')
   await expect(cover).toHaveAttribute('data-motion', 'reduced')
   await expect(cover).toBeHidden({ timeout: 1500 })
   await expect(title(page)).toHaveAttribute('aria-label', /5일째/)

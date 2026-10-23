@@ -107,6 +107,54 @@ test('first visit tips follow sow → water → pot → bug → todo', async ({ 
   await expect(page.getByRole('button', { name: tips[0] })).toHaveCount(0)
 })
 
+const FRESH_SEED = () => saveWith({ speciesId: 'balsam', stageIndex: 0, bugs: 1, mode: 'daily', careDone: 0, weatherFrom: 99, day: 1 }, { tutorialSeen: false })
+
+test('sowing in the middle of the tutorial does not crash it', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (e) => errors.push(e.message))
+  await useSave(page, FRESH_SEED())
+  await page.goto('/')
+  for (const t of ['씨 봉투에서 씨를 꺼내 흙에 심어요', '물뿌리개를 꾹 누르면 물이 나와요', '화분을 끌어서 자리를 옮겨요']) {
+    await page.getByRole('button', { name: new RegExp(t) }).tap()
+  }
+  await expect(page.getByRole('button', { name: /벌레를 톡 눌러 잡아요/ })).toBeVisible()
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: '흙에 씨 놓기' }).tap()
+  for (let i = 0; i < 3; i++) await page.getByRole('button', { name: '흙 덮기' }).tap()
+  await expect(page.getByText('앗, 문제가 생겼어요')).toHaveCount(0)
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  // the tutorial goes on with a tip that is still valid, and ends
+  const bubble = page.locator('.tip')
+  for (let i = 0; i < 3 && (await bubble.count()) > 0; i++) await bubble.tap()
+  await expect(bubble).toHaveCount(0)
+  expect(errors).toEqual([])
+})
+
+for (const { w, h } of [
+  { w: 1194, h: 834 },
+  { w: 820, h: 1180 },
+]) {
+  test(`the first tip does not cover the sowing target (${w}x${h})`, async ({ page }) => {
+    await page.setViewportSize({ width: w, height: h })
+    await useSave(page, FRESH_SEED())
+    await page.goto('/')
+    const bubble = page.locator('.tip')
+    await expect(bubble).toBeVisible()
+    await page.waitForFunction(() => [...document.images].every((i) => i.complete && i.naturalWidth > 0))
+    for (const name of ['흙에 씨 놓기', '씨 봉투']) {
+      const target = page.getByRole('button', { name, exact: true }).first()
+      // the scene may still be settling (images, fonts): poll until the two boxes are clear of each other
+      await expect
+        .poll(async () => {
+          const b = await bubble.boundingBox()
+          const t = await target.boundingBox()
+          if (!b || !t) return 'missing'
+          return b.x < t.x + t.width && t.x < b.x + b.width && b.y < t.y + t.height && t.y < b.y + b.height
+        }, { message: `${name} vs bubble` })
+        .toBe(false)
+    }
+  })
+}
+
 test('header shows species, day and stage', async ({ page }) => {
   await useSave(page, saveWith({ day: 4, stageIndex: 2 }))
   await page.goto('/')

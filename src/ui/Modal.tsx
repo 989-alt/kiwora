@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 
 type Props = {
@@ -24,6 +24,13 @@ export function Modal({ role = 'dialog', labelledBy, onClose, tapGuardMs = 0, ch
   const closeRef = useRef(onClose)
   closeRef.current = onClose
   const openedAt = useRef(Date.now())
+  /** What had the focus inside the dialog when it opened (an autoFocus), before an older dialog's cleanup moved it. */
+  const intended = useRef<HTMLElement | null>(null)
+
+  useLayoutEffect(() => {
+    const at = document.activeElement as HTMLElement | null
+    intended.current = at && box.current?.contains(at) ? at : null
+  }, [])
 
   useEffect(() => {
     const before = document.activeElement as HTMLElement | null
@@ -33,6 +40,13 @@ export function Modal({ role = 'dialog', labelledBy, onClose, tapGuardMs = 0, ch
       if (el === overlay || el.hasAttribute('inert')) continue
       el.setAttribute('inert', '')
       made.push(el)
+    }
+    // Dialog after dialog: the older one's cleanup has just given the focus back to the page, which is inert now.
+    // Put the focus into this dialog (what asked for it, else the first control).
+    const inside = box.current
+    if (inside && !inside.contains(document.activeElement)) {
+      const target = intended.current && inside.contains(intended.current) ? intended.current : inside.querySelector<HTMLElement>(FOCUSABLE)
+      target?.focus()
     }
     return () => {
       for (const el of made) el.removeAttribute('inert')

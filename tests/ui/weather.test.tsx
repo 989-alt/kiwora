@@ -110,12 +110,12 @@ describe('the night scene and the quick transition show tomorrow\'s forecast', (
     putSave(heatTomorrow())
     const { container } = render(<App />)
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
-    const slot = container.ownerDocument.querySelector('.dt-forecast')!
+    const slot = container.ownerDocument.querySelector('.nt-forecast')!
     expect(slot.getAttribute('data-forecast')).toBe('heat')
     expect(slot.textContent).toContain('내일은 아주 더워요! 창가는 뜨거울 거예요.')
     expect(slot.querySelector('img')?.getAttribute('src')).toMatch(/weather\/heat\.webp/)
     act(() => void vi.advanceTimersByTime(6000))
-    expect(container.ownerDocument.querySelector('.dt')).toBeNull()
+    expect(container.ownerDocument.querySelector('.nt')).toBeNull()
     expect(day()).toBe('5')
   })
 
@@ -137,8 +137,8 @@ describe('the night scene and the quick transition show tomorrow\'s forecast', (
     putSave(calm)
     const { container, unmount } = render(<App />)
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
-    expect(container.ownerDocument.querySelector('.dt')).not.toBeNull()
-    expect(container.ownerDocument.querySelector('.dt-forecast')).toBeNull()
+    expect(container.ownerDocument.querySelector('.nt')).not.toBeNull()
+    expect(container.ownerDocument.querySelector('.nt-forecast')).toBeNull()
     unmount()
     // the night scene of a plant that cannot go on shows no line either
     const night = render(<NightScene forecast={null} outdoor={false} summary="" />)

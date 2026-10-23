@@ -23,6 +23,10 @@ export const FORECAST_HOLD_MS = 2000
 export const FADE_MS = 400
 /** The cover thins away during the last part of a daily night. */
 const OUT_MS = 400
+/** Taps and keys on the cover are ignored this long (a fast triple tap on 하루 마치기 must not skip the night it began). */
+export const TAP_GUARD_MS = 600
+/** 하루 마치기 stays held this long after the cover closes (the tap that closed it must not end another day). */
+export const END_COOLDOWN_MS = 400
 
 const REDUCED = '(prefers-reduced-motion: reduce)'
 
@@ -77,11 +81,17 @@ export function DayTransition({ fx, onDone, outdoor = false, day }: Props) {
   const doneRef = useRef(onDone)
   doneRef.current = onDone
   const finished = useRef(false)
+  const shownAt = useRef(Date.now())
 
   const finish = () => {
     if (finished.current) return
     finished.current = true
     doneRef.current()
+  }
+  /** A tap or key from the user: ignored while the cover has only just come up. */
+  const skip = () => {
+    if (Date.now() - shownAt.current < TAP_GUARD_MS) return
+    finish()
   }
 
   useEffect(() => {
@@ -112,30 +122,30 @@ export function DayTransition({ fx, onDone, outdoor = false, day }: Props) {
   return (
     <div
       ref={cover}
-      className="dt"
+      className="nt"
       role="presentation"
       tabIndex={-1}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
           e.preventDefault()
-          finish()
+          skip()
         }
       }}
       data-phase={phase}
       data-ending={fx.ending}
       data-motion={reduced ? 'reduced' : 'full'}
-      onClick={finish}
+      onClick={skip}
     >
-      <p className="dt-live" role="status" aria-live="polite">
+      <p className="nt-live" role="status" aria-live="polite">
         {announce}
       </p>
-      <div className="dt-sky dt-sky--dusk" />
-      <div className="dt-sky dt-sky--night" />
-      <div className="dt-sky dt-sky--dawn" />
+      <div className="nt-sky nt-sky--dusk" />
+      <div className="nt-sky nt-sky--night" />
+      <div className="nt-sky nt-sky--dawn" />
       <Stars />
-      <div className="dt-sun" />
-      <img className="dt-moon" src={moon.src} alt="" width={160} height={160} draggable={false} />
-      {fx.forecast && <Forecast kind={fx.forecast} outdoor={outdoor} className="dt-forecast" />}
+      <div className="nt-sun" />
+      <img className="nt-moon" src={moon.src} alt="" width={160} height={160} draggable={false} />
+      {fx.forecast && <Forecast kind={fx.forecast} outdoor={outdoor} className="nt-forecast" />}
     </div>
   )
 }

@@ -18,7 +18,7 @@ async function ready(page: Page) {
 /** Ends the quick day and opens the journal; returns the cells of the journal's first day row. */
 async function journalRow(page: Page) {
   await page.getByRole('button', { name: '하루 마치기' }).click()
-  await expect(page.locator('.dt')).toBeHidden({ timeout: 3200 })
+  await expect(page.locator('.nt')).toBeHidden({ timeout: 3200 })
   await page.getByRole('button', { name: '관찰 일지' }).click()
   const row = page.getByRole('table').getByRole('row').nth(1)
   await expect(row).toBeVisible()

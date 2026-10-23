@@ -52,17 +52,17 @@ for (const { w, h } of VIEWPORTS) {
     await expect(boardRow(page)).toContainText('맑아요')
 
     await endDay(page).click()
-    const forecast = page.locator('.dt-forecast')
+    const forecast = page.locator('.nt-forecast')
     await expect(forecast).toHaveAttribute('data-forecast', 'heat')
     await expect(forecast).toContainText('내일은 아주 더워요! 창가는 뜨거울 거예요.')
-    await expect(page.locator('.dt')).toHaveAttribute('data-phase', 'night')
+    await expect(page.locator('.nt')).toHaveAttribute('data-phase', 'night')
     await page.waitForTimeout(700)
     if (browserName === 'chromium') {
       await loaded(page)
       await page.screenshot({ path: `${SHOTS}/weather-night-quick-${w}x${h}.png` })
     }
     // the forecast keeps the night 2 s longer than a calm night, then the next morning comes
-    await expect(page.locator('.dt')).toBeHidden({ timeout: 6000 })
+    await expect(page.locator('.nt')).toBeHidden({ timeout: 6000 })
     await expect(title(page)).toHaveAttribute('aria-label', /5일째/)
 
     // the morning card leads with today's weather; the board says what is still to do
@@ -84,7 +84,7 @@ for (const { w, h } of VIEWPORTS) {
 
     // end the day: the next morning says it was handled
     await endDay(page).click()
-    await expect(page.locator('.dt')).toBeHidden({ timeout: 6000 })
+    await expect(page.locator('.nt')).toBeHidden({ timeout: 6000 })
     await expect(title(page)).toHaveAttribute('aria-label', /6일째/)
     await expect(morning(page)).toContainText('어제 폭염에 잘 대비했어요')
   })
@@ -94,7 +94,7 @@ for (const { w, h } of VIEWPORTS) {
     await useSave(page, heatSave({ mode: 'daily' }))
     await page.goto('/')
     await endDay(page).click()
-    await expect(page.locator('.dt')).toBeHidden({ timeout: 6000 })
+    await expect(page.locator('.nt')).toBeHidden({ timeout: 6000 })
     const slot = page.locator('.gs-scene .gs-night-forecast')
     await expect(slot).toBeVisible()
     await expect(slot).toContainText('내일은 아주 더워요! 창가는 뜨거울 거예요.')
@@ -146,7 +146,7 @@ for (const { w, h } of VIEWPORTS) {
     await expect(boardRow(page)).toContainText('대비했어요')
     // and the morning after says so
     await endDay(page).click()
-    await expect(page.locator('.dt')).toBeHidden({ timeout: 6000 })
+    await expect(page.locator('.nt')).toBeHidden({ timeout: 6000 })
     await expect(morning(page)).toContainText('어제 태풍에 잘 대비했어요')
   })
 }

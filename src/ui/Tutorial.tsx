@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type RefObject } from 'react'
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 
 export type TipTarget = 'sow' | 'water' | 'pot' | 'bug' | 'todo'
 
@@ -22,7 +22,10 @@ function place(root: HTMLElement, target: string): Pos | null {
   const r = root.getBoundingClientRect()
   const t = el.getBoundingClientRect()
   const cx = t.left - r.left + t.width / 2
-  const left = Math.max(8, Math.min(r.width - BUBBLE_W - 8, cx - BUBBLE_W / 2))
+  // The seed packet sits right of the soil it is sown on: the bubble starts at the packet's left edge and runs away from the
+  // soil (centred on the packet it would cover the soil, and a tap meant for the soil would hit the bubble).
+  const want = target === 'sow' ? t.left - r.left - 8 : cx - BUBBLE_W / 2
+  const left = Math.max(8, Math.min(r.width - BUBBLE_W - 8, want))
   const below = t.top - r.top < 120
   const top = below ? t.bottom - r.top + GAP : t.top - r.top - GAP
   return { left, top, arrowX: Math.max(24, Math.min(BUBBLE_W - 24, cx - left)), below }
@@ -34,15 +37,32 @@ function place(root: HTMLElement, target: string): Pos | null {
  */
 export function Tutorial({ rootRef, onDone, steps }: { rootRef: RefObject<HTMLElement>; onDone: () => void; steps?: TipTarget[] }) {
   const tips = useMemo(() => (steps ? STEPS.filter((s) => steps.includes(s.target)) : STEPS), [steps])
-  const [step, setStep] = useState(0)
+  // Which tips were shown is tracked by target, not by index: the list shrinks while it is on screen (the seed gets
+  // sown, the to-do card goes away). The current tip is the first remaining one not shown yet.
+  const [shown, setShown] = useState<TipTarget[]>([])
   const [pos, setPos] = useState<Pos | null>(null)
+  const current = tips.find((t) => !shown.includes(t.target))
+  const target = current?.target
+  const doneRef = useRef(onDone)
+  doneRef.current = onDone
+  const ended = useRef(false)
+  const end = () => {
+    if (ended.current) return
+    ended.current = true
+    doneRef.current()
+  }
+
+  // Nothing left to show (the tips that remain were all shown): the tutorial is over.
+  useEffect(() => {
+    if (!current) end()
+  }, [current])
 
   // A passive effect: the parent's ref (rootRef) is attached only after this child's layout effects have run,
   // so a layout effect would find no root on the first mount (outside StrictMode's second run: the shipped build).
   useEffect(() => {
     const root = rootRef.current
-    if (!root) return
-    const update = () => setPos(place(root, tips[step].target))
+    if (!root || !target) return
+    const update = () => setPos(place(root, target))
     update()
     window.addEventListener('resize', update)
     const ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(update)
@@ -51,23 +71,25 @@ export function Tutorial({ rootRef, onDone, steps }: { rootRef: RefObject<HTMLEl
       window.removeEventListener('resize', update)
       ro?.disconnect()
     }
-  }, [rootRef, step, tips])
+  }, [rootRef, target])
 
-  if (!pos) return null
-  const { text } = tips[step]
+  if (!pos || !current) return null
+  const { text } = current
+  const number = tips.filter((t) => shown.includes(t.target)).length + 1
   return (
     <button
       type="button"
       className={`tip${pos.below ? ' tip--below' : ''}`}
       style={{ left: pos.left, top: pos.top, width: BUBBLE_W, ['--arrow-x' as string]: `${pos.arrowX}px` }}
       onClick={() => {
-        if (step + 1 < tips.length) setStep(step + 1)
-        else onDone()
+        // The last tip closes the tutorial in the tap itself (saved at once, also if the page is left right away).
+        if (tips.every((t) => t === current || shown.includes(t.target))) end()
+        setShown((list) => [...list, current.target])
       }}
     >
       {text}
       <span className="tip-next" aria-hidden="true">
-        {step + 1}/{tips.length}
+        {number}/{tips.length}
       </span>
     </button>
   )

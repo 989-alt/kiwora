@@ -259,6 +259,30 @@ describe('GrowScreen tutorial', () => {
     expect(dispatch).toHaveBeenCalledWith({ type: 'tutorialDone' })
   })
 
+  test('sowing mid-tutorial shrinks the tip list: no crash, the next remaining tip shows', () => {
+    const dispatch = vi.fn()
+    const s: AppState = { ...base(), plant: { ...newPlant('bean'), day: 1 }, settings: unseen, screen: 'grow' }
+    const { rerender } = render(<GrowScreen state={s} dispatch={dispatch} />)
+    expect(walk(3)).toHaveLength(3) // sow, water, pot
+    const sown: AppState = { ...s, plant: { ...s.plant!, careDone: s.plant!.careDone + 1 } }
+    expect(() => rerender(<GrowScreen state={sown} dispatch={dispatch} />)).not.toThrow()
+    const tip = document.querySelector('.tip')!
+    expect(tip.textContent).toMatch(/벌레를 톡/)
+    expect(tip.textContent).toContain('3/3') // the count follows the shrunk list
+    fireEvent.click(tip)
+    expect(dispatch).toHaveBeenCalledWith({ type: 'tutorialDone' })
+  })
+
+  test('when every remaining tip was already shown, the tutorial finishes', () => {
+    const dispatch = vi.fn()
+    const s: AppState = { ...base(), plant: { ...newPlant('bean'), day: 1 }, settings: unseen, screen: 'grow' }
+    const { rerender } = render(<GrowScreen state={s} dispatch={dispatch} />)
+    walk(4) // sow, water, pot, bug: only the to-do tip is left
+    const done: AppState = { ...s, plant: { ...s.plant!, careDone: 99 } } // nothing to do any more: no to-do card
+    expect(() => rerender(<GrowScreen state={done} dispatch={dispatch} />)).not.toThrow()
+    expect(dispatch).toHaveBeenCalledWith({ type: 'tutorialDone' })
+  })
+
   test('a plant past the seed stage skips the sowing tip', () => {
     const plant = { ...newPlant('bean'), day: 3, stageIndex: 2, careDone: 1 << 2 }
     const s: AppState = { ...base(), plant, settings: unseen, screen: 'grow' }
@@ -471,6 +495,20 @@ describe('finished journals', () => {
     await afterGuard()
     fireEvent.click(screen.getByRole('button', { name: /^매일 키우기/ }))
     expect(dispatch).toHaveBeenCalledWith({ type: 'pick', id: 'rice', mode: 'daily' })
+  })
+
+  test('going from the confirm dialog to the mode dialog keeps the focus inside the mode dialog', async () => {
+    const done = { ...newPlant('bean'), stageIndex: SPECIES.bean.stages.indexOf('seedDone'), day: 11 }
+    const lost: AppState = { ...base(), plant: done, journal: record, dex: ['bean'] }
+    render(<PickScreen state={lost} dispatch={() => {}} />)
+    const card = screen.getByRole('button', { name: /벼/ })
+    card.focus()
+    fireEvent.click(card)
+    expect(screen.getByRole('alertdialog')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '새로 키우기' }))
+    const dialog = await screen.findByRole('dialog')
+    await new Promise((r) => setTimeout(r, 20))
+    expect(dialog.contains(document.activeElement)).toBe(true)
   })
 })
 
