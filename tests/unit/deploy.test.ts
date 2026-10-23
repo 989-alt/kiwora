@@ -27,6 +27,16 @@ test('the service worker does not precache the unused 1 MB stand-in picture', ()
   expect(read('vite.config.ts')).toMatch(/globIgnores:\s*\[[^\]]*plants\/standin\.png/)
 })
 
+test('the clay magnifier frame and its lens numbers are in public/ and precached (webp and json globs)', () => {
+  expect(existsSync('public/props/magnifier-lens.webp')).toBe(true)
+  const lens = JSON.parse(read('public/lens.json'))
+  for (const k of ['w', 'h', 'cx', 'cy', 'r']) expect(typeof lens[k]).toBe('number')
+  const globs = /globPatterns:\s*\[([^\]]*)\]/.exec(read('vite.config.ts'))![1]
+  expect(globs).toMatch(/\bwebp\b/)
+  expect(globs).toMatch(/\bjson\b/)
+  expect(read('vite.config.ts')).not.toMatch(/globIgnores:\s*\[[^\]]*(magnifier|lens)/)
+})
+
 test('Jua and Gowun Dodum are self-hosted (no Google Fonts), so the app is fully offline after the first load', () => {
   for (const f of ['index.html', 'vite.config.ts', 'src/main.tsx', 'src/styles/tokens.css']) {
     expect(read(f), f).not.toMatch(/fonts\.(googleapis|gstatic)\.com/)

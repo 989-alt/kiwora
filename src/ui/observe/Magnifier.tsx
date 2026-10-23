@@ -1,6 +1,7 @@
 import type { ObsPart } from '../../data/observations'
 import type { SpeciesId, StageId } from '../../sim/species'
-import { plantArt, type PlantArt } from '../art'
+import { lensArt, plantArt, type PlantArt } from '../art'
+import { seedSpots } from '../care/Sow'
 import { carePoints } from '../care/targets'
 import type { SceneLayout } from '../PlantView'
 import './observe.css'
@@ -31,39 +32,65 @@ export function lensFocus(part: ObsPart, pic: PlantArt, id: SpeciesId, stage: St
   }
 }
 
+/** Keeps the frame this far (scene px) inside the scene edges. */
+const EDGE = 4
+
+/**
+ * Where the magnifier is held (scene px): over the observed part like a real magnifier, the zoomed picture
+ * round the looked-at point in the lens. A seed under the soil: over the middle seed spot. The lens keeps
+ * the old size rule (150..260 px), shrinks (not below 150) before it moves, and moves only as far as needed
+ * to keep the whole frame, handle too, inside the scene.
+ */
+export function lensPlacement(L: SceneLayout, speciesId: SpeciesId, stage: StageId, part: ObsPart) {
+  const W = L.bg.w + 2 * L.bg.x
+  const H = L.bg.y + L.bg.h
+  const A = lensArt()
+  const pic = plantArt(speciesId, part === 'seed' ? 'seed' : stage)
+  const { at, span } = lensFocus(part, pic, speciesId, stage, L)
+  const s = seedSpots(L)[1]
+  const target: P = part === 'seed' ? [s.x, s.y] : [L.plant.x + at[0] * L.plant.scale, L.plant.y + at[1] * L.plant.scale]
+  // frame extents round the lens centre, per px of lens diameter
+  const ext = { l: A.cx / (2 * A.r), r: (A.w - A.cx) / (2 * A.r), t: A.cy / (2 * A.r), b: (A.h - A.cy) / (2 * A.r) }
+  const rule = Math.round(Math.min(260, Math.max(150, 0.42 * Math.min(W, H))))
+  // the largest lens whose frame fits in the scene at all, and the largest that fits held right on the target
+  const cap = Math.min((W - 2 * EDGE) / (ext.l + ext.r), (H - 2 * EDGE) / (ext.t + ext.b))
+  const onTarget = Math.min(
+    (target[0] - EDGE) / ext.l,
+    (W - EDGE - target[0]) / ext.r,
+    (target[1] - EDGE) / ext.t,
+    (H - EDGE - target[1]) / ext.b,
+  )
+  const D = Math.min(Math.min(rule, cap), Math.max(Math.min(150, cap), onTarget))
+  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
+  const center: P = [
+    clamp(target[0], EDGE + ext.l * D, W - EDGE - ext.r * D),
+    clamp(target[1], EDGE + ext.t * D, H - EDGE - ext.b * D),
+  ]
+  const k = D / (2 * A.r)
+  const frame = { left: center[0] - A.cx * k, top: center[1] - A.cy * k, width: A.w * k, height: A.h * k }
+  const zoom = D / span
+  const img = { left: D / 2 - at[0] * zoom, top: D / 2 - at[1] * zoom, width: pic.a.w * zoom, height: pic.a.h * zoom }
+  return { D, center, target, frame, at, zoom, img, pic, frameSrc: A.src, k }
+}
+
 type Props = { L: SceneLayout; speciesId: SpeciesId; stage: StageId; part: ObsPart }
 
 /**
- * The magnifier over the scene: a round lens at the top right shows the part of the plant (the stage's own
- * picture, enlarged); a ring on the plant and a line show where it looks. A seed under the soil: the lens
- * shows the seed picture.
+ * The magnifier over the scene, held over the observed part: the stage's own picture, enlarged, in a round
+ * window under the clay frame's see-through lens (the frame picture lies on top). A seed under the soil: the
+ * lens over the sown spot shows the seed picture.
  */
 export function Magnifier({ L, speciesId, stage, part }: Props) {
-  const W = L.bg.w + 2 * L.bg.x
-  const H = L.bg.y + L.bg.h
-  const D = Math.round(Math.min(260, Math.max(150, 0.42 * Math.min(W, H))))
-  const lens = { left: W - D - 24, top: 24 }
-  const pic = plantArt(speciesId, part === 'seed' ? 'seed' : stage)
-  const { at, span } = lensFocus(part, pic, speciesId, stage, L)
-  const z = D / span
-  const img = { left: D / 2 - at[0] * z, top: D / 2 - at[1] * z, width: pic.a.w * z, height: pic.a.h * z }
-  // where it looks on the plant (scene px); none for a seed under the soil
-  const onPlant: P | null = part === 'seed' ? null : [L.plant.x + at[0] * L.plant.scale, L.plant.y + at[1] * L.plant.scale]
-  const ring = Math.max(22, (span * L.plant.scale) / 2)
-  const c: P = [lens.left + D / 2, lens.top + D / 2]
-
+  const m = lensPlacement(L, speciesId, stage, part)
+  // the round picture reaches a little under the rim, so no gap shows at its edge
+  const o = 3 * m.k
+  const size = m.D + 2 * o
   return (
     <div className="obs-mag-layer" data-part={part}>
-      {onPlant && (
-        <svg className="obs-mag-guide" width="100%" height="100%" aria-hidden="true">
-          <line x1={onPlant[0]} y1={onPlant[1]} x2={c[0]} y2={c[1]} />
-          <circle cx={onPlant[0]} cy={onPlant[1]} r={ring} />
-        </svg>
-      )}
-      <div className="obs-lens" style={{ left: lens.left, top: lens.top, width: D, height: D }}>
-        <img src={pic.src} alt="" draggable={false} style={img} />
+      <div className="obs-lens" style={{ left: m.center[0] - size / 2, top: m.center[1] - size / 2, width: size, height: size }}>
+        <img src={m.pic.src} alt="" draggable={false} style={{ ...m.img, left: m.img.left + o, top: m.img.top + o }} />
       </div>
-      <span className="obs-lens-handle" style={{ left: lens.left + D * 0.82, top: lens.top + D * 0.82 }} aria-hidden="true" />
+      <img className="obs-lens-frame" src={m.frameSrc} alt="" draggable={false} style={m.frame} />
     </div>
   )
 }

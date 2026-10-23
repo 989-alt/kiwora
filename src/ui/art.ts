@@ -1,4 +1,5 @@
 import data from '../../public/anchors.json'
+import lensData from '../../public/lens.json'
 import type { SpeciesId, StageId } from '../sim/species'
 import type { Place, WeatherId } from '../sim/types'
 
@@ -96,6 +97,13 @@ export function propArt(name: PropName): PropArt {
     return { src: asset(rel), bbox: a.bbox, w: a.w, h: a.h, real: true }
   }
   return { src: asset(rel), bbox: PROP_BOX, w: 512, h: 512, real: false }
+}
+
+/** The clay magnifier frame (scripts/lens_frame.py): its picture size and the see-through lens circle in its px. */
+export type LensArt = { src: string; w: number; h: number; cx: number; cy: number; r: number }
+
+export function lensArt(): LensArt {
+  return { src: asset('props/magnifier-lens.webp'), ...lensData }
 }
 
 /** Weather icon (512 px). real false until the picture is in: the UI then draws its own stand-in. */

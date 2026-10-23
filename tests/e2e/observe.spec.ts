@@ -211,3 +211,58 @@ for (const s of SCENE_SIZES)
       const box = await page.locator('.pv').evaluate((el) => [el.clientWidth, el.clientHeight])
       expect(box).toEqual(band ? s.band : s.plain)
     })
+
+/** Opens the magnifier and returns the boxes of the scene, the frame, the round picture and the choices. */
+async function openMagnifier(page: Page) {
+  await page.getByRole('button', { name: '관찰하기' }).click()
+  await page.getByRole('button', { name: '돋보기' }).click()
+  await expect(page.locator('.obs-lens-frame')).toBeVisible()
+  await ready(page)
+  const box = async (sel: string) => (await page.locator(sel).first().boundingBox())!
+  const choices = await Promise.all((await page.locator('.obs-choice').all()).map(async (c) => (await c.boundingBox())!))
+  return { scene: await box('.pv'), frame: await box('.obs-lens-frame'), glass: await box('.obs-lens'), choices }
+}
+
+const overlaps = (a: { x: number; y: number; width: number; height: number }, b: typeof a) =>
+  a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+
+for (const [w, h] of [[1194, 834], [820, 1180], [1280, 800], [1366, 768], [1366, 640], [1180, 820]])
+  for (const band of [false, true])
+    test(`the clay magnifier is held in the scene, clear of the choices (${w}x${h}, ${band ? 'with' : 'without'} the today band)`, async ({ page }) => {
+      await page.setViewportSize({ width: w, height: h })
+      await useSave(page, bean({ careDone: band ? 0 : 1 }))
+      await page.goto('/')
+      await expect(page.getByRole('status', { name: '오늘 할 일' })).toHaveCount(band ? 1 : 0)
+      const b = await openMagnifier(page)
+      // the whole frame, handle too, inside the scene
+      expect(b.frame.x).toBeGreaterThanOrEqual(b.scene.x - 1)
+      expect(b.frame.y).toBeGreaterThanOrEqual(b.scene.y - 1)
+      expect(b.frame.x + b.frame.width).toBeLessThanOrEqual(b.scene.x + b.scene.width + 1)
+      expect(b.frame.y + b.frame.height).toBeLessThanOrEqual(b.scene.y + b.scene.height + 1)
+      // the round picture sits in the frame's lens
+      expect(b.glass.x).toBeGreaterThan(b.frame.x)
+      expect(b.glass.y).toBeGreaterThan(b.frame.y)
+      expect(b.choices).toHaveLength(3)
+      for (const c of b.choices) expect(overlaps(b.frame, c)).toBe(false)
+    })
+
+test('magnifier shots: a sown seed, a tall corn, an apple tree in the yard', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'shots once')
+  await page.setViewportSize({ width: 1194, height: 834 })
+  const cases = [
+    { name: 'seed', save: saveWith({ speciesId: 'bean', stageIndex: 0, heightCm: 0, mode: 'quick', careDone: 1, weatherFrom: 99, day: 2 }) },
+    { name: 'corn-fruit', save: saveWith({ speciesId: 'corn', stageIndex: 4, heightCm: 150, mode: 'quick', careDone: 0, weatherFrom: 99, day: 30 }) },
+    { name: 'apple-tree', save: saveWith({ speciesId: 'apple', stageIndex: 3, heightCm: 180, mode: 'quick', careDone: 1, weatherFrom: 99, day: 30, place: 'yardSunny' }) },
+  ]
+  for (const c of cases) {
+    await page.goto('/')
+    await page.evaluate((s) => {
+      localStorage.setItem('plantlife.v1', JSON.stringify({ ...s, lastDayKey: null }))
+      sessionStorage.setItem('fixture-loaded', '1')
+    }, c.save)
+    await page.reload()
+    const b = await openMagnifier(page)
+    expect(b.frame.y + b.frame.height).toBeLessThanOrEqual(b.scene.y + b.scene.height + 1)
+    await page.screenshot({ path: `${SHOTS}/observe-magnifier-${c.name}-1194x834.png` })
+  }
+})

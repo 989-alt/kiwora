@@ -67,8 +67,7 @@
   inset: 0;
   pointer-events: none;
 }
-.obs-ruler,
-.obs-mag-guide {
+.obs-ruler {
   position: absolute;
   inset: 0;
   overflow: visible;
@@ -119,43 +118,24 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* --- magnifier --- */
-.obs-mag-guide line {
-  stroke: #4338ca;
-  stroke-width: 3;
-  stroke-dasharray: 8 6;
-}
-.obs-mag-guide circle {
-  fill: none;
-  stroke: #fff;
-  stroke-width: 4;
-  stroke-dasharray: 9 6;
-  filter: drop-shadow(0 0 2px rgba(67, 56, 202, 0.9));
-}
+/* --- magnifier: the enlarged picture in a round window, the clay frame (its lens see-through) on top --- */
 .obs-lens {
   position: absolute;
   overflow: hidden;
   border-radius: 50%;
-  border: 10px solid #3f3f46;
-  background: #fffdf5;
-  box-shadow:
-    0 8px 18px rgba(0, 0, 0, 0.28),
-    inset 0 0 0 3px rgba(255, 255, 255, 0.7);
+  background: #f7fbff;
 }
 .obs-lens img {
   position: absolute;
   max-width: none;
   pointer-events: none;
 }
-.obs-lens-handle {
+.obs-lens-frame {
   position: absolute;
-  width: 22px;
-  height: 78px;
-  border-radius: 11px;
-  background: #92400e;
-  transform: rotate(-45deg);
-  transform-origin: 50% 0;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  max-width: none;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.28));
 }
 
 /* --- choices beside the scene --- */
