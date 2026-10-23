@@ -86,6 +86,51 @@
   color: #64748b;
 }
 
+/* Landscape windows narrower than about 1300 px (iPad 1180, Galaxy Tab 1280): the menu buttons put the word
+   under the icon, so the header (with [메인화면으로]) stays one row and the scene keeps its height. */
+@media (min-width: 900px) and (max-width: 1299px) {
+  .gs-menu {
+    gap: 8px;
+  }
+  .gs-menu-btn {
+    flex-direction: column;
+    gap: 1px;
+    padding: 0 10px;
+    font-size: 18px;
+    line-height: 1.1;
+  }
+  .gs-menu-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+  .gs-menu-btn--icon {
+    padding: 0;
+  }
+  .gs-menu-btn--icon svg {
+    width: 26px;
+    height: 26px;
+  }
+}
+/* About 1024 px wide: the title pill is a little tighter as well. */
+@media (min-width: 900px) and (max-width: 1099px) {
+  .gs-header {
+    gap: 8px;
+  }
+  .gs-title {
+    gap: 8px;
+    padding: 6px 14px 6px 8px;
+  }
+  .gs-name {
+    font-size: 24px;
+  }
+  .gs-day {
+    font-size: 18px;
+  }
+  .gs-stage {
+    padding: 4px 10px;
+  }
+}
+
 .gs-body {
   flex: 1 1 auto;
   min-height: 0;

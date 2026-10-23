@@ -3,6 +3,7 @@ import { growing, isComplete, type Action, type AppState } from '../../store'
 import { seedSizeText } from '../journalText'
 import { ModeBadge } from '../ModeBadge'
 import { plantSrc } from '../PlantView'
+import { HomeButton } from '../HomeMenu'
 import './Screens.css'
 
 const IDS = Object.keys(SPECIES) as SpeciesId[]
@@ -38,6 +39,7 @@ export function DexScreen({ state, dispatch }: Props) {
               다른 식물 고르기
             </button>
           )}
+          <HomeButton className="sc-btn" dispatch={dispatch} />
         </nav>
       </header>
 

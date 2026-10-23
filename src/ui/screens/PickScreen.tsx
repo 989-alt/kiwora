@@ -5,6 +5,7 @@ import type { Mode } from '../../sim/types'
 import { journalWouldBeLost, type Action, type AppState } from '../../store'
 import { plantSrc } from '../PlantView'
 import { Modal } from '../Modal'
+import { HomeButton } from '../HomeMenu'
 import './Screens.css'
 
 const IDS = Object.keys(SPECIES) as SpeciesId[]
@@ -41,6 +42,7 @@ export function PickScreen({ state, dispatch }: Props) {
           <button type="button" className="sc-btn" onClick={() => dispatch({ type: 'open', screen: 'backup' })}>
             기록 지키기
           </button>
+          <HomeButton className="sc-btn" dispatch={dispatch} />
         </nav>
       </header>
 

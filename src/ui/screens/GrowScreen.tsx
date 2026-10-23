@@ -15,6 +15,7 @@ import { TodayCard } from '../TodayCard'
 import { todoItems } from '../todo'
 import { remainingActivities, type Remaining } from '../remaining'
 import { CareLayer } from '../care/CareLayer'
+import { HomeButton } from '../HomeMenu'
 import { Tutorial, type TipTarget } from '../Tutorial'
 import { installAudioUnlock } from '../sound'
 import { Bugs } from '../tools/Bugs'
@@ -206,6 +207,8 @@ export function GrowScreen({ state, dispatch }: Props) {
             <Icon d={SHIELD} />
             기록 지키기
           </button>
+          {/* (the night cover is over everything while it runs, so the page is inert then anyway) */}
+          <HomeButton className="gs-menu-btn" dispatch={dispatch} disabled={coverUp} />
         </nav>
       </header>
 

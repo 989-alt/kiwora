@@ -6,6 +6,7 @@ import { dayReached, feelingText, journalRows, seedSizeText, stageName } from '.
 import { ModeBadge } from '../ModeBadge'
 import { plantSrc } from '../PlantView'
 import '../../styles/print.css'
+import { HomeButton } from '../HomeMenu'
 import './Screens.css'
 
 type Props = {
@@ -85,6 +86,7 @@ export function JournalScreen({ state, dispatch, record }: Props) {
               씨 도감
             </button>
           )}
+          <HomeButton className="sc-btn" dispatch={dispatch} />
         </nav>
       </header>
 

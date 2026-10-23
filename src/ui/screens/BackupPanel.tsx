@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { exportCode, importCode, isShortCode, shortCode, type SaveData } from '../../sim/save'
 import { toSave, type Action, type AppState, type Screen } from '../../store'
 import { Modal } from '../Modal'
+import { HomeButton } from '../HomeMenu'
 import './Screens.css'
 
 type Props = {
@@ -92,6 +93,7 @@ export function BackupPanel({ state, dispatch, back }: Props) {
           <button type="button" className="sc-btn" onClick={goBack}>
             돌아가기
           </button>
+          <HomeButton className="sc-btn" dispatch={dispatch} />
         </nav>
       </header>
 
