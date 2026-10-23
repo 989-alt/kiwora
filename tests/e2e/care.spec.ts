@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { centerOf, saveWith, useSave } from './fixtures'
+import { centerOf, doTodaysActivities, saveWith, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 
@@ -129,12 +129,15 @@ test('the stake can be dragged to the stem', async ({ page }) => {
   await expect(todo(page)).toHaveCount(0)
 })
 
-test('the to-do card switches to the waiting line and stays at night', async ({ page }) => {
+test("the to-do card switches to the waiting line; the next stage's care stays on it at night", async ({ page }) => {
   await openWith(page, CASES[1], { growth: 4 })
   await expect(todo(page)).toContainText('솎아 줘야 잎과 줄기가 잘 자라요')
+  // 하루 마치기 waits for the care (and the observing); then the sprout grows into the leaf stage overnight
+  await doTodaysActivities(page)
   await page.getByRole('button', { name: '하루 마치기' }).click()
   await expect(page.getByRole('button', { name: '내일 다시 만나요' })).toBeVisible()
   await expect(todo(page)).toBeVisible()
+  await expect(todo(page)).toContainText('곁가지를 정리해 줘요')
 })
 
 for (const vp of [
@@ -242,6 +245,7 @@ test('picking the fruit gives the seeds; ending the day completes the plant and 
   await expect(todo(page)).toHaveCount(0)
   // the seeds lie beside the pot
   await expect(page.locator('.care-seeds')).toHaveCount(1)
+  await doTodaysActivities(page)
   await page.getByRole('button', { name: '하루 마치기' }).click()
   await expect(page.getByRole('button', { name: '씨 도감에 넣기' })).toBeVisible({ timeout: 15_000 })
   await expect(page.getByRole('table')).toContainText('씨 받기')

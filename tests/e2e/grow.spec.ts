@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { centerOf, drag, hold, saveWith, useSave } from './fixtures'
+import { centerOf, doTodaysActivities, drag, hold, saveWith, useSave } from './fixtures'
 
 const waterRow = (page: import('@playwright/test').Page) => page.getByRole('group', { name: /^물 / })
 const nutrientRow = (page: import('@playwright/test').Page) => page.getByRole('group', { name: /^영양 / })
@@ -68,6 +68,7 @@ test('long press shows no context menu', async ({ page, browserName }) => {
 test('end day locks tools', async ({ page }) => {
   await useSave(page, saveWith({ bugs: 1, place: 'desk' }))
   await page.goto('/')
+  await doTodaysActivities(page)
   await page.getByRole('button', { name: '하루 마치기' }).click()
   await expect(page.locator('.gs-night').getByText('내일 다시 만나요')).toBeVisible()
   await expect(page.getByRole('button', { name: /물 주기/ })).toBeDisabled()
@@ -232,6 +233,8 @@ for (const [w, h] of [
     await page.setViewportSize({ width: w, height: h })
     await useSave(page, saveWith({ stageIndex: 3, bugs: 2, place: 'window' }))
     await page.goto('/')
+    await doTodaysActivities(page)
+    await page.evaluate(() => window.scrollTo(0, 0))
     const end = page.getByRole('button', { name: '하루 마치기' })
     const inView = async () => {
       const b = await end.boundingBox()

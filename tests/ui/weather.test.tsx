@@ -13,6 +13,7 @@ import { MorningCard, morningSummary } from '../../src/ui/screens/MorningCard'
 import { StatusBoard } from '../../src/ui/StatusBoard'
 import { feelingText } from '../../src/ui/journalText'
 import { todoItems } from '../../src/ui/todo'
+import { doneObs } from './doneToday'
 import { WEATHER_NAME, forecastText, handledText, todayText } from '../../src/ui/weatherText'
 
 const KINDS: WeatherId[] = ['heat', 'rain', 'monsoon', 'typhoon', 'cold', 'frost']
@@ -47,8 +48,9 @@ const report = (over: Partial<DayReport> = {}): DayReport => ({
   ...over,
 })
 
+/** The plant saved for today, today's observing done (so 하루 마치기 ends the day once the care is done). */
 function putSave(plant: PlantState, over: Record<string, unknown> = {}) {
-  const save = { ...emptySave(), plant, lastDayKey: todayKey(), settings: { sound: false, tutorialSeen: true }, ...over }
+  const save = { ...emptySave(), plant, lastDayKey: todayKey(), pendingObs: doneObs(plant), settings: { sound: false, tutorialSeen: true }, ...over }
   localStorage.setItem(SAVE_KEY, JSON.stringify(save))
 }
 

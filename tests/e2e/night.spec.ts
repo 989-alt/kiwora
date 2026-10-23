@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { saveWith, useSave } from './fixtures'
+import { doTodaysActivities, saveWith, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 const VIEWPORTS = [
@@ -20,6 +20,7 @@ for (const { w, h } of VIEWPORTS) {
     await useSave(page, quick())
     await page.goto('/')
     await expect(title(page)).toHaveAttribute('aria-label', /4일째/)
+    await doTodaysActivities(page)
     await endDay(page).click()
     const cover = page.locator('.nt')
     await expect(cover).toBeVisible()
@@ -42,6 +43,7 @@ for (const { w, h } of VIEWPORTS) {
     await page.setViewportSize({ width: w, height: h })
     await useSave(page, daily())
     await page.goto('/')
+    await doTodaysActivities(page)
     await endDay(page).click()
     const cover = page.locator('.nt')
     await expect(cover).toBeVisible()
@@ -67,6 +69,7 @@ for (const { w, h } of VIEWPORTS) {
 test('a tap skips the cover at once', async ({ page }) => {
   await useSave(page, quick())
   await page.goto('/')
+  await doTodaysActivities(page)
   await endDay(page).click()
   const cover = page.locator('.nt')
   await expect(cover).toBeVisible()
@@ -80,6 +83,7 @@ test('a fast triple tap on 하루 마치기 in quick mode advances one day only'
   await useSave(page, quick())
   await page.goto('/')
   await expect(title(page)).toHaveAttribute('aria-label', /4일째/)
+  await doTodaysActivities(page)
   const b = (await endDay(page).boundingBox())!
   const x = b.x + b.width / 2
   const y = b.y + b.height / 2
@@ -99,6 +103,7 @@ test('reduced motion: a short fade, no sunrise', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   await useSave(page, quick())
   await page.goto('/')
+  await doTodaysActivities(page)
   await endDay(page).click()
   const cover = page.locator('.nt')
   await expect(cover).toHaveAttribute('data-motion', 'reduced')

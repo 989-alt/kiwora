@@ -146,6 +146,96 @@
   gap: 12px;
   cursor: pointer;
 }
+/* 하루 마치기 and, over it, the '남은 활동이 있어요!' bubble (the live region is always there, empty). */
+.gs-end-wrap {
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.gs-nag {
+  position: absolute;
+  z-index: 30;
+  left: 50%;
+  bottom: calc(100% + 18px);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(360px, calc(100vw - 32px));
+  margin: 0;
+  padding: 12px 22px;
+  border-radius: 22px;
+  border: 4px solid #f59e0b;
+  background: #fffbeb;
+  color: #78350f;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  text-align: center;
+  word-break: keep-all;
+  pointer-events: none;
+  animation: nag-in 0.22s ease-out;
+}
+/* the bubble's tail, pointing down at the button */
+.gs-nag::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -14px;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  background: #fffbeb;
+  border-right: 4px solid #f59e0b;
+  border-bottom: 4px solid #f59e0b;
+  border-bottom-right-radius: 4px;
+  transform: rotate(45deg);
+}
+.gs-nag-head {
+  font-family: var(--font-title);
+  font-size: 26px;
+}
+.gs-nag-left {
+  font-size: 20px;
+  font-weight: 700;
+}
+/* What is still to do pulses while the bubble is up (two names, so every press starts it over). */
+.nag-pulse--0 {
+  animation: nag-pulse-0 0.7s ease-in-out 3;
+}
+.nag-pulse--1 {
+  animation: nag-pulse-1 0.7s ease-in-out 3;
+}
+@keyframes nag-pulse-0 {
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.55);
+  }
+}
+@keyframes nag-pulse-1 {
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 0 8px rgba(245, 158, 11, 0.55);
+  }
+}
+@keyframes nag-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-nag,
+  .nag-pulse--0,
+  .nag-pulse--1 {
+    animation: none;
+  }
+  .nag-pulse {
+    outline: 5px solid #f59e0b;
+    outline-offset: 3px;
+  }
+}
 .gs-end-moon {
   width: 36px;
   height: 36px;

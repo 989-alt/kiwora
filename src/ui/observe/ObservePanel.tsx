@@ -8,6 +8,7 @@ import type { PlantState } from '../../sim/types'
 import type { Action } from '../../store'
 import { propArt } from '../art'
 import { usePress } from '../care/press'
+import { rulerFits } from '../remaining'
 import { plink } from '../sound'
 import './observe.css'
 
@@ -41,7 +42,7 @@ export function useObserve(plant: PlantState, pendingObs: PendingObs | null | un
   const id = plant.speciesId
   const stage = SPECIES[id].stages[plant.stageIndex]
   const seed = seedFor(plant.day, id)
-  const rulerOk = stage !== 'seed' && plant.heightCm >= 1
+  const rulerOk = rulerFits(plant)
   const measured = pendingObs?.measuredCm
   const observed = pendingObs?.observed
   const done = observed !== undefined && (measured !== undefined || !rulerOk)
@@ -90,11 +91,14 @@ export type Observe = ReturnType<typeof useObserve>
 
 const MAG = propArt('magnifier')
 
-/** [관찰하기] in the tool row: once a day; when today's observing is done it says so. */
-export function ObserveButton({ obs, disabled }: { obs: Observe; disabled: boolean }) {
+/**
+ * [관찰하기] in the tool row: once a day; when today's observing is done it says so. `pulse` = the class that
+ * makes it pulse while the '남은 활동' bubble is up.
+ */
+export function ObserveButton({ obs, disabled, pulse = '' }: { obs: Observe; disabled: boolean; pulse?: string }) {
   const label = obs.done ? '오늘 관찰 끝' : '관찰하기'
   return (
-    <button type="button" className="tool tool--obs" aria-label={label} disabled={disabled || obs.done} onClick={obs.open}>
+    <button type="button" className={`tool tool--obs${pulse && !obs.done ? ` ${pulse}` : ''}`} aria-label={label} disabled={disabled || obs.done} onClick={obs.open}>
       <img src={MAG.src} alt="" draggable={false} />
       <span className="tool-name">{label}</span>
     </button>
@@ -116,12 +120,14 @@ function RulerIcon({ size = 64 }: { size?: number }) {
 type ToolsProps = {
   obs: Observe
   disabled: boolean
+  /** The pulse class while the '남은 활동' bubble is up: the tools still to use pulse. */
+  pulse?: string
   /** The ruler was dropped at this client point (null = tapped: it stands beside the plant). */
   onDropRuler: (at: { x: number; y: number } | null) => void
 }
 
 /** The tool row while observing: drag the ruler to the plant, tap the magnifier, or stop. */
-export function ObserveTools({ obs, disabled, onDropRuler }: ToolsProps) {
+export function ObserveTools({ obs, disabled, onDropRuler, pulse = '' }: ToolsProps) {
   const [ghost, setGhost] = useState<{ x: number; y: number } | null>(null)
   const rulerDone = obs.measured !== undefined
   const press = usePress({
@@ -136,7 +142,7 @@ export function ObserveTools({ obs, disabled, onDropRuler }: ToolsProps) {
   return (
     <>
       {obs.rulerOk && (
-        <button type="button" className={`tool tool--ruler${obs.ui.tool === 'ruler' ? ' tool--on' : ''}`} aria-label="자" disabled={disabled || rulerDone} {...press}>
+        <button type="button" className={`tool tool--ruler${obs.ui.tool === 'ruler' ? ' tool--on' : ''}${pulse && !rulerDone ? ` ${pulse}` : ''}`} aria-label="자" disabled={disabled || rulerDone} {...press}>
           <RulerIcon />
           <span className="tool-text">
             <span className="tool-name">자</span>
@@ -146,7 +152,7 @@ export function ObserveTools({ obs, disabled, onDropRuler }: ToolsProps) {
       )}
       <button
         type="button"
-        className={`tool tool--mag${obs.ui.tool === 'magnifier' ? ' tool--on' : ''}`}
+        className={`tool tool--mag${obs.ui.tool === 'magnifier' ? ' tool--on' : ''}${pulse && obs.observed === undefined ? ` ${pulse}` : ''}`}
         aria-label="돋보기"
         disabled={disabled}
         onClick={obs.showMagnifier}

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { saveWith, useSave } from './fixtures'
+import { doTodaysActivities, saveWith, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 
@@ -47,6 +47,7 @@ test('portrait: the status board is not hidden under the end-day bar, also while
 test('night cover: Escape skips it, the focus is handed back', async ({ page }) => {
   await useSave(page, quick())
   await page.goto('/')
+  await doTodaysActivities(page)
   const end = page.getByRole('button', { name: '하루 마치기' })
   await end.focus()
   await end.click()

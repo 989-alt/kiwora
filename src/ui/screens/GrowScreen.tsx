@@ -13,6 +13,7 @@ import { NightScene } from '../NightScene'
 import { StatusBoard } from '../StatusBoard'
 import { TodayCard } from '../TodayCard'
 import { todoItems } from '../todo'
+import { remainingActivities, type Remaining } from '../remaining'
 import { CareLayer } from '../care/CareLayer'
 import { Tutorial, type TipTarget } from '../Tutorial'
 import { installAudioUnlock } from '../sound'
@@ -28,6 +29,8 @@ import { Ruler } from '../observe/Ruler'
 import './GrowScreen.css'
 
 const PORTRAIT = '(max-width: 899px)'
+/** How long the '남은 활동이 있어요!' bubble stays up. */
+export const NAG_MS = 2500
 const ROOM = ['window', 'desk', 'shade']
 
 function useMedia(query: string): boolean {
@@ -132,12 +135,41 @@ export function GrowScreen({ state, dispatch }: Props) {
   )
   const morningUp = !!state.morning && !locked && !morningShown(state)
 
+  // 하루 마치기 with today's care or observing left: the day goes on, a bubble over the button names what is
+  // left and those controls pulse (n restarts the pulse on every press).
+  const [nag, setNag] = useState<{ left: Remaining[]; n: number } | null>(null)
+  useEffect(() => {
+    if (!nag) return
+    const t = window.setTimeout(() => setNag(null), NAG_MS)
+    return () => window.clearTimeout(t)
+  }, [nag])
+  const endDay = () => {
+    const left = remainingActivities(state)
+    if (left.length === 0) {
+      setNag(null)
+      dispatch({ type: 'endDay' })
+    } else setNag((n) => ({ left, n: (n?.n ?? 0) + 1 }))
+  }
+  const nagNow = nag && !busy ? nag : null
+  const pulse = (what: 'observe' | 'care') =>
+    nagNow?.left.some((r) => (r.key === 'observe') === (what === 'observe')) ? `nag-pulse nag-pulse--${nagNow.n % 2}` : ''
+
   const moon = propArt('moon')
   const endButton = (
-    <button type="button" className="gs-end" disabled={busy || cooling} onClick={() => dispatch({ type: 'endDay' })}>
-      <img className="gs-end-moon" src={moon.src} alt="" width={36} height={36} draggable={false} />
-      {locked ? '내일 다시 만나요' : '하루 마치기'}
-    </button>
+    <div className="gs-end-wrap">
+      <div className="gs-nag-live" aria-live="polite">
+        {nagNow && (
+          <p className="gs-nag">
+            <span className="gs-nag-head">남은 활동이 있어요!</span>
+            <span className="gs-nag-left">{nagNow.left.map((r) => r.label).join(' · ')}</span>
+          </p>
+        )}
+      </div>
+      <button type="button" className="gs-end" disabled={busy || cooling} onClick={endDay}>
+        <img className="gs-end-moon" src={moon.src} alt="" width={36} height={36} draggable={false} />
+        {locked ? '내일 다시 만나요' : '하루 마치기'}
+      </button>
+    </div>
   )
 
   return (
@@ -177,7 +209,7 @@ export function GrowScreen({ state, dispatch }: Props) {
         </nav>
       </header>
 
-      <TodayCard items={todoItems(state)} />
+      <TodayCard items={todoItems(state)} pulse={pulse('care')} />
 
       <div className="gs-body">
         <section className="gs-left" aria-label="식물">
@@ -265,7 +297,7 @@ export function GrowScreen({ state, dispatch }: Props) {
 
           <div className="gs-tools">
             {obs.ui.open ? (
-              <ObserveTools obs={obs} disabled={busy} onDropRuler={dropRuler} />
+              <ObserveTools obs={obs} disabled={busy} onDropRuler={dropRuler} pulse={pulse('observe')} />
             ) : (
               <>
                 {inRoom && (
@@ -292,7 +324,7 @@ export function GrowScreen({ state, dispatch }: Props) {
                   onDragChange={setPelletDrag}
                   target={yard ? '땅' : '화분'}
                 />
-                <ObserveButton obs={obs} disabled={busy} />
+                <ObserveButton obs={obs} disabled={busy} pulse={pulse('observe')} />
               </>
             )}
           </div>

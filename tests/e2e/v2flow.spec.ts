@@ -3,27 +3,11 @@ import { newPlant } from '../../src/sim/day'
 import { SPECIES, type SpeciesId } from '../../src/sim/species'
 import { weatherOn } from '../../src/sim/weather'
 import type { WeatherId } from '../../src/sim/types'
-import { centerOf, drag, hold } from './fixtures'
+import { centerOf, doTodaysActivities, drag, hold } from './fixtures'
 
 /** Full v2 flows through the real screens: pick, morning card, care by taps, water, end the day, ... */
 test.setTimeout(240_000)
 test.use({ actionTimeout: 8000 })
-
-/** What to tap for each stage care (the same targets the care e2e uses). */
-const CARE_TAPS: [string, number][][] = [
-  [['흙에 씨 놓기', 3], ['흙 덮기', 3]],
-  [['약한 싹 뽑기', 2]],
-  [['지지대 꽂을 자리', 1]],
-  [['지지대 꽂을 자리', 1], ['줄기에 덩굴 감기', 3]],
-  [['왼쪽 흙 북돋우기', 2], ['오른쪽 흙 북돋우기', 1]],
-  [['곁가지 자르기', 2]],
-  [['물받이 살펴보기', 1]],
-  [['마른 가지 자르기', 3]],
-  [['꽃가루 묻히기', 1], ['다른 꽃에 꽃가루 옮기기', 1]],
-  [['포기 흔들기', 3]],
-  [['열매 따기', 3]],
-  [['짚 감쌀 밑동', 1]],
-]
 
 /**
  * A weather seed whose weather (over every stage of the plant, from day 2 to 45) holds only the given kinds, and
@@ -63,23 +47,7 @@ async function pick(page: Page, species: RegExp, mode: RegExp, seed: number) {
   await page.reload()
 }
 
-async function doCare(page: Page): Promise<boolean> {
-  for (const taps of CARE_TAPS) {
-    const label = (n: string) => new RegExp(`^${n}( \\d+)?$`)
-    const first = page.getByRole('button', { name: label(taps[0][0]) })
-    if ((await first.count()) === 0) continue
-    for (const [name, n] of taps)
-      for (let i = 0; i < n; i++) {
-        const t = page.getByRole('button', { name: label(name) }).first()
-        if ((await t.count()) === 0) break
-        await t.tap()
-      }
-    return true
-  }
-  return false
-}
-
-/** One day: close the morning card, do the care by taps, water unless it rains, end the day. */
+/** One day: close the morning card, do the care by taps and the observing, water unless it rains, end the day. */
 async function playDay(page: Page, browserName: string) {
   const morning = page.getByRole('button', { name: /일째 아침이에요/ })
   if ((await morning.count()) > 0) await morning.click()
@@ -88,7 +56,7 @@ async function playDay(page: Page, browserName: string) {
     await yard.click()
     return
   }
-  await doCare(page)
+  await doTodaysActivities(page)
   // a typhoon day: the tree is tied with a tap
   const trunk = page.getByRole('button', { name: '묶을 나무 밑동' })
   if ((await trunk.count()) > 0 && /태풍이 와요/.test(await todoText(page))) await trunk.tap()
@@ -114,36 +82,14 @@ async function playDay(page: Page, browserName: string) {
   await expect(page.locator('.nt')).toBeHidden({ timeout: 6000 })
 }
 
-test('balsam, 한 번에 키우기: care by taps, a measurement, the finished journal and the dex', async ({ page, browserName }) => {
+test('balsam, 한 번에 키우기: care by taps, observing every day, the finished journal and the dex', async ({ page, browserName }) => {
   const seed = seedWith('balsam', () => 'desk', ['rain', 'cold', 'heat', 'monsoon'], 'monsoon')
   await pick(page, /봉숭아/, /^한 번에 키우기/, seed)
   // the pot goes to the desk (heat and cold days then do no harm)
   await page.getByRole('button', { name: /^책상/ }).first().click()
 
-  let measured = false
   for (let day = 0; day < 90; day++) {
     if ((await stored(page)).finished?.balsam) break
-    if (!measured && (await stored(page)).plant.heightCm >= 3 && (await page.getByRole('button', { name: '관찰하기' }).count()) > 0) {
-      const morning = page.getByRole('button', { name: /일째 아침이에요/ })
-      if ((await morning.count()) > 0) await morning.click()
-      await page.getByRole('button', { name: '관찰하기' }).click()
-      const ruler = page.getByRole('button', { name: '자' })
-      if ((await ruler.count()) > 0) {
-        const from = await centerOf(page, ruler)
-        const pot = await centerOf(page, '.pv-pot-hit')
-        await page.mouse.move(from.x, from.y)
-        await page.mouse.down()
-        await page.mouse.move(pot.x + 90, pot.y - 60, { steps: 8 })
-        await page.mouse.up()
-        const panel = page.getByRole('region', { name: '관찰하기' })
-        const picks = await panel.locator('.obs-choice').count()
-        for (let i = 0; i < picks && !measured; i++) {
-          await panel.locator('.obs-choice').nth(i).click()
-          measured = (await panel.getByText(/내가 잰 키는/).count()) > 0
-        }
-        await page.getByRole('button', { name: '관찰 마치기' }).click()
-      }
-    }
     try {
       await playDay(page, browserName)
     } catch (e) {
@@ -152,10 +98,9 @@ test('balsam, 한 번에 키우기: care by taps, a measurement, the finished jo
       throw e
     }
   }
-  expect(measured).toBe(true)
   const end = await stored(page)
   expect(end.finished?.balsam).toBeTruthy()
-  // the dex: 1/9, the finished journal with the 한 번에 badge, N일째 in the date column, one measurement
+  // the dex: 1/9, the finished journal with the 한 번에 badge, N일째 in the date column, the measurements
   await page.goto('/')
   await page.getByRole('button', { name: /^씨 도감/ }).click()
   await expect(page.getByText('1/9')).toBeVisible()
@@ -166,8 +111,11 @@ test('balsam, 한 번에 키우기: care by taps, a measurement, the finished jo
   const rows = await table.getByRole('row').all()
   const firstCell = await rows[1].getByRole('cell').first().textContent()
   expect(firstCell).toMatch(/^\d+일째$/)
+  // every day was observed: from 1 cm on each row has the height the student read off the ruler
   const measuredCells = await table.locator('tbody tr td:nth-child(4)').allTextContents()
-  expect(measuredCells.filter((t) => /cm/.test(t))).toHaveLength(1)
+  expect(measuredCells.filter((t) => /cm/.test(t)).length).toBeGreaterThan(5)
+  const observedCells = await table.locator('tbody tr td:nth-child(7)').allTextContents()
+  expect(observedCells.filter((t) => t.trim().length > 0).length).toBe(rows.length - 1)
 })
 
 test('apple, 한 번에 키우기: transplant to the yard, pruning, pollinating, harvest and the winter straw', async ({ page, browserName }) => {

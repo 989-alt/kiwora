@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { centerOf, drag, saveWith, useSave } from './fixtures'
+import { centerOf, doTodaysActivities, drag, saveWith, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-21-plant-life/shots'
 
@@ -21,6 +21,7 @@ test('apple transplant flow', async ({ page }) => {
   await useSave(page, appleAlmostGrown())
   await page.goto('/')
   await expect(slots(page)).toBeVisible()
+  await doTodaysActivities(page)
   await page.getByRole('button', { name: '하루 마치기' }).click()
 
   await expect(page.getByText(COPY)).toBeVisible()
@@ -137,6 +138,7 @@ test.describe('screenshots', () => {
     await useSave(page, appleAlmostGrown())
     await page.goto('/')
     await ready(page)
+    await doTodaysActivities(page)
     await page.getByRole('button', { name: '하루 마치기' }).click()
     await expect(page.getByText(COPY)).toBeVisible()
     await ready(page)

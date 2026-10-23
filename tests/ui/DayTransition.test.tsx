@@ -5,6 +5,7 @@ import App from '../../src/App'
 import { newPlant } from '../../src/sim/day'
 import { emptySave, SAVE_KEY } from '../../src/sim/save'
 import { DayTransition, END_COOLDOWN_MS, TAP_GUARD_MS } from '../../src/ui/DayTransition'
+import { doneObs } from './doneToday'
 
 const fx = (over: Partial<NightFx> = {}): NightFx => ({ ending: 'sunrise', forecast: null, n: 1, ...over })
 
@@ -184,7 +185,9 @@ describe('App with the cover', () => {
   })
 
   const seedQuick = () => {
-    const save = { ...emptySave(), plant: { ...newPlant('corn', { mode: 'quick', weatherSeed: 0 }), stageIndex: 3, day: 5 }, settings: { sound: false, tutorialSeen: true } }
+    // the day's care and observing done, so every 하루 마치기 tap tries to end the day
+    const plant = { ...newPlant('corn', { mode: 'quick', weatherSeed: 0 }), stageIndex: 3, day: 5, careDone: 1 }
+    const save = { ...emptySave(), plant, pendingObs: doneObs(plant), settings: { sound: false, tutorialSeen: true } }
     localStorage.setItem(SAVE_KEY, JSON.stringify(save))
   }
   const day = () => /(\d+)일째/.exec(screen.getByRole('heading', { level: 1 }).getAttribute('aria-label') ?? '')![1]

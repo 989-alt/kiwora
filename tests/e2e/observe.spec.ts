@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 import { OBSERVATIONS } from '../../src/data/observations'
-import { centerOf, drag, saveWith, useSave } from './fixtures'
+import { centerOf, doObserve, drag, saveWith, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 
@@ -17,6 +17,9 @@ async function ready(page: Page) {
 
 /** Ends the quick day and opens the journal; returns the cells of the journal's first day row. */
 async function journalRow(page: Page) {
+  // the rest of today's observing (the other tool), so 하루 마치기 ends the day
+  if ((await page.getByRole('button', { name: '관찰 마치기' }).count()) > 0) await page.getByRole('button', { name: '관찰 마치기' }).click()
+  await doObserve(page)
   await page.getByRole('button', { name: '하루 마치기' }).click()
   await expect(page.locator('.nt')).toBeHidden({ timeout: 3200 })
   await page.getByRole('button', { name: '관찰 일지' }).click()

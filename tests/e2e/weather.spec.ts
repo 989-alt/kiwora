@@ -3,7 +3,7 @@ import { newPlant } from '../../src/sim/day'
 import { SPECIES, type SpeciesId, type StageId } from '../../src/sim/species'
 import type { WeatherId } from '../../src/sim/types'
 import { weatherOn } from '../../src/sim/weather'
-import { saveWith, useSave } from './fixtures'
+import { doTodaysActivities, saveWith, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 const VIEWPORTS = [
@@ -51,6 +51,8 @@ for (const { w, h } of VIEWPORTS) {
     await expect(title(page)).toHaveAttribute('aria-label', /4일째/)
     await expect(boardRow(page)).toContainText('맑아요')
 
+    await doTodaysActivities(page)
+
     await endDay(page).click()
     const forecast = page.locator('.nt-forecast')
     await expect(forecast).toHaveAttribute('data-forecast', 'heat')
@@ -83,6 +85,7 @@ for (const { w, h } of VIEWPORTS) {
     if (browserName === 'chromium') await page.screenshot({ path: `${SHOTS}/weather-board-${w}x${h}.png`, fullPage: true })
 
     // end the day: the next morning says it was handled
+    await doTodaysActivities(page)
     await endDay(page).click()
     await expect(page.locator('.nt')).toBeHidden({ timeout: 6000 })
     await expect(title(page)).toHaveAttribute('aria-label', /6일째/)
@@ -93,6 +96,7 @@ for (const { w, h } of VIEWPORTS) {
     await page.setViewportSize({ width: w, height: h })
     await useSave(page, heatSave({ mode: 'daily' }))
     await page.goto('/')
+    await doTodaysActivities(page)
     await endDay(page).click()
     await expect(page.locator('.nt')).toBeHidden({ timeout: 6000 })
     const slot = page.locator('.gs-scene .gs-night-forecast')
@@ -145,6 +149,7 @@ for (const { w, h } of VIEWPORTS) {
     await page.reload()
     await expect(boardRow(page)).toContainText('대비했어요')
     // and the morning after says so
+    await doTodaysActivities(page)
     await endDay(page).click()
     await expect(page.locator('.nt')).toBeHidden({ timeout: 6000 })
     await expect(morning(page)).toContainText('어제 태풍에 잘 대비했어요')
