@@ -1,9 +1,9 @@
-import { expect, test, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { doTodaysActivities, expect, saveWith, test, useSave } from './fixtures'
 import { newPlant } from '../../src/sim/day'
 import { SPECIES, type SpeciesId, type StageId } from '../../src/sim/species'
 import type { WeatherId } from '../../src/sim/types'
 import { weatherOn } from '../../src/sim/weather'
-import { doTodaysActivities, saveWith, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 const VIEWPORTS = [

@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { saveWith, useSave } from './fixtures'
+import type { Page } from '@playwright/test'
+import { expect, saveWith, test, useSave } from './fixtures'
 
 /** The fixture type only covers a plain growing plant; these saves also carry a journal, past tries, a dex. */
 type Save = Parameters<typeof useSave>[1]

@@ -1,0 +1,131 @@
+/* ---- Title (main) screen ---- */
+.tt {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 64px;
+  padding: 40px;
+  background:
+    radial-gradient(circle at 18% 20%, #fef9c3 0, rgba(254, 249, 195, 0) 38%),
+    radial-gradient(circle at 85% 85%, #dcfce7 0, rgba(220, 252, 231, 0) 45%),
+    var(--c-bg);
+}
+.tt-scene {
+  position: relative;
+  width: 440px;
+  height: 600px;
+  max-height: calc(100dvh - 80px);
+  flex-shrink: 0;
+  border-radius: 36px;
+  border: 5px solid #fff;
+  box-shadow: 0 10px 0 #cde5d5;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+.tt-body {
+  width: 500px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.tt-h1 {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font-weight: 400;
+  line-height: 1.1;
+}
+.tt-kicker {
+  align-self: flex-start;
+  font-size: 34px;
+  color: #fff;
+  background: var(--c-accent);
+  border-radius: 999px;
+  padding: 4px 22px 6px;
+  box-shadow: 0 5px 0 #b45309;
+  transform: rotate(-3deg);
+  margin-bottom: 14px;
+}
+.tt-name {
+  font-size: 72px;
+  color: var(--c-primary);
+  text-shadow: 0 5px 0 #bbf7d0;
+}
+.tt-sub {
+  margin: 0 0 14px;
+  font-size: 23px;
+  line-height: 1.5;
+  color: #334155;
+}
+.tt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.tt-btn {
+  flex: 0 0 auto;
+  min-height: 92px;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.tt-btn[aria-disabled='true'] {
+  background: #e2e8f0;
+  color: #64748b;
+  box-shadow: 0 8px 0 #cbd5e1;
+  cursor: not-allowed;
+}
+.tt-btn[aria-disabled='true']:active {
+  transform: none;
+}
+.tt-note {
+  margin: -8px 0 4px;
+  text-align: center;
+  font-size: 20px;
+  color: #475569;
+}
+
+/* Short landscape windows: a smaller scene and title so it all fits. */
+@media (max-height: 760px) and (min-width: 900px) {
+  .tt {
+    padding: 24px;
+    gap: 44px;
+  }
+  .tt-scene {
+    width: 380px;
+    max-height: calc(100dvh - 48px);
+  }
+  .tt-name {
+    font-size: 60px;
+  }
+  .tt-btn {
+    min-height: 80px;
+  }
+}
+
+/* Portrait tablets / narrow windows: the scene above, the buttons under it. */
+@media (max-width: 899px) {
+  .tt {
+    flex-direction: column;
+    gap: 32px;
+    padding: 32px 24px;
+  }
+  .tt-scene {
+    width: min(460px, 100%);
+    height: min(560px, 48dvh);
+  }
+  .tt-body {
+    width: min(520px, 100%);
+    align-items: stretch;
+    text-align: center;
+  }
+  .tt-h1 {
+    align-items: center;
+  }
+  .tt-kicker {
+    align-self: center;
+  }
+}

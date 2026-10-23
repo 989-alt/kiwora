@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test'
-import { doTodaysActivities, saveWith, useSave } from './fixtures'
+import { doTodaysActivities, expect, saveWith, test, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 

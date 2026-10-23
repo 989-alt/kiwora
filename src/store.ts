@@ -5,13 +5,13 @@ import { isNewDay, todayKey } from './sim/clock'
 import { applyActions, endDay, newPlant } from './sim/day'
 import { measureAnswer } from './sim/measure'
 import { mulberry32, seedFor } from './sim/rng'
-import { loadSave, SAVE_KEY, writeSave, type JournalEntry, type PendingObs, type SaveData } from './sim/save'
+import { emptySave, loadSave, SAVE_KEY, writeSave, type JournalEntry, type PendingObs, type SaveData } from './sim/save'
 import { SPECIES, type SpeciesId, type StageId } from './sim/species'
 import type { CareTaskId, DayActions, DayReport, Mode, Place, PlantState, WeatherId } from './sim/types'
 import { newWeatherSeed, todayWeather, weatherOn } from './sim/weather'
 
-/** 'record' = a kept finished journal (AppState.record), read-only. */
-export type Screen = 'pick' | 'grow' | 'transplant' | 'dead' | 'journal' | 'dex' | 'backup' | 'record'
+/** 'title' = the main screen the app opens on. 'record' = a kept finished journal (AppState.record), read-only. */
+export type Screen = 'title' | 'pick' | 'grow' | 'transplant' | 'dead' | 'journal' | 'dex' | 'backup' | 'record'
 
 /**
  * The signal that starts the day-transition scene after [하루 마치기] (not saved). ending: 'sunrise' = a quick
@@ -53,6 +53,10 @@ export type Action =
   | { type: 'nightFxDone' }
   | { type: 'chooseYard'; place: Place }
   | { type: 'open'; screen: Screen }
+  /** From the title screen: go where the save says (screenFor). */
+  | { type: 'continue' }
+  /** Wipe every record (the sound setting stays) and go to the pick or the title screen. */
+  | { type: 'reset'; to: 'pick' | 'title' }
   /** Show the kept finished journal of a completed species. */
   | { type: 'openRecord'; id: SpeciesId }
   /** keep: a short code (plant only): keep this device's finished journals, past tries and dex. */
@@ -147,11 +151,20 @@ export function keepRecords(current: SaveData, restored: SaveData): SaveData {
   }
 }
 
+/**
+ * True when the save holds something to go back to: a plant (growing, dead or finished) or any kept record
+ * (finished journal, past try, dex). Settings alone do not count.
+ */
+export function hasProgress(s: SaveData): boolean {
+  return s.plant !== null || s.dex.length > 0 || s.pastTries.length > 0 || Object.keys(s.finished ?? {}).length > 0
+}
+
 /** Screens a student only looks at; they stay open when another tab saves, while they still make sense. */
 const VIEW_SCREENS: readonly Screen[] = ['dex', 'journal', 'record', 'backup']
 
 /** Keeps the viewer on `prev`'s look-only screen when `next` (newer progress from another tab) still allows it. */
 export function keepView(prev: AppState, next: AppState): AppState {
+  if (prev.screen === 'title') return { ...next, screen: 'title' }
   if (!VIEW_SCREENS.includes(prev.screen)) return next
   if (prev.screen === 'record' && !(prev.record && next.finished?.[prev.record])) return next
   return { ...next, screen: prev.screen, ...(prev.screen === 'record' ? { record: prev.record } : {}) }
@@ -397,6 +410,12 @@ export function reducer(prev: AppState, a: Action, today: string): AppState {
     }
     case 'open':
       return { ...s, screen: a.screen }
+    case 'continue':
+      return { ...s, screen: screenFor(s.plant) }
+    case 'reset': {
+      const fresh = emptySave()
+      return { ...fresh, settings: { ...fresh.settings, sound: s.settings.sound }, screen: a.to, morning: null }
+    }
     case 'openRecord':
       return s.finished?.[a.id] ? { ...s, screen: 'record', record: a.id } : s
     case 'clearWarning': {
@@ -427,13 +446,23 @@ function backupCorrupt(): void {
   }
 }
 
+/** Starting over also drops the kept copy of an unreadable save. */
+function removeBackup(): void {
+  try {
+    globalThis.localStorage?.removeItem(BACKUP_KEY)
+  } catch {
+    // storage unavailable: nothing to remove
+  }
+}
+
 function initState(): AppState {
   const { data, warning } = loadSave()
   // Keep the unreadable save before the first writeSave replaces it.
   if (warning === 'corrupt') backupCorrupt()
   const s = boot(data, todayKey())
   // A save that could not be read: show the backup panel first so a written-down code can be entered.
-  return warning ? { ...s, warning, screen: 'backup' } : s
+  // Otherwise every launch opens on the title screen ([이어하기] goes on from the save).
+  return warning ? { ...s, warning, screen: 'backup' } : { ...s, screen: 'title' }
 }
 
 function storedText(): string | null {
@@ -459,6 +488,7 @@ export function useApp(): [AppState, (a: Action) => void] {
     const today = todayKey()
     const action: Action =
       (a.type === 'pick' || a.type === 'replant') && a.weatherSeed === undefined ? { ...a, weatherSeed: newWeatherSeed() } : a
+    if (a.type === 'reset') removeBackup()
     setState((s) => reducer(s, action, today))
   }, [])
   useEffect(() => {

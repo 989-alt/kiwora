@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import type { NightFx } from '../../src/store'
-import App from '../../src/App'
+import { renderApp } from './renderApp'
 import { newPlant } from '../../src/sim/day'
 import { emptySave, SAVE_KEY } from '../../src/sim/save'
 import { DayTransition, END_COOLDOWN_MS, TAP_GUARD_MS } from '../../src/ui/DayTransition'
@@ -194,7 +194,7 @@ describe('App with the cover', () => {
 
   test('double-tapping 하루 마치기 in quick mode advances exactly one day', () => {
     seedQuick()
-    const { container } = render(<App />)
+    const { container } = renderApp()
     expect(day()).toBe('5')
     const end = screen.getByRole('button', { name: '하루 마치기' })
     fireEvent.click(end)
@@ -217,7 +217,7 @@ describe('App with the cover', () => {
 
   test('a tap on the cover skips it without another day', () => {
     seedQuick()
-    const { container } = render(<App />)
+    const { container } = renderApp()
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
     act(() => void vi.advanceTimersByTime(TAP_GUARD_MS))
     fireEvent.click(container.ownerDocument.querySelector('.nt')!)

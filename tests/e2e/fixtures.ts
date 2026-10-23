@@ -1,4 +1,76 @@
-import type { Page } from '@playwright/test'
+import { test as base, type Browser, type BrowserContext, type Page } from '@playwright/test'
+
+export { expect } from '@playwright/test'
+
+/**
+ * Goes past the title screen the app opens on: [이어하기] when there is a save to go on from, else
+ * [새로 시작하기] (no save: straight to the pick screen). Nothing happens on another screen (e.g. the backup
+ * panel shown for an unreadable save).
+ */
+export async function passTitle(page: Page) {
+  await page.locator('main > *').first().waitFor({ timeout: 30_000 })
+  if ((await page.locator('.tt').count()) === 0) return
+  const go = page.getByRole('button', { name: '이어하기' })
+  if ((await go.getAttribute('aria-disabled')) === 'true') await page.getByRole('button', { name: '새로 시작하기' }).click()
+  else await go.click()
+  await page.locator('.tt').waitFor({ state: 'detached' })
+}
+
+const WRAPPED = Symbol('passTitle')
+
+/** page.goto and page.reload of this page land past the title screen. */
+function wrapPage(page: Page) {
+  const p = page as Page & { [WRAPPED]?: true }
+  if (p[WRAPPED]) return
+  p[WRAPPED] = true
+  const goto = page.goto.bind(page)
+  const reload = page.reload.bind(page)
+  page.goto = async (...args: Parameters<Page['goto']>) => {
+    const r = await goto(...args)
+    await passTitle(page)
+    return r
+  }
+  page.reload = async (...args: Parameters<Page['reload']>) => {
+    const r = await reload(...args)
+    await passTitle(page)
+    return r
+  }
+}
+
+const wrapContext = (ctx: BrowserContext) => {
+  ctx.pages().forEach(wrapPage)
+  ctx.on('page', wrapPage)
+}
+
+/**
+ * The test every flow spec uses: each page (also of contexts a test opens itself) goes past the title screen
+ * after goto / reload, so the specs start where the app used to open. The title screen's own spec uses the
+ * plain Playwright test.
+ */
+export const test = base.extend<{ pastTitle: void }>({
+  context: async ({ context }, use) => {
+    wrapContext(context)
+    await use(context)
+  },
+  page: async ({ page }, use) => {
+    wrapPage(page)
+    await use(page)
+  },
+  pastTitle: [
+    async ({ browser }, use) => {
+      const b = browser as Browser
+      const newContext = b.newContext.bind(b)
+      b.newContext = async (...args: Parameters<Browser['newContext']>) => {
+        const ctx = await newContext(...args)
+        wrapContext(ctx)
+        return ctx
+      }
+      await use()
+      b.newContext = newContext
+    },
+    { auto: true },
+  ],
+})
 
 type PlantOver = Partial<{
   speciesId: string

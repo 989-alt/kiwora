@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { saveWith, useSave } from './fixtures'
+import type { Page } from '@playwright/test'
+import { expect, saveWith, test, useSave } from './fixtures'
 
 // The pot must stand ON the sill / desk / shelf: its bottom between the back and front edge of the top face
 // (hand-measured in assets/bg_stand.json), at every screen size the app is used on.

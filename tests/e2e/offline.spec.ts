@@ -1,6 +1,6 @@
 import { execFileSync, spawn, type ChildProcess } from 'node:child_process'
 import { createServer } from 'node:net'
-import { expect, test } from '@playwright/test'
+import { expect, test } from './fixtures'
 
 // Chromium only: Playwright's WebKit does not run service workers reliably.
 test.skip(({ browserName }) => browserName !== 'chromium', 'service worker check runs on Chromium only')

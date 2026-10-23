@@ -1,0 +1,31 @@
+/* [메인화면으로] in the headers, and the red buttons that wipe the records. */
+.gs-menu-btn.home-btn,
+.sc-btn.home-btn {
+  border-color: transparent;
+  background: #dc2626;
+  box-shadow: 0 5px 0 #991b1b;
+  color: #fff;
+}
+.home-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.sc-big.sc-big--danger {
+  border-color: transparent;
+  background: #dc2626;
+  box-shadow: 0 8px 0 #991b1b;
+  color: #fff;
+}
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.home-actions .sc-big {
+  flex: 0 0 auto;
+  min-height: 76px;
+}
+.bk-dialog button:focus-visible {
+  outline: 4px solid var(--c-accent);
+  outline-offset: 3px;
+}

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import App from '../../src/App'
+import { renderApp } from './renderApp'
 import { newPlant } from '../../src/sim/day'
 import { todayKey } from '../../src/sim/clock'
 import { emptySave, SAVE_KEY } from '../../src/sim/save'
@@ -110,7 +110,7 @@ describe('the night scene and the quick transition show tomorrow\'s forecast', (
 
   test('quick: the cover holds the forecast words and picture', () => {
     putSave(heatTomorrow())
-    const { container } = render(<App />)
+    const { container } = renderApp()
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
     const slot = container.ownerDocument.querySelector('.nt-forecast')!
     expect(slot.getAttribute('data-forecast')).toBe('heat')
@@ -123,21 +123,21 @@ describe('the night scene and the quick transition show tomorrow\'s forecast', (
 
   test('daily: the night scene keeps the forecast, also after a reload', () => {
     putSave({ ...heatTomorrow(), mode: 'daily' })
-    const { unmount } = render(<App />)
+    const { unmount } = renderApp()
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
     act(() => void vi.advanceTimersByTime(6000))
     const night = document.querySelector('.gs-night')!
     expect(night.querySelector('.gs-night-forecast')?.textContent).toContain('내일은 아주 더워요! 창가는 뜨거울 거예요.')
     expect(night.querySelector('.gs-night-forecast img')?.getAttribute('src')).toMatch(/weather\/heat\.webp/)
     unmount()
-    render(<App />)
+    renderApp()
     expect(document.querySelector('.gs-night-forecast')?.textContent).toContain('내일은 아주 더워요!')
   })
 
   test('no forecast on a calm day, for a dead plant or for a finished one', () => {
     const calm = plantAt('balsam', 'leafStem', { day: 4, weatherFrom: 99 })
     putSave(calm)
-    const { container, unmount } = render(<App />)
+    const { container, unmount } = renderApp()
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
     expect(container.ownerDocument.querySelector('.nt')).not.toBeNull()
     expect(container.ownerDocument.querySelector('.nt-forecast')).toBeNull()
@@ -172,7 +172,7 @@ describe('the morning card leads with today\'s weather', () => {
       lastDayKey: todayKey(yesterday),
       pendingActions: { waterAdded: 0, pellets: 0, bugsRemoved: 0, place: 'window' },
     })
-    render(<App />)
+    renderApp()
     expect(day()).toBe('5')
     expect(document.querySelector('.gs-night')).toBeNull()
     const card = document.querySelector('.morning')!
@@ -183,7 +183,7 @@ describe('the morning card leads with today\'s weather', () => {
   test('a done daily day shows the forecast as tomorrow\'s, never as today\'s', () => {
     const p = plantAt('balsam', 'leafStem', { day: 4, place: 'desk', mode: 'daily' })
     putSave({ ...p, weatherSeed: seedFor(p, 'heat', 5) })
-    render(<App />)
+    renderApp()
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
     act(() => void vi.advanceTimersByTime(6000))
     // night: the forecast is there, but no morning card and no "오늘은" line for the new day
@@ -216,7 +216,7 @@ describe('the status board shows 오늘의 날씨', () => {
 
   test('on the grow screen it flips to 대비했어요 after moving off the window, and the temperature row follows', () => {
     putSave(heatToday())
-    const { container } = render(<App />)
+    const { container } = renderApp()
     expect(boardRow().textContent).toContain('폭염')
     expect(boardRow().textContent).toContain('대비가 필요해요')
     const hot = screen.getByRole('group', { name: /^온도/ }).getAttribute('aria-label')
@@ -228,14 +228,14 @@ describe('the status board shows 오늘의 날씨', () => {
 
   test('a calm day shows 맑아요 on the grow screen', () => {
     putSave(plantAt('balsam', 'leafStem', { day: 4, weatherFrom: 99 }))
-    render(<App />)
+    renderApp()
     expect(boardRow().textContent).toContain('맑아요')
   })
 
   test('at night the row reports the day that just ended', () => {
     const p = plantAt('balsam', 'leafStem', { day: 4, place: 'window', mode: 'daily' })
     putSave({ ...p, weatherSeed: seedFor(p, 'heat', 4) })
-    const { container } = render(<App />)
+    const { container } = renderApp()
     fireEvent.click(container.querySelector('[data-slot="desk"]')!)
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
     act(() => void vi.advanceTimersByTime(6000))
@@ -293,7 +293,7 @@ describe('typhoon tie', () => {
 
   test('finishes by taps alone', () => {
     putSave(typhoon())
-    render(<App />)
+    renderApp()
     expect(boardRow().textContent).toContain('태풍')
     expect(boardRow().textContent).toContain('대비가 필요해요')
     expect(screen.getByRole('status', { name: '오늘 할 일' }).textContent).toContain('태풍이 와요! 나무를 지지대에 묶어요.')
@@ -310,13 +310,13 @@ describe('typhoon tie', () => {
   test('a tie on a day without a typhoon does nothing', () => {
     const p = plantAt('apple', 'fruit', { day: 6, place: 'yardSunny', weatherFrom: 99 })
     putSave(p)
-    render(<App />)
+    renderApp()
     expect(screen.queryByRole('button', { name: '묶을 나무 밑동' })).toBeNull()
   })
 
   test('the morning after: tied = "잘 대비했어요", not tied = "힘들었어요"', () => {
     putSave(typhoon())
-    render(<App />)
+    renderApp()
     fireEvent.click(screen.getByRole('button', { name: '묶을 나무 밑동' }))
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
     act(() => void vi.advanceTimersByTime(6000))
@@ -325,7 +325,7 @@ describe('typhoon tie', () => {
 
   test('not tied: the next morning says it was hard', () => {
     putSave(typhoon())
-    render(<App />)
+    renderApp()
     fireEvent.click(screen.getByRole('button', { name: '하루 마치기' }))
     act(() => void vi.advanceTimersByTime(6000))
     expect(document.querySelector('.morning')?.textContent).toContain('태풍 때문에 힘들었어요')

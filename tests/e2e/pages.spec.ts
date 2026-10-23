@@ -1,7 +1,6 @@
 import { execFileSync, spawn, type ChildProcess } from 'node:child_process'
 import { createServer } from 'node:net'
-import { expect, test } from '@playwright/test'
-import { saveWith, useSave } from './fixtures'
+import { expect, saveWith, test, useSave } from './fixtures'
 
 // The GitHub Pages build lives under /kiwora/. Chromium only (service workers).
 test.skip(({ browserName }) => browserName !== 'chromium', 'GitHub Pages base-path check runs on Chromium only')

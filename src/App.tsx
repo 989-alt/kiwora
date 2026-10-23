@@ -8,6 +8,7 @@ import { DexScreen } from './ui/screens/DexScreen'
 import { GrowScreen } from './ui/screens/GrowScreen'
 import { JournalScreen } from './ui/screens/JournalScreen'
 import { PickScreen } from './ui/screens/PickScreen'
+import { TitleScreen } from './ui/screens/TitleScreen'
 import { TransplantScreen } from './ui/screens/TransplantScreen'
 
 /** The screen visited before the current one (UI only: sends the backup panel's back button home). */
@@ -76,6 +77,9 @@ function Screens({ s, dispatch }: AppProps) {
 
   let body: ReactNode
   switch (screen) {
+    case 'title':
+      body = <TitleScreen state={s} dispatch={dispatch} />
+      break
     case 'dead':
       body = <DeathScreen state={s} dispatch={dispatch} />
       break

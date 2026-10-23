@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test'
-import { centerOf, doTodaysActivities, drag, hold, saveWith, useSave } from './fixtures'
+import { centerOf, doTodaysActivities, drag, expect, hold, saveWith, test, useSave } from './fixtures'
 
 const waterRow = (page: import('@playwright/test').Page) => page.getByRole('group', { name: /^물 / })
 const nutrientRow = (page: import('@playwright/test').Page) => page.getByRole('group', { name: /^영양 / })

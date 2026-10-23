@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { doObserve, doTodaysActivities, saveWith, useSave } from './fixtures'
+import type { Page } from '@playwright/test'
+import { doObserve, doTodaysActivities, expect, saveWith, test, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-22-kiwora-v2/shots'
 

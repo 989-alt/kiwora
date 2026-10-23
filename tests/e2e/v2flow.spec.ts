@@ -1,9 +1,9 @@
-import { expect, test, type Page } from '@playwright/test'
+import type { Page } from '@playwright/test'
+import { centerOf, doTodaysActivities, drag, expect, hold, test } from './fixtures'
 import { newPlant } from '../../src/sim/day'
 import { SPECIES, type SpeciesId } from '../../src/sim/species'
 import { weatherOn } from '../../src/sim/weather'
 import type { WeatherId } from '../../src/sim/types'
-import { centerOf, doTodaysActivities, drag, hold } from './fixtures'
 
 /** Full v2 flows through the real screens: pick, morning card, care by taps, water, end the day, ... */
 test.setTimeout(240_000)

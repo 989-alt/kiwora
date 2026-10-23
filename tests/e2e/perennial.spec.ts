@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { centerOf, doTodaysActivities, drag, saveWith, useSave } from './fixtures'
+import type { Page } from '@playwright/test'
+import { centerOf, doTodaysActivities, drag, expect, saveWith, test, useSave } from './fixtures'
 
 const SHOTS = '.superpowers/sdd/2026-10-21-plant-life/shots'
 

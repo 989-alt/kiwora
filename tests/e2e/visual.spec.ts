@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
-import { saveWith, useSave } from './fixtures'
+import type { Page } from '@playwright/test'
+import { expect, saveWith, test, useSave } from './fixtures'
 
 // Screenshots for the visual check of the scene layering (compare with docs/mockup/img/scene_grow.png).
 const SHOTS = '.superpowers/sdd/2026-10-21-plant-life/shots'
